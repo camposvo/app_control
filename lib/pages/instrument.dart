@@ -12,51 +12,58 @@ import '../models/orgaInstrumento.dart';
 import '../models/variable.dart';
 import '../providers/providers_pages.dart';
 
-class Organization extends StatefulWidget {
+class Instrument extends StatefulWidget {
   @override
-  _OrganizationState createState() => _OrganizationState();
+  _InstrumentState createState() => _InstrumentState();
 }
 
-class _OrganizationState extends State<Organization> {
-  List<OrgaInstrumento> _organizations = [];
-  List<OrgaInstrumento> _filterList = [];
-  bool isLoading = false;
+class _InstrumentState extends State<Instrument> {
+  List<OrgaInstrumentoElement> _instruments = [];
+  List<OrgaInstrumentoElement> _filterList = [];
+  late OrgaInstrumento organization;
+
+  bool isLoading = true;
+  String orgaId = '';
 
   @override
   void initState() {
     super.initState();
-     _loadJsonData(context);
-  }
 
-  Future<void> _loadJsonData(BuildContext context) async {
-    final info = Provider.of<ProviderPages>(context, listen: false);
 
-    isLoading = true;
-    String jsonString  = await rootBundle.loadString('assets/json/data.json');
-    setState(() {
-      _organizations = orgaInstrumentoFromJson(jsonString);
-      _filterList = orgaInstrumentoFromJson(jsonString);
-      info.organizations = orgaInstrumentoFromJson(jsonString);
-      
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final arguments = ModalRoute.of(context)?.settings.arguments as Map;
+
+      final info = Provider.of<ProviderPages>(context, listen: false);
+      final id = arguments["id"];
+      print(id);
+      organization = info.organizations.firstWhere((item) => item.orgaId == id);
+      print(organization.orgaNombre);
+      _instruments = organization.orgaInstrumentos;
+      _filterList = organization.orgaInstrumentos;
+
+      setState(() {});
       isLoading = false;
+
+
+
+
     });
+
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarTwo(context, "Edificios"),
+      appBar: setAppBarTwo(context, organization.orgaNombre),
       body: contentBody(context)
     );
   }
 
 
   onSearch(String search) {
-    _filterList = _organizations.where((item) {
-      return item.orgaNombre.toLowerCase().contains(search);
+    _filterList = _instruments.where((item) {
+      return item.instNombre.toLowerCase().contains(search);
     }).toList();
 
     setState(() {});
@@ -103,6 +110,12 @@ class _OrganizationState extends State<Organization> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
+              Navigator.pushNamed(context, 'variable',
+                  arguments: {'id': _filterList[index].instNombre})
+                  .then((_) async {
+
+              });
+
             });
           },
         )
@@ -119,8 +132,8 @@ class _OrganizationState extends State<Organization> {
   }
 
   Widget _itemListView(int index, BuildContext context) {
-    final nombre = _filterList[index].orgaNombre;
-    final instrument = _filterList[index].orgaInstrumentos;
+    final nombre = _filterList[index].instNombre;
+    final instrument = _filterList[index].instEspaAreaNombre;
 
     final size = MediaQuery.of(context).size;
     final width = size.width;
@@ -157,12 +170,7 @@ class _OrganizationState extends State<Organization> {
                 ),
                 onPressed: () async {
                   //await api.testNotify(info.persona.user.pkUsuario);
-                  Navigator.pushNamed(context, 'instrument',
-                      arguments: {'id': _filterList[index].orgaId})
-                      .then((_) async {
-                  });
-
-
+                  Navigator.pushNamed(context, 'takePhoto');
                 },
                 child: Text('Ir',  style: TextStyle(
                   color: Colors.white,

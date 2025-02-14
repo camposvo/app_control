@@ -1,12 +1,11 @@
 import 'package:control/pages/controlList.dart';
+import 'package:control/pages/instrument.dart';
 import 'package:control/pages/organization.dart';
 import 'package:control/pages/takePhoto.dart';
 
 import 'package:control/pages/mainMenu.dart';
 import 'package:flutter/material.dart';
 
-
-import '../tabbarPage/tabbarPage.dart';
 
 
 Map<String, WidgetBuilder> getApplicationRoutes() {
@@ -15,6 +14,7 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'controlList': (BuildContext context) => ControlList(),
     'takePhoto': (BuildContext context) => TakePhoto(),
     'organizations': (BuildContext context) => Organization(),
+    'instrument': (BuildContext context) => Instrument(),
 
   };
 }

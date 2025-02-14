@@ -1,20 +1,21 @@
 import 'package:control/models/variable.dart';
 import 'package:flutter/material.dart';
 
+import '../models/orgaInstrumento.dart';
+
 class ProviderPages with ChangeNotifier {
-  List<DataItem> _dataItems = [];
-  List<DataItem> _filterList = [];
-  int selectedIndex = 0;
+  List<OrgaInstrumento> _organizations = [];
+  List<OrgaInstrumento> _filterList = [];
 
-  List<DataItem> get dataItems => _dataItems;
-  List<DataItem> get filterList => _filterList;
+  List<OrgaInstrumento> get organizations => _organizations;
+  List<OrgaInstrumento> get filterList => _filterList;
 
-  set dataItems(List<DataItem> value) {
-    _dataItems = value;
+  set organizations(List<OrgaInstrumento> value) {
+    _organizations = value;
     notifyListeners();
   }
 
-  set filterList(List<DataItem> value) {
+  set filterList(List<OrgaInstrumento> value) {
     _filterList = value;
     notifyListeners();
   }

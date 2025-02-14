@@ -58,6 +58,8 @@ class _ProcedimientoListState extends State<ProcedimientoList> {
     );
   }
 
+
+
   Widget contentBody(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
