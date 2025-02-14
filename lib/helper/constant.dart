@@ -24,7 +24,7 @@ class AppColor {
   static var containerBody = HexToColor("#E5E6E9");
   static var themeColor = HexToColor("#003366");
   static var secondaryColor = HexToColor("#fff2b9");
-  static var backgroundBtnColor = HexToColor("#ffdd4a");
+  static var backgroundBtnColor = HexToColor("#fff2b9");
   static var redColor = HexToColor("#e41a28");
   static var cremaColor = HexToColor("#F5DEB3");
   static var dulzorColor = HexToColor("#F2549B");

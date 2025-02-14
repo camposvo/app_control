@@ -9,19 +9,21 @@ import 'package:control/providers/providers_pages.dart';
 
 
 
-class MainMenu extends StatelessWidget {
-  const MainMenu({super.key});
+class SelectMode extends StatelessWidget {
+  const SelectMode({super.key});
 
   @override
   Widget build(BuildContext context) {
     final info = Provider.of<ProviderPages>(context);
     final size = MediaQuery.of(context).size;
     final width = size.width;
+    final organization = info.organizations.firstWhere((item) => item.orgaId == info.orgaId);
+    print(organization.orgaNombre);
 
 
 
     return Scaffold(
-        appBar: setAppBarTwo(context, "Bienvenido"),
+        appBar: setAppBarTwo(context,organization.orgaNombre),
         body: Container(
             padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
             child: Theme(
@@ -52,9 +54,9 @@ class MainMenu extends StatelessWidget {
                           ),
                           onPressed: () async {
                             //await api.testNotify(info.persona.user.pkUsuario);
-                            Navigator.pushNamed(context, 'organizations');
+                            Navigator.pushNamed(context, 'instrument');
                           },
-                          child: Text('Medidores',  style: TextStyle(
+                          child: Text('Manual',  style: TextStyle(
                             color: Colors.black,
                             fontSize: 24,
                           ),),
@@ -71,9 +73,9 @@ class MainMenu extends StatelessWidget {
                           ),
                           onPressed: () async {
                             //await api.testNotify(info.persona.user.pkUsuario);
-                            Navigator.pushNamed(context, 'controlList');
+                            Navigator.pushNamed(context, 'Automatico');
                           },
-                          child: Text('Asignaciones',  style: TextStyle(
+                          child: Text('Automatico',  style: TextStyle(
                             color: Colors.black,
                             fontSize: 24,
                           ),),

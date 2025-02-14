@@ -1,9 +1,11 @@
 import 'package:control/pages/controlList.dart';
 import 'package:control/pages/instrument.dart';
 import 'package:control/pages/organization.dart';
+import 'package:control/pages/selectMode.dart';
 import 'package:control/pages/takePhoto.dart';
 
 import 'package:control/pages/mainMenu.dart';
+import 'package:control/pages/variable.dart';
 import 'package:flutter/material.dart';
 
 
@@ -15,6 +17,8 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'takePhoto': (BuildContext context) => TakePhoto(),
     'organizations': (BuildContext context) => Organization(),
     'instrument': (BuildContext context) => Instrument(),
+    'selectMode': (BuildContext context) => SelectMode(),
+    'variable': (BuildContext context) => Variable(),
 
   };
 }

@@ -29,22 +29,23 @@ class _InstrumentState extends State<Instrument> {
   void initState() {
     super.initState();
 
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    final id = info.orgaId;
+    print("IIIIIIII");
+    print(id);
+    organization = info.organizations.firstWhere((item) => item.orgaId == id);
+
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final arguments = ModalRoute.of(context)?.settings.arguments as Map;
+      //final arguments = ModalRoute.of(context)?.settings.arguments as Map;
 
-      final info = Provider.of<ProviderPages>(context, listen: false);
-      final id = arguments["id"];
-      print(id);
-      organization = info.organizations.firstWhere((item) => item.orgaId == id);
+
       print(organization.orgaNombre);
       _instruments = organization.orgaInstrumentos;
       _filterList = organization.orgaInstrumentos;
 
       setState(() {});
       isLoading = false;
-
-
 
 
     });
@@ -102,6 +103,8 @@ class _InstrumentState extends State<Instrument> {
   }
 
   Widget _createListView(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
     return Container(
         height: MediaQuery.of(context).size.height,
         child: _filterList.length > 0
@@ -110,11 +113,11 @@ class _InstrumentState extends State<Instrument> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
-              Navigator.pushNamed(context, 'variable',
+              /*Navigator.pushNamed(context, 'variable',
                   arguments: {'id': _filterList[index].instNombre})
                   .then((_) async {
 
-              });
+              });*/
 
             });
           },
@@ -134,6 +137,8 @@ class _InstrumentState extends State<Instrument> {
   Widget _itemListView(int index, BuildContext context) {
     final nombre = _filterList[index].instNombre;
     final instrument = _filterList[index].instEspaAreaNombre;
+
+    final info = Provider.of<ProviderPages>(context, listen: false);
 
     final size = MediaQuery.of(context).size;
     final width = size.width;
@@ -164,13 +169,17 @@ class _InstrumentState extends State<Instrument> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  shape: StadiumBorder(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5.0), // Radio de 10.0
+                  ),
                   backgroundColor: Colors.blue,
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  //await api.testNotify(info.persona.user.pkUsuario);
-                  Navigator.pushNamed(context, 'takePhoto');
+                  setState(() {
+                    info.instId = _filterList[index].instId;
+                  });
+                  Navigator.pushNamed(context, 'variable');
                 },
                 child: Text('Ir',  style: TextStyle(
                   color: Colors.white,

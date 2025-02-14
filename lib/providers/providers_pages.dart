@@ -6,6 +6,9 @@ import '../models/orgaInstrumento.dart';
 class ProviderPages with ChangeNotifier {
   List<OrgaInstrumento> _organizations = [];
   List<OrgaInstrumento> _filterList = [];
+  String _orgaId = '';
+  String _instId = '';
+
 
   List<OrgaInstrumento> get organizations => _organizations;
   List<OrgaInstrumento> get filterList => _filterList;
@@ -19,5 +22,21 @@ class ProviderPages with ChangeNotifier {
     _filterList = value;
     notifyListeners();
   }
+
+  String get orgaId => _orgaId;
+
+  set orgaId(String value) {
+    _orgaId = value;
+    notifyListeners();
+  }
+
+  String get instId => _instId;
+
+  set instId(String value) {
+    _instId = value;
+    notifyListeners();
+  }
+
+
 
 }
