@@ -16,7 +16,8 @@ class TakePhoto extends StatefulWidget {
   _TakePhotoState createState() => _TakePhotoState();
 }
 
-enum WidgetState { NONE, LOADING, LOADED, CAPTURE,  ERROR }
+enum WidgetState { NONE, LOADING, LOADED, CAPTURE,  ERROR_CAMERA, ERROR_MQTT }
+enum ImageState { RECEIVED, WAITING }
 
 class _TakePhotoState extends State<TakePhoto> {
   late List<CameraDescription> _cameras;
@@ -24,12 +25,16 @@ class _TakePhotoState extends State<TakePhoto> {
   final client = MqttServerClient('manuales.ribe.cl', '');
   XFile? _image;
   WidgetState _widgetState = WidgetState.NONE;
+  ImageState imageState = ImageState.WAITING;
 
   String imageBase64_1 ="";
   String imageBase64_2 ="";
   String comment = '';
 
-  static const String TOPIC = 'CAMARA/TAKE_PHOTO';
+  String errorMqtt = '';
+
+  static const String TOPIC_TAKE = 'CAMARA/TAKE_PHOTO';
+  static const String TOPIC_SENDING = 'CAMARA/SENDING_PHOTO';
 
 
 
@@ -58,7 +63,7 @@ class _TakePhotoState extends State<TakePhoto> {
       await _controller!.initialize();
 
       if (_controller!.value.hasError) {
-        _widgetState = WidgetState.ERROR;
+        _widgetState = WidgetState.ERROR_CAMERA;
         setState(() {});
       } else {
         _widgetState = WidgetState.LOADED;
@@ -84,9 +89,13 @@ class _TakePhotoState extends State<TakePhoto> {
       final connMessage = await client.connect("root", "*R1b3x#99");
       print("client connecting result $connMessage");
     } on NoConnectionException catch (e) {
-      // Raised by the client when connection fails.
+
       print('EXAMPLE::client exception - $e');
       client.disconnect();
+      errorMqtt = e.toString();
+      _widgetState = WidgetState.ERROR_MQTT;
+      setState(() {});
+      return;
     }
 
     /// Check we are connected
@@ -99,35 +108,29 @@ class _TakePhotoState extends State<TakePhoto> {
       //exit(-1);
     }
 
-    print('EXAMPLE::Subscribing to the test/lol topic');
-    client.subscribe(TOPIC, MqttQos.atLeastOnce);
+    client.subscribe(TOPIC_TAKE, MqttQos.atLeastOnce);
+    client.subscribe(TOPIC_SENDING, MqttQos.atLeastOnce);
 
     client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
       final recMess = c![0].payload as MqttPublishMessage;
       final pt =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
-      setState(() {});
-      print("ENTRO POR AQUI   DESPUES");
       print('topic is <${c[0].topic}>, payload is <-- $pt -->');
 
       final  _topic = c[0].topic;
 
-      if(_topic == TOPIC){
+      if(_topic == TOPIC_TAKE){
         _takePicture();
       }
 
-    });
-
-    client.published!.listen((MqttPublishMessage message) {
-      final  _topic =  message.variableHeader!.topicName;
-
-      print("ENTRO POR AQUI   PRIMERO");
-
-
+      if(_topic == TOPIC_SENDING){
+        imageBase64_2 = pt;
+        imageState = ImageState.RECEIVED;
+        setState(() {});
+      }
 
     });
-
 
   }
 
@@ -147,7 +150,7 @@ class _TakePhotoState extends State<TakePhoto> {
     builder.addString(msg);
 
     if (builder.payload != null) {
-      client.publishMessage(TOPIC, MqttQos.atLeastOnce, builder.payload!);
+      client.publishMessage(TOPIC_TAKE, MqttQos.atLeastOnce, builder.payload!);
     } else {}
 
   }
@@ -229,10 +232,16 @@ class _TakePhotoState extends State<TakePhoto> {
       case WidgetState.CAPTURE:
         return _buildScaffold(context,_capture(context)) ;
 
-      case WidgetState.ERROR:
+      case WidgetState.ERROR_CAMERA:
         return Center(
           child: Text("La cámara No se pudo Cargar. Reincie la App"),
         );
+
+      case WidgetState.ERROR_MQTT:
+        return _buildScaffold(context,Center(
+          child: Text("Error con MQTT: $errorMqtt"),
+        ) ) ;
+
     }
   }
 
@@ -314,13 +323,19 @@ class _TakePhotoState extends State<TakePhoto> {
             ),
           ),
           // Imágenes Base64
+          (imageState == ImageState.WAITING) ?
+          SizedBox(
+            height: 500,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ):
           InteractiveViewer(
             minScale: 0.5, // Define el zoom mínimo (opcional)
             maxScale: 3.0, // Define el zoom máximo (opcional)
             child: Image.memory(
-              base64Decode(imageBase64_1),
+              base64Decode(imageBase64_2),
               height: 500,
-      
               fit: BoxFit.contain, // Importante: Usa BoxFit.contain
             ),
           ),
