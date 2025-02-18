@@ -31,8 +31,6 @@ class _InstrumentState extends State<Instrument> {
 
     final info = Provider.of<ProviderPages>(context, listen: false);
     final id = info.orgaId;
-    print("IIIIIIII");
-    print(id);
     organization = info.organizations.firstWhere((item) => item.orgaId == id);
 
 
@@ -56,11 +54,10 @@ class _InstrumentState extends State<Instrument> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarTwo(context, organization.orgaNombre),
+      appBar: setAppBarSubTitle(context, organization.orgaNombre, "Medidores"),
       body: contentBody(context)
     );
   }
-
 
   onSearch(String search) {
     _filterList = _instruments.where((item) {
@@ -72,6 +69,7 @@ class _InstrumentState extends State<Instrument> {
 
   _search() {
     return Container(
+      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
       height: 48,
       child: TextField(
         onChanged: (value) => onSearch(value),
@@ -82,9 +80,12 @@ class _InstrumentState extends State<Instrument> {
 
   Widget contentBody(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
         children: [
+          SizedBox(
+            height: 10,
+          ),
           _search(),
           SizedBox(
             height: 7,
@@ -95,17 +96,28 @@ class _InstrumentState extends State<Instrument> {
                 : _createListView(context),
           ),
           SizedBox(
-            height: 10,
+            height: 20,
           ),
+          Container(
+            color: AppColor.color1,
+            padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                setCommonText("Listos", Colors.white, 16.0, FontWeight.w800, 20),
+                setCommonText("Pendientes", Colors.white, 16.0, FontWeight.w800, 20),
+              ],
+            ),
+          )
         ],
       ),
     );
   }
 
   Widget _createListView(BuildContext context) {
-    final info = Provider.of<ProviderPages>(context, listen: false);
 
     return Container(
+        padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
         height: MediaQuery.of(context).size.height,
         child: _filterList.length > 0
             ? ListView.builder(
@@ -132,11 +144,12 @@ class _InstrumentState extends State<Instrument> {
             ),
           ),
         ));
+
   }
 
   Widget _itemListView(int index, BuildContext context) {
     final nombre = _filterList[index].instNombre;
-    final instrument = _filterList[index].instEspaAreaNombre;
+    final variables = _filterList[index].instVariables;
 
     final info = Provider.of<ProviderPages>(context, listen: false);
 
@@ -161,9 +174,8 @@ class _InstrumentState extends State<Instrument> {
                   SizedBox(
                     width: 10,
                   ),
-                  setCommonText(nombre, Colors.black, 14.0, FontWeight.w800, 20),
-                  setCommonText(instrument.length.toString(), Colors.black, 14.0, FontWeight.w800, 20),
-
+                  setCommonText(nombre, Colors.black, 16.0, FontWeight.w800, 20),
+                  setCommonText(variables.length.toString(), AppColor.themeColor, 16.0, FontWeight.w800, 20),
 
                 ],
               ),
@@ -172,7 +184,7 @@ class _InstrumentState extends State<Instrument> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5.0), // Radio de 10.0
                   ),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColor.secondaryColor,
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {

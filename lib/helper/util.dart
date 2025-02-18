@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 
 
 
@@ -60,10 +61,6 @@ class Util {
     return formatted;
   }
 
-
-
-
-
   Image imageFromBase64String(String base64String) {
     return Image.memory(base64Decode(base64String));
   }
@@ -77,6 +74,16 @@ class Util {
   }
 
 
+
+  static String geenerateCode(int longitud) {
+    const caracteres =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    Random random = Random();
+    return String.fromCharCodes(
+      List.generate(longitud, (index) => caracteres.codeUnitAt(
+          random.nextInt(caracteres.length))),
+    );
+  }
 
 
 }

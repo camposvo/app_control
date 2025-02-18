@@ -210,8 +210,23 @@ setHeaderTitle(String title, dynamic color) {
     textDirection: SharedManager.shared.direction,
     style: new TextStyle(
       color: color,
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: FontWeight.w600,
+    ),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
+}
+
+
+setHeaderSubTitle(String title, dynamic color) {
+  return new AutoSizeText(
+    title,
+    textDirection: SharedManager.shared.direction,
+    style: new TextStyle(
+      color: color,
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
     ),
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
@@ -333,6 +348,36 @@ setAppBarTwo(BuildContext context, String title) {
   );
 }
 
+
+setAppBarSubTitle(BuildContext context, String title, String subTitle) {
+  return AppBar(
+    iconTheme: IconThemeData(
+      color: Colors.white, // Cambia el color del icono a blanco
+    ),
+    centerTitle: true,
+    automaticallyImplyLeading: false,
+    backgroundColor: AppColor.themeColor,
+    elevation: 1.0,
+    //actions: setCommonCartNotificationView(context),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+    ),
+    bottom: PreferredSize(
+      preferredSize: Size.fromHeight(30),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          setHeaderTitle(title, Colors.white),
+          setHeaderSubTitle(subTitle, Colors.white),
+          SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 /*
 setAppBarSimple(BuildContext context, String title) {

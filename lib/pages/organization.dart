@@ -138,28 +138,31 @@ class _OrganizationState extends State<Organization> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(
-                    width: 10,
-                  ),
-                  setCommonText(nombre, Colors.black, 14.0, FontWeight.w800, 20),
-                  setCommonText(instrument.length.toString(), Colors.black, 14.0, FontWeight.w800, 20),
+              SizedBox(
+                width: 220,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 10,
+                    ),
+                    setCommonText2(nombre.toUpperCase(), Colors.black, 16.0, FontWeight.w800, 20),
+                    setCommonText(instrument.length.toString(), AppColor.themeColor, 16.0, FontWeight.w800, 20),
 
 
-                ],
+                  ],
+                ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  shape: StadiumBorder(),
-                  backgroundColor: Colors.blue,
+                  shape:  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                  ),
+                  backgroundColor: AppColor.secondaryColor,
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-
-
                   setState(() {
                     info.orgaId = _filterList[index].orgaId;
                   });

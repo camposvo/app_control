@@ -22,16 +22,16 @@ bool get isIos =>
 class AppColor {
   static var pagingIndicatorColor = Colors.red;
   static var containerBody = HexToColor("#E5E6E9");
-  static var themeColor = HexToColor("#003366");
-  static var secondaryColor = HexToColor("#fff2b9");
-  static var backgroundBtnColor = HexToColor("#fff2b9");
+  static var themeColor = HexToColor("#003773");
+  static var secondaryColor = Colors.blue;
+  static var backgroundBtnColor = HexToColor("#39b4a5");
   static var redColor = HexToColor("#e41a28");
   static var cremaColor = HexToColor("#F5DEB3");
   static var dulzorColor = HexToColor("#F2549B");
   static var itemList = Colors.white;
   static var white = Colors.white;
 
-  static var color1 = HexToColor("#7193e8");
+  static var color1 = HexToColor("#39b4a5");
   static var color2 = HexToColor("#79CABD");
   static var color3 = HexToColor("#f2bd68");
   static var color4 = HexToColor("#9468f2");

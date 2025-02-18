@@ -46,8 +46,10 @@ class MainMenu extends StatelessWidget {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               minimumSize: Size(width -20, 40),
-                              shape: StadiumBorder(),
-                              backgroundColor: AppColor.backgroundBtnColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                              ),
+                              backgroundColor: AppColor.themeColor,
                               padding: EdgeInsets.all(10.0),
                           ),
                           onPressed: () async {
@@ -55,7 +57,7 @@ class MainMenu extends StatelessWidget {
                             Navigator.pushNamed(context, 'organizations');
                           },
                           child: Text('Medidores',  style: TextStyle(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 24,
                           ),),
                         ),
@@ -65,8 +67,10 @@ class MainMenu extends StatelessWidget {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             minimumSize: Size(width -20, 40),
-                            shape: StadiumBorder(),
-                            backgroundColor: AppColor.backgroundBtnColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                            ),
+                            backgroundColor: AppColor.themeColor,
                             padding: EdgeInsets.all(10.0),
                           ),
                           onPressed: () async {
@@ -74,7 +78,7 @@ class MainMenu extends StatelessWidget {
                             Navigator.pushNamed(context, 'controlList');
                           },
                           child: Text('Asignaciones',  style: TextStyle(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 24,
                           ),),
                         ),
