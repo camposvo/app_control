@@ -1,11 +1,11 @@
-import 'package:control_slave/helper/common_widgets.dart';
+import 'package:control/helper/common_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import 'package:control_slave/helper/constant.dart';
-import 'package:control_slave/providers/providers_pages.dart';
+import 'package:control/helper/constant.dart';
+import 'package:control/providers/providers_pages.dart';
 
 class Welcome extends StatelessWidget {
   @override
@@ -52,8 +52,7 @@ class Welcome extends StatelessWidget {
                             padding: EdgeInsets.all(20.0),
                         ),
                         onPressed: () async {
-                          //await api.testNotify(info.persona.user.pkUsuario);
-                          Navigator.pushNamed(context, 'mainMenu');
+                          Navigator.pushNamed(context, 'organizations');
                         },
                         child: Text('Iniciar',  style: TextStyle(
                           color: Colors.white,

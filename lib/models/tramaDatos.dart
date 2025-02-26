@@ -1,14 +1,14 @@
 // To parse this JSON data, do
 //
-//     final mqttPayload = mqttPayloadFromJson(jsonString);
+//     final tramaDatos = tramaDatosFromJson(jsonString);
 
 import 'dart:convert';
 
-MqttPayload mqttPayloadFromJson(String str) => MqttPayload.fromJson(json.decode(str));
+TramaDatos tramaDatosFromJson(String str) => TramaDatos.fromJson(json.decode(str));
 
-String mqttPayloadToJson(MqttPayload data) => json.encode(data.toJson());
+String tramaDatosToJson(TramaDatos data) => json.encode(data.toJson());
 
-class MqttPayload {
+class TramaDatos {
   String tipoMensaje;
   String orgaId;
   String orgaNombre;
@@ -19,7 +19,7 @@ class MqttPayload {
   String subuAbreviatura;
   String imagen;
 
-  MqttPayload({
+  TramaDatos({
     required this.tipoMensaje,
     required this.orgaId,
     required this.orgaNombre,
@@ -31,7 +31,7 @@ class MqttPayload {
     required this.imagen,
   });
 
-  factory MqttPayload.fromJson(Map<String, dynamic> json) => MqttPayload(
+  factory TramaDatos.fromJson(Map<String, dynamic> json) => TramaDatos(
     tipoMensaje: json["tipo_mensaje"],
     orgaId: json["orga_id"],
     orgaNombre: json["orga_nombre"],

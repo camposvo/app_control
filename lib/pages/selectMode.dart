@@ -1,9 +1,11 @@
+import 'package:control/models/organizacion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:control/helper/constant.dart';
 import 'package:control/providers/providers_pages.dart';
 
+import '../api/client.dart';
 import '../helper/common_widgets.dart';
 import '../helper/mqttManager.dart';
 import '../helper/util.dart';
@@ -11,7 +13,7 @@ import '../models/orgaInstrumento.dart';
 import 'package:flutter/services.dart';
 
 
-enum WidgetState { NONE, SHOW_MENU, LOADING, LOADED, SHOW_CODE,  ERROR_MQTT }
+enum WidgetState { LOADING, LOADED, SHOW_CODE,  ERROR_MQTT }
 
 class SelectMode extends StatefulWidget {
   const SelectMode({super.key});
@@ -21,16 +23,18 @@ class SelectMode extends StatefulWidget {
 }
 
 class _SelectModeState extends State<SelectMode> {
-  final String TOPIC_ASK = 'TOPIC_ASK';
-  final String TOPIC_CONFIRM = 'TOPIC_CONFIRM';
-  WidgetState _widgetState = WidgetState.NONE;
+
+  final String msgACK = 'ACK';
+  final String msgConfirm = 'CONFIRM_TOKEN';
+  WidgetState _widgetState = WidgetState.LOADING;
   final mqttManager = MqttManager(
     broker: 'manuales.ribe.cl',
     port: 8883,
     username: 'root',
     password: '*R1b3x#99',
   );
-  late OrgaInstrumento organization;
+  late OrgaInstrumento orgaInstrument;
+  bool isActive = true;
 
   @override
   void initState() {
@@ -42,22 +46,26 @@ class _SelectModeState extends State<SelectMode> {
     _widgetState = WidgetState.LOADING;
     setState(() {});
 
-    final info = Provider.of<ProviderPages>(context, listen: false);
-    final id = info.orgaId;
-    organization = info.organizations.firstWhere((item) => item.orgaId == id);
-    await _initMqtt();
+   final resultmQTT = await _initMqtt();
+    if(!resultmQTT){
+      _widgetState = WidgetState.ERROR_MQTT;
+      setState(() {});
+      return;
+    }
 
-    _widgetState = WidgetState.SHOW_MENU;
+    _widgetState = WidgetState.SHOW_CODE;
     setState(() {});
 
   }
 
-  Future<void> _initMqtt() async {
+  Future<bool> _initMqtt() async {
     try {
       await mqttManager.initialize();
+      return true;
     } catch (e) {
       // Handle connection error, e.g., show a message to the user.
       print("Error initializing MQTT: $e");
+      return false;
     }
   }
 
@@ -65,9 +73,11 @@ class _SelectModeState extends State<SelectMode> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     mqttManager.subscribe(topic, (message) {
-      if(message == TOPIC_ASK){
+      if(message == msgACK){
+        isActive = true;
+        setState(() {});
         info.connected = "CONNECTED";
-        mqttManager.publish(topic, TOPIC_CONFIRM);
+        mqttManager.publish(topic, msgConfirm);
         Navigator.pushNamed(context, 'instrument');
       }
     });
@@ -77,14 +87,6 @@ class _SelectModeState extends State<SelectMode> {
   @override
   Widget build(BuildContext context) {
     switch (_widgetState) {
-      case WidgetState.NONE:
-        return _buildScaffold(context,Center(
-          child: CircularProgressIndicator(),
-        ) ) ;
-
-      case WidgetState.SHOW_MENU:
-        return _buildScaffold(context,_menu(context) ) ;
-
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
           child: CircularProgressIndicator(),
@@ -107,80 +109,13 @@ class _SelectModeState extends State<SelectMode> {
   }
 
   Widget _buildScaffold(BuildContext context, Widget body) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
-        appBar: setAppBarTwo(context, organization.orgaNombre),
+        appBar: setAppBarTwo(context, info.organization.orgaNombre),
         body: body
     );
   }
 
-  Widget _menu(BuildContext context) {
-    final info = Provider.of<ProviderPages>(context);
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
-    final organization = info.organizations.firstWhere((item) => item.orgaId == info.orgaId);
-    print(organization.orgaNombre);
-
-    return Container(
-        padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                SizedBox(
-                  height: 100,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(width -20, 40),
-                    shape:  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.themeColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-                    final _code = info.mainTopic;
-                    _subscribeTopic(_code);
-                    _widgetState= WidgetState.SHOW_CODE;
-                    setState(() {
-
-                    });
-                  },
-                  child: Text('Sin Sistema',  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),),
-                ),
-                SizedBox(
-                  height: 50,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(width -20, 40),
-                    shape:  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: Colors.grey,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-                    //await api.testNotify(info.persona.user.pkUsuario);
-                    //Navigator.pushNamed(context, 'Automatico');
-                  },
-                  child: Text('Con Sistema',  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),),
-                ),
-              ],
-            ),
-          ),
-        )
-    );
-  }
 
   Widget _showCode(BuildContext context) {
     final info = Provider.of<ProviderPages>(context);
@@ -229,20 +164,48 @@ class _SelectModeState extends State<SelectMode> {
                   backgroundColor: AppColor.themeColor,
                   padding: EdgeInsets.all(10.0),
                 ),
-                onPressed: () async {
+                onPressed: isActive
+                    ? () async {
+                  isActive = false; // Deshabilita el botón mientras se ejecuta la acción
                   String topic = info.mainTopic;
-                  if(topic !=""){
+                  if (topic != "") {
                     mqttManager.unsubscribe(topic);
                   }
                   topic = Util.geenerateCode(5);
-                 _subscribeTopic(topic);
+                  _subscribeTopic(topic);
                   info.mainTopic = topic;
                   info.connected = "";
                   setState(() {});
 
-                },
+                }
+                    : null,
 
-                child: Text('Generar Nuevo',  style: TextStyle(
+                child: Text(isActive?'Generar Nuevo':'Esperando Conexión',  style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),),
+              ),
+
+              SizedBox(height: 20,),
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(width -20, 40),
+                  shape:  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                  ),
+                  backgroundColor: AppColor.redColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed: () async {
+                  if (info.mainTopic != "") {
+                    mqttManager.unsubscribe(info.mainTopic);
+                    info.mainTopic ="";
+                  }
+                  isActive = true;
+                  setState(() {});
+                },
+                child: Text('Cancelar',  style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                 ),),
@@ -280,7 +243,7 @@ class _SelectModeState extends State<SelectMode> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  mqttManager.publish(info.mainTopic, TOPIC_ASK);
+                  mqttManager.publish(info.mainTopic, msgACK);
                 },
                 child: Text('Simular ASK',  style: TextStyle(
                   color: Colors.white,
@@ -307,4 +270,6 @@ class _SelectModeState extends State<SelectMode> {
         )
     );
   }
+
+
 }

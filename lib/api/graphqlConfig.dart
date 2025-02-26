@@ -1,70 +1,69 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphQLConfig {
   static String? token = "";
 
   static HttpLink httpLink = HttpLink(
-    'http://192.168.0.107:4020/graphql',
-    //'https://inventario.ribe.cl:4020/graphql',
+    'https://portal5.ribe.cl:4099/graphql',
   );
 
-  static WebSocketLink webSocketLink = new WebSocketLink(
-    'ws://inventario.ribe.cl:4020/graphql',
-    config: SocketClientConfig(
-      autoReconnect: true,
-      inactivityTimeout: Duration(seconds: 30),
-    ),
-  );
+  static Future<String?> _getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString("jwt");
+  }
 
-  ///if you want to pass token
-  static ValueNotifier<GraphQLClient> graphInit() {
-    // We're using HiveStore for persistence,
-    // so we need to initialize Hive.
-    final AuthLink authLink = AuthLink(
-        //getToken: () async => 'Bearer $token',
-        getToken: () async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tokenToUse = prefs.getString("jwt");
-      token = tokenToUse?.toUpperCase() ?? "Token no encontrado";
+  static AuthLink _createAuthLink() {
+    return AuthLink(
+      getToken: () async {
+        token = await _getToken();
+        return '$token';
+      },
+    );
+  }
 
-      return 'Bearer $token';
+
+  static Link _createLink() {
+    final AuthLink authLink = _createAuthLink();
+
+    // Request Interceptor to log request details
+    final Link logLink = Link.function((operation, [forward]) {
+      // Log the headers and body before sending the request
+      print('Request: ${operation.operation}');
+
+      final httpLinkHeaders = operation.context.entry<HttpLinkHeaders>();
+      if (httpLinkHeaders != null) {
+        print('HttpLinkHeaders: ${httpLinkHeaders.headers}');
+      } else {
+        print('HttpLinkHeaders no encontrado en el contexto.');
+      }
+        return forward!(operation);
+
     });
 
-    final Link link = authLink.concat(httpLink).concat(webSocketLink);
+    return authLink.concat(logLink).concat(httpLink);
+  }
 
-    final link2 =
-        Link.split((request) => request.isSubscription, webSocketLink, link);
 
-    ValueNotifier<GraphQLClient> client = ValueNotifier(
+  static ValueNotifier<GraphQLClient> graphInit() {
+    final Link link = _createLink();
+
+    return ValueNotifier(
       GraphQLClient(
-        link: link2,
+        link: link,
         cache: GraphQLCache(
           store: HiveStore(),
         ),
-        // The default store is the InMemoryStore, which does NOT persist to disk
       ),
     );
-
-    return client;
   }
 
   GraphQLClient clientToQuery() {
+    final Link link = _createLink();
 
-    AuthLink authLink = AuthLink(
-        getToken: () async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? tokenToUse = prefs.getString("jwt");
-      token = tokenToUse?.toUpperCase() ?? "Token no encontrado";
-      return 'Bearer $token';
-    });
-
-    final Link link = authLink.concat(httpLink); //.concat(webSocketLink);
-    final link2 =
-        //Link.split((request) => request.isSubscription, webSocketLink, link);
-    Link.split((request) => request.isSubscription, webSocketLink, link);
     return GraphQLClient(
+      queryRequestTimeout: const Duration(seconds: 600),
       cache: GraphQLCache(
         store: HiveStore(),
       ),

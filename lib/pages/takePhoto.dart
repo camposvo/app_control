@@ -1,37 +1,52 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-import 'dart:developer' as developer;
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:control/models/tramaDatos.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/mqttManager.dart';
 import '../models/orgaInstrumento.dart';
 import '../providers/providers_pages.dart';
+
+enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
+
+enum ImageState { RECEIVED, WAITING }
 
 class TakePhoto extends StatefulWidget {
   @override
   _TakePhotoState createState() => _TakePhotoState();
 }
 
-enum WidgetState { NONE, LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
-
-enum ImageState { RECEIVED, WAITING }
-
 class _TakePhotoState extends State<TakePhoto> {
   late List<CameraDescription> _cameras;
   CameraController? _controller;
-  final client = MqttServerClient('manuales.ribe.cl', '');
+  final mqttManager = MqttManager(
+    broker: 'manuales.ribe.cl',
+    port: 8883,
+    username: 'root',
+    password: '*R1b3x#99',
+  );
+
+  final TramaDatos _tramaDatos = new TramaDatos(
+    tipoMensaje: "",
+    orgaId: "",
+    orgaNombre: "",
+    instId: "",
+    instNombre: "",
+    variId: "",
+    variNombre: "",
+    subuAbreviatura: "",
+    imagen: "",
+  );
+
   XFile? _image;
-  WidgetState _widgetState = WidgetState.NONE;
+  WidgetState _widgetState = WidgetState.LOADING;
   ImageState imageState = ImageState.WAITING;
 
   String imageBase64_1 = "";
@@ -40,11 +55,11 @@ class _TakePhotoState extends State<TakePhoto> {
 
   String errorMqtt = '';
 
-  String topicTake = '/TAKE_PHOTO';
-  String topicSending = '/SENDING_PHOTO';
+  String masterMqtt = '/TAKE_PHOTO';
+  String slaveMqtt = '/SENDING_PHOTO';
 
   late OrgaInstrumentoElement instrument;
-  late OrgaInstrumento organization;
+  late OrgaInstrumento orgaInstrument;
   late InstVariable variable;
 
   @override
@@ -57,28 +72,28 @@ class _TakePhotoState extends State<TakePhoto> {
     _widgetState = WidgetState.LOADING;
     setState(() {});
 
+    // Load Data
     final info = Provider.of<ProviderPages>(context, listen: false);
-
-    organization =
-        info.organizations.firstWhere((item) => item.orgaId == info.orgaId);
-    instrument = organization.orgaInstrumentos
+    orgaInstrument = info.orgaInstrument;
+    instrument = orgaInstrument.orgaInstrumentos
         .firstWhere((item) => item.instId == info.instId);
     variable = instrument.instVariables
         .firstWhere((item) => item.variId == info.varId);
 
     final mainTopic = info.mainTopic;
-    topicTake = mainTopic + topicTake;
-    topicSending = mainTopic + topicSending;
+    masterMqtt = mainTopic + masterMqtt;
+    slaveMqtt = mainTopic + slaveMqtt;
 
-    final resultCamera = await _initializeCamera();
+    // Initialize Camera
+    final resultCamera = await _initCamera();
     if (resultCamera == 0) {
       _widgetState = WidgetState.ERROR_CAMERA;
       setState(() {});
       return;
     }
 
+    // Initialize Mqtt
     final resultMqtt = await _initMQTT();
-
     if (resultMqtt == 0) {
       _widgetState = WidgetState.ERROR_MQTT;
       setState(() {});
@@ -89,11 +104,9 @@ class _TakePhotoState extends State<TakePhoto> {
     setState(() {});
   }
 
-  Future<int> _initializeCamera() async {
+  Future<int> _initCamera() async {
     var status = await Permission.camera.status;
-    if (!status.isGranted) {
-      await Permission.camera.request();
-    }
+    if (!status.isGranted) await Permission.camera.request();
 
     _cameras = await availableCameras();
     if (_cameras.isNotEmpty) {
@@ -103,121 +116,59 @@ class _TakePhotoState extends State<TakePhoto> {
       );
       await _controller!.initialize();
 
-      if (_controller!.value.hasError) {
-        return 0;
-      }
+      if (_controller!.value.hasError) return 0;
     }
 
     return 1;
   }
 
   Future<int> _initMQTT() async {
-    client.logging(on: true);
-
-    /// Set the correct MQTT protocol for mosquito
-    client.setProtocolV311();
-    client.secure = true;
-    client.port = 8883;
-    client.onConnected = onConnected;
-    client.onDisconnected = onDisconnected;
-    client.onSubscribed = onSubscribed;
-    client.keepAlivePeriod = 20;
-    client.connectTimeoutPeriod = 2000; // milliseconds
-
     try {
-      final connMessage = await client.connect("root", "*R1b3x#99");
-      print("client connecting result $connMessage");
-    } on NoConnectionException catch (e) {
-      print('EXAMPLE::client exception - $e');
-      client.disconnect();
-      errorMqtt = e.toString();
-      _widgetState = WidgetState.ERROR_MQTT;
-      setState(() {});
+      await mqttManager.initialize();
+      _subscribeMaster();
+      _subscribeSlave();
+    } catch (e) {
+      print("Error initializing MQTT: $e");
       return 0;
     }
-
-    /// Check we are connected
-    if (client.connectionStatus!.state == MqttConnectionState.connected) {
-      print('EXAMPLE::Mosquitto client connected');
-    } else {
-      print(
-          'ERROR Mosquitto client connection failed - status is ${client.connectionStatus}');
-      client.disconnect();
-      return 0;
-      //exit(-1);
-    }
-
-    client.subscribe(topicTake, MqttQos.atLeastOnce);
-    client.subscribe(topicSending, MqttQos.atLeastOnce);
-
-    client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
-      final recMess = c![0].payload as MqttPublishMessage;
-      final pt =
-          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-
-      print('topic is <${c[0].topic}>, payload is <-- $pt -->');
-
-      final _topic = c[0].topic;
-
-      if (_topic == topicTake) {
-        _takePicture();
-      }
-
-      if (_topic == topicSending) {
-        imageBase64_2 = pt;
-        imageState = ImageState.RECEIVED;
-        setState(() {});
-      }
-    });
-
     return 1;
   }
 
-  Future<void> _publishMessage(String msg) async {
-    /// Check we are connected
-    if (client.connectionStatus!.state == MqttConnectionState.connected) {
-      print('EXAMPLE::Mosquitto client connected');
-    } else {
-      print('ERROR Mosquitto client connection ${client.connectionStatus}');
-      client.disconnect();
-      //exit(-1);
-    }
+  void _subscribeMaster() {
+    mqttManager.subscribe(masterMqtt, (message) {
+      final data = tramaDatosFromJson(message);
 
-    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    builder.addString(msg);
-
-    if (builder.payload != null) {
-      client.publishMessage(topicTake, MqttQos.atLeastOnce, builder.payload!);
-    } else {}
+      switch (data.tipoMensaje) {
+        case "IMAGE_CAMERA_1":
+          return;
+        case "TAKE_PHOTO":
+          _takePicture();
+          return;
+      }
+    });
   }
 
-  void onConnected() {
-    print('Connected');
-    client.subscribe('mytopic', MqttQos.atLeastOnce);
+  void _subscribeSlave() {
+    mqttManager.subscribe(slaveMqtt, (message) {
+      final data = tramaDatosFromJson(message);
+
+      switch (data.tipoMensaje) {
+        case "IMAGE_CAMERA_2":
+          imageBase64_2 = data.imagen;
+          imageState = ImageState.RECEIVED;
+          setState(() {});
+          return;
+
+        case "TAKE_PHOTO":
+          _takePicture();
+          return;
+      }
+    });
   }
 
-  void onDisconnected() {
-    print('Disconnected');
-    print('client disconnected');
-  }
-
-  void onSubscribed(String topic) {
-    print('Subscribed topic: $topic');
-  }
-
-  void onUnsubscribed(String topic) {
-    print('Unsubscribed topic: $topic');
-  }
-
-  void onMessage(String topic, MqttMessage message) {
-    final payload = message;
-    print('Received message: $payload from topic: $topic');
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
+  Future<void> _publishMessage(String topic, TramaDatos message) async {
+    final jsonData = jsonEncode(message);
+    mqttManager.publish(masterMqtt, jsonData);
   }
 
   Future<String?> _convertImageToBase64(String imagePath) async {
@@ -234,12 +185,15 @@ class _TakePhotoState extends State<TakePhoto> {
   Future<void> _takePicture() async {
     if (_controller != null && _controller!.value.isInitialized) {
       final XFile image = await _controller!.takePicture();
-      // Convertir la imagen a Base64
-      print(image.path);
       final base64Image = await _convertImageToBase64(image.path);
 
       if (base64Image != null) {
         imageBase64_1 = base64Image;
+
+        _tramaDatos.tipoMensaje = "IMAGE_CAMERA_1";
+        _tramaDatos.imagen = imageBase64_1;
+        _publishMessage(masterMqtt, _tramaDatos);
+
         _widgetState = WidgetState.CAPTURE;
         setState(() {
           _image = image;
@@ -251,37 +205,30 @@ class _TakePhotoState extends State<TakePhoto> {
   @override
   Widget build(BuildContext context) {
     switch (_widgetState) {
-      case WidgetState.NONE:
-        return _buildScaffold(
-            context,
-            Center(
-              child: CircularProgressIndicator(),
-            ));
-
       case WidgetState.LOADING:
-        return _buildScaffold(
-            context,
-            Center(
-              child: CircularProgressIndicator(),
-            ));
+        return Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
 
       case WidgetState.LOADED:
-        return previewCamera(context);
+        return _previewCamera(context);
 
       case WidgetState.CAPTURE:
-        return _buildScaffold(context, _capture(context));
+        return _buildScaffold(context, _viewImage(context));
 
       case WidgetState.ERROR_CAMERA:
-        return Center(
-          child: Text("La cámara No se pudo Cargar. Reincie la App"),
+        return Scaffold(
+          body: Center(
+            child: Text("La cámara No se pudo Cargar. Reincie la App"),
+          ),
         );
 
       case WidgetState.ERROR_MQTT:
-        return _buildScaffold(
-            context,
-            Center(
-              child: Text("Error con MQTT: $errorMqtt"),
-            ));
+        return Scaffold(
+          body: Center(
+            child: Text("Error con MQTT: $errorMqtt"),
+          ),
+        );
     }
   }
 
@@ -294,7 +241,7 @@ class _TakePhotoState extends State<TakePhoto> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                setHeaderTitle(organization.orgaNombre, Colors.white),
+                setHeaderTitle(orgaInstrument.orgaNombre, Colors.white),
                 setHeaderTitle(instrument.instNombre, Colors.white),
                 setHeaderSubTitle(variable.variNombre, Colors.white),
                 SizedBox(
@@ -307,50 +254,52 @@ class _TakePhotoState extends State<TakePhoto> {
         body: body);
   }
 
-  Widget previewCamera(BuildContext context) {
+  Widget _previewCamera(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
       return Center(child: CircularProgressIndicator());
     }
 
-    Orientation orientation = MediaQuery.of(context).orientation;
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColor.themeColor,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              setHeaderTitle(organization.orgaNombre, Colors.white),
-              setHeaderTitle(instrument.instNombre, Colors.white),
-              setHeaderSubTitle(variable.variNombre, Colors.white),
-              SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: Scaffold(
           body: Stack(children: [
-        SizedBox(
-          // Usamos SizedBox para controlar el tamaño
-          width: size.width,
-          height: size.height,
-          child: RotatedBox(
-            // Rotamos *dentro* del SizedBox
-            quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
-            child: CameraPreview(_controller!),
-          ),
-        ),
-      ])),
+            SizedBox(
+              width: size.width,
+              height: size.height,
+              child: RotatedBox(
+                // Rotamos *dentro* del SizedBox
+                quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
+                child: CameraPreview(_controller!),
+              ),
+            ),
+            Positioned(
+              top: 20,
+              left: 20,
+              child: Container(
+                padding: EdgeInsets.all(8),
+                color: Colors.black.withAlpha(51), // Fondo semitransparente
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    setHeaderTitle(orgaInstrument.orgaNombre, Colors.white),
+                    setHeaderTitle(instrument.instNombre, Colors.white),
+                    setHeaderSubTitle(variable.variNombre, Colors.white),
+                    SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      ]),
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
           _widgetState = WidgetState.LOADING;
           setState(() {});
-          _publishMessage("TAKE_PHOTO_CAMARA_2");
+
+          _tramaDatos.tipoMensaje = "TAKE_PHOTO";
+          _publishMessage(masterMqtt, _tramaDatos);
         }),
         child: Icon(Icons.camera),
       ),
@@ -358,13 +307,13 @@ class _TakePhotoState extends State<TakePhoto> {
     );
   }
 
-  Widget _capture(BuildContext context) {
+  Widget _viewImage(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'Cámara Principal',
+            'Cámara Local',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -385,7 +334,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Cámara Testigo',
+            'Cámara Remota',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -457,8 +406,17 @@ class _TakePhotoState extends State<TakePhoto> {
               ),
             ],
           ),
+          SizedBox(
+            height: 50,
+          )
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 }

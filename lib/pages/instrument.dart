@@ -20,7 +20,10 @@ class Instrument extends StatefulWidget {
 class _InstrumentState extends State<Instrument> {
   List<OrgaInstrumentoElement> _instruments = [];
   List<OrgaInstrumentoElement> _filterList = [];
-  late OrgaInstrumento organization;
+  late OrgaInstrumento orgaInstrument;
+
+  int _listos = 0;
+  int _total= 0;
 
   bool isLoading = true;
   String orgaId = '';
@@ -28,25 +31,55 @@ class _InstrumentState extends State<Instrument> {
   @override
   void initState() {
     super.initState();
+    _loadData();
 
+
+
+  }
+
+  Future<void> _loadData() async {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    final id = info.orgaId;
-    organization = info.organizations.firstWhere((item) => item.orgaId == id);
 
+    if(info.revision == null){
+      return;
+    }
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      //final arguments = ModalRoute.of(context)?.settings.arguments as Map;
+    final _reviId = info.revision!.reviId;
+    orgaInstrument = info.orgaInstrument;
 
+    _instruments = orgaInstrument.orgaInstrumentos.where((elemento) {
+      for (var item in elemento.instComentarios) {
+        if (item.comeReviId == _reviId) {
+          return true;
+        }
+      }
+      return false;
+    }).toList();
 
-      print(organization.orgaNombre);
-      _instruments = organization.orgaInstrumentos;
-      _filterList = organization.orgaInstrumentos;
+    _filterList = orgaInstrument.orgaInstrumentos.where((elemento) {
+      for (var item in elemento.instComentarios) {
+        if (item.comeReviId == _reviId) {
+          return true;
+        }
+      }
+      return false;
+    }).toList();
 
-      setState(() {});
-      isLoading = false;
+    //Cantidad de Medidores Listos
+    _listos = _instruments.where((elemento) {
+      for (var item in elemento.instComentarios) {
+        if (item.comeEnviado == 1) {
+          return true;
+        }
+      }
+      return false;
+    }).toList().length;
 
+    //Cantidad de Medidores Total
+    _total = _instruments.length;
 
-    });
+    setState(() {});
+    isLoading = false;
 
   }
 
@@ -54,12 +87,12 @@ class _InstrumentState extends State<Instrument> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarSubTitle(context, organization.orgaNombre, "Medidores"),
+      appBar: setAppBarSubTitle(context, orgaInstrument.orgaNombre, "Medidores"),
       body: contentBody(context)
     );
   }
 
-  onSearch(String search) {
+  _onSearch(String search) {
     _filterList = _instruments.where((item) {
       return item.instNombre.toLowerCase().contains(search);
     }).toList();
@@ -72,7 +105,7 @@ class _InstrumentState extends State<Instrument> {
       padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
       height: 48,
       child: TextField(
-        onChanged: (value) => onSearch(value),
+        onChanged: (value) => _onSearch(value),
         decoration: setSearchDecoration(),
       ),
     );
@@ -104,8 +137,8 @@ class _InstrumentState extends State<Instrument> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                setCommonText("Listos", Colors.white, 16.0, FontWeight.w800, 20),
-                setCommonText("Pendientes", Colors.white, 16.0, FontWeight.w800, 20),
+                setCommonText("Listos: "+_listos.toString(), Colors.white, 16.0, FontWeight.w800, 20),
+                setCommonText("Total: "+ _total.toString(), Colors.white, 16.0, FontWeight.w800, 20),
               ],
             ),
           )
@@ -150,11 +183,8 @@ class _InstrumentState extends State<Instrument> {
   Widget _itemListView(int index, BuildContext context) {
     final nombre = _filterList[index].instNombre;
     final variables = _filterList[index].instVariables;
-
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
@@ -204,4 +234,4 @@ class _InstrumentState extends State<Instrument> {
       ),
     );
   }
-} // FIn MAIN WIDGET
+}

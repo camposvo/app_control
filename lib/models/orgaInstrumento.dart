@@ -13,6 +13,7 @@ class OrgaInstrumento {
   String orgaNombre;
   String orgaEntiId;
   String orgaPrefijo;
+  List<OrgaRevisione> orgaRevisiones;
   List<OrgaInstrumentoElement> orgaInstrumentos;
 
   OrgaInstrumento({
@@ -20,6 +21,7 @@ class OrgaInstrumento {
     required this.orgaNombre,
     required this.orgaEntiId,
     required this.orgaPrefijo,
+    required this.orgaRevisiones,
     required this.orgaInstrumentos,
   });
 
@@ -28,6 +30,7 @@ class OrgaInstrumento {
     orgaNombre: json["orga_nombre"],
     orgaEntiId: json["orga_enti_id"],
     orgaPrefijo: json["orga_prefijo"],
+    orgaRevisiones: List<OrgaRevisione>.from(json["orga_revisiones"].map((x) => OrgaRevisione.fromJson(x))),
     orgaInstrumentos: List<OrgaInstrumentoElement>.from(json["orga_instrumentos"].map((x) => OrgaInstrumentoElement.fromJson(x))),
   );
 
@@ -36,6 +39,7 @@ class OrgaInstrumento {
     "orga_nombre": orgaNombre,
     "orga_enti_id": orgaEntiId,
     "orga_prefijo": orgaPrefijo,
+    "orga_revisiones": List<dynamic>.from(orgaRevisiones.map((x) => x.toJson())),
     "orga_instrumentos": List<dynamic>.from(orgaInstrumentos.map((x) => x.toJson())),
   };
 }
@@ -43,13 +47,12 @@ class OrgaInstrumento {
 class OrgaInstrumentoElement {
   String instId;
   String instTipo;
-  InstConfig instConfig;
   String instNombre;
   int instNumero;
-  String instEntiId;
   List<InstVariable> instVariables;
-  String instMqttCodigo;
-  String instIdentificador;
+  String instAbreviatura;
+  List<InstComentario> instComentarios;
+  String instClasificacion;
   String instEspaAreaNombre;
   String instEspaPisoNombre;
   String instUbicAreaNombre;
@@ -58,13 +61,12 @@ class OrgaInstrumentoElement {
   OrgaInstrumentoElement({
     required this.instId,
     required this.instTipo,
-    required this.instConfig,
     required this.instNombre,
     required this.instNumero,
-    required this.instEntiId,
     required this.instVariables,
-    required this.instMqttCodigo,
-    required this.instIdentificador,
+    required this.instAbreviatura,
+    required this.instComentarios,
+    required this.instClasificacion,
     required this.instEspaAreaNombre,
     required this.instEspaPisoNombre,
     required this.instUbicAreaNombre,
@@ -74,13 +76,12 @@ class OrgaInstrumentoElement {
   factory OrgaInstrumentoElement.fromJson(Map<String, dynamic> json) => OrgaInstrumentoElement(
     instId: json["inst_id"],
     instTipo: json["inst_tipo"],
-    instConfig: InstConfig.fromJson(json["inst_config"]),
     instNombre: json["inst_nombre"],
     instNumero: json["inst_numero"],
-    instEntiId: json["inst_enti_id"],
     instVariables: List<InstVariable>.from(json["inst_variables"].map((x) => InstVariable.fromJson(x))),
-    instMqttCodigo: json["inst_mqtt_codigo"],
-    instIdentificador: json["inst_identificador"],
+    instAbreviatura: json["inst_abreviatura"],
+    instComentarios: List<InstComentario>.from(json["inst_comentarios"].map((x) => InstComentario.fromJson(x))),
+    instClasificacion: json["inst_clasificacion"],
     instEspaAreaNombre: json["inst_espa_area_nombre"],
     instEspaPisoNombre: json["inst_espa_piso_nombre"],
     instUbicAreaNombre: json["inst_ubic_area_nombre"],
@@ -90,13 +91,12 @@ class OrgaInstrumentoElement {
   Map<String, dynamic> toJson() => {
     "inst_id": instId,
     "inst_tipo": instTipo,
-    "inst_config": instConfig.toJson(),
     "inst_nombre": instNombre,
     "inst_numero": instNumero,
-    "inst_enti_id": instEntiId,
     "inst_variables": List<dynamic>.from(instVariables.map((x) => x.toJson())),
-    "inst_mqtt_codigo": instMqttCodigo,
-    "inst_identificador": instIdentificador,
+    "inst_abreviatura": instAbreviatura,
+    "inst_comentarios": List<dynamic>.from(instComentarios.map((x) => x.toJson())),
+    "inst_clasificacion": instClasificacion,
     "inst_espa_area_nombre": instEspaAreaNombre,
     "inst_espa_piso_nombre": instEspaPisoNombre,
     "inst_ubic_area_nombre": instUbicAreaNombre,
@@ -104,56 +104,166 @@ class OrgaInstrumentoElement {
   };
 }
 
-class InstConfig {
-  InstConfig();
+class InstComentario {
+  String comeId;
+  DateTime comeFecha;
+  String reviNumero;
+  int comeEnviado;
+  String comeReviId;
+  String reviEntiId;
+  String comeDescripcion;
 
-  factory InstConfig.fromJson(Map<String, dynamic> json) => InstConfig(
+  InstComentario({
+    required this.comeId,
+    required this.comeFecha,
+    required this.reviNumero,
+    required this.comeEnviado,
+    required this.comeReviId,
+    required this.reviEntiId,
+    required this.comeDescripcion,
+  });
+
+  factory InstComentario.fromJson(Map<String, dynamic> json) => InstComentario(
+    comeId: json["come_id"],
+    comeFecha: DateTime.parse(json["come_fecha"]),
+    reviNumero: json["revi_numero"],
+    comeEnviado: json["come_enviado"],
+    comeReviId: json["come_revi_id"],
+    reviEntiId: json["revi_enti_id"],
+    comeDescripcion: json["come_descripcion"],
   );
 
   Map<String, dynamic> toJson() => {
+    "come_id": comeId,
+    "come_fecha": comeFecha.toIso8601String(),
+    "revi_numero": reviNumero,
+    "come_enviado": comeEnviado,
+    "come_revi_id": comeReviId,
+    "revi_enti_id": reviEntiId,
+    "come_descripcion": comeDescripcion,
   };
 }
 
 class InstVariable {
-  String subuId;
+  String puntId;
   String variId;
+  List<PuntPrueba> puntPrueba;
   String subuNombre;
   String variNombre;
   String subuSimbolo;
-  String variEntiId;
+  String variSubuId;
   String subuAbreviatura;
-  String variMqttCodigo;
+  String variAbreviatura;
 
   InstVariable({
-    required this.subuId,
+    required this.puntId,
     required this.variId,
+    required this.puntPrueba,
     required this.subuNombre,
     required this.variNombre,
     required this.subuSimbolo,
-    required this.variEntiId,
+    required this.variSubuId,
     required this.subuAbreviatura,
-    required this.variMqttCodigo,
+    required this.variAbreviatura,
   });
 
   factory InstVariable.fromJson(Map<String, dynamic> json) => InstVariable(
-    subuId: json["subu_id"],
+    puntId: json["punt_id"],
     variId: json["vari_id"],
+    puntPrueba: List<PuntPrueba>.from(json["punt_prueba"].map((x) => PuntPrueba.fromJson(x))),
     subuNombre: json["subu_nombre"],
     variNombre: json["vari_nombre"],
     subuSimbolo: json["subu_simbolo"],
-    variEntiId: json["vari_enti_id"],
+    variSubuId: json["vari_subu_id"],
     subuAbreviatura: json["subu_abreviatura"],
-    variMqttCodigo: json["vari_mqtt_codigo"],
+    variAbreviatura: json["vari_abreviatura"],
   );
 
   Map<String, dynamic> toJson() => {
-    "subu_id": subuId,
+    "punt_id": puntId,
     "vari_id": variId,
+    "punt_prueba": List<dynamic>.from(puntPrueba.map((x) => x.toJson())),
     "subu_nombre": subuNombre,
     "vari_nombre": variNombre,
     "subu_simbolo": subuSimbolo,
-    "vari_enti_id": variEntiId,
+    "vari_subu_id": variSubuId,
     "subu_abreviatura": subuAbreviatura,
-    "vari_mqtt_codigo": variMqttCodigo,
+    "vari_abreviatura": variAbreviatura,
+  };
+}
+
+class PuntPrueba {
+  String prueId;
+  DateTime prueFecha;
+  String prueFoto1;
+  String prueFoto2;
+  String reviNumero;
+  int prueEnviado;
+  String prueReviId;
+  String reviEntiId;
+  String prueDescripcion;
+
+  PuntPrueba({
+    required this.prueId,
+    required this.prueFecha,
+    required this.prueFoto1,
+    required this.prueFoto2,
+    required this.reviNumero,
+    required this.prueEnviado,
+    required this.prueReviId,
+    required this.reviEntiId,
+    required this.prueDescripcion,
+  });
+
+  factory PuntPrueba.fromJson(Map<String, dynamic> json) => PuntPrueba(
+    prueId: json["prue_id"],
+    prueFecha: DateTime.parse(json["prue_fecha"]),
+    prueFoto1: json["prue_foto1"],
+    prueFoto2: json["prue_foto2"],
+    reviNumero: json["revi_numero"],
+    prueEnviado: json["prue_enviado"],
+    prueReviId: json["prue_revi_id"],
+    reviEntiId: json["revi_enti_id"],
+    prueDescripcion: json["prue_descripcion"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "prue_id": prueId,
+    "prue_fecha": prueFecha.toIso8601String(),
+    "prue_foto1": prueFoto1,
+    "prue_foto2": prueFoto2,
+    "revi_numero": reviNumero,
+    "prue_enviado": prueEnviado,
+    "prue_revi_id": prueReviId,
+    "revi_enti_id": reviEntiId,
+    "prue_descripcion": prueDescripcion,
+  };
+}
+
+class OrgaRevisione {
+  String reviId;
+  String reviEstado;
+  String reviNumero;
+  String reviDescripcion;
+
+  OrgaRevisione({
+    required this.reviId,
+    required this.reviEstado,
+    required this.reviNumero,
+    required this.reviDescripcion,
+  });
+
+  factory OrgaRevisione.fromJson(Map<String, dynamic> json) => OrgaRevisione(
+    reviId: json["revi_id"],
+    reviEstado: json["revi_estado"],
+    reviNumero: json["revi_numero"],
+    reviDescripcion: json["revi_descripcion"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "revi_id": reviId,
+    "revi_estado": reviEstado,
+    "revi_numero": reviNumero,
+    "revi_descripcion": reviDescripcion,
   };
 }

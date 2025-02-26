@@ -26,13 +26,16 @@ class _VariableState extends State<Variable> {
   List<InstVariable> _variables = [];
   List<InstVariable> _filterList = [];
   late OrgaInstrumentoElement instrument;
-  late OrgaInstrumento organization;
+  late OrgaInstrumento orgaInstrument;
   int _indiceSeleccionado = 0; // Índice del botón activo
   String comentario = '';
 
   WidgetState _widgetState = WidgetState.LOADING;
 
   String orgaId = '';
+
+  int _listos = 0;
+  int _total= 0;
 
   @override
   void initState() {
@@ -46,13 +49,45 @@ class _VariableState extends State<Variable> {
     setState(() {});
 
     final info = Provider.of<ProviderPages>(context, listen: false);
-    organization = info.organizations.firstWhere((item) => item.orgaId == info.orgaId);
-    instrument = organization.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
-    _variables = instrument.instVariables;
+    final _reviId = info.revision!.reviId;
+
+    instrument = info.orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
+    _variables = instrument.instVariables.where((elemento) {
+      for (var item in elemento.puntPrueba) {
+        if (item.prueReviId == _reviId) {
+          return true;
+        }
+      }
+      return false;
+    }).toList();
+    _filterList = instrument.instVariables.where((elemento) {
+      for (var item in elemento.puntPrueba) {
+        if (item.prueReviId == _reviId) {
+          return true;
+        }
+      }
+      return false;
+    }).toList();
+
+
+    // Por defecto se muestra solo las Energias
     _filterList = _variables.where((item) {
       return item.variNombre.toLowerCase().contains("energia");
     }).toList();
+
+    //Cantidad de Variables Listos
+    _listos = _variables.where((elemento) {
+      for (var item in elemento.puntPrueba) {
+        if (item.prueEnviado == 1) {
+          return true;
+        }
+      }
+      return false;
+    }).toList().length;
+
+    //Cantidad de Medidores Total
+    _total = _variables.length;
 
     _widgetState = WidgetState.SHOW_LIST;
     setState(() {});
@@ -74,9 +109,10 @@ class _VariableState extends State<Variable> {
   }
 
   Widget _buildScaffold(BuildContext context, Widget body) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarSubTitle(context, organization.orgaNombre, "Variables"),
+        appBar: setAppBarSubTitle(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
         body: body
     );
   }
@@ -205,7 +241,6 @@ class _VariableState extends State<Variable> {
                   ),
                 ),
                 SizedBox(height: 10,),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -236,7 +271,7 @@ class _VariableState extends State<Variable> {
                       onPressed: () async {
 
                       },
-                      child: Text('Finalizar',  style: TextStyle(
+                      child: Text('Finalizar Medidor',  style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                       ),),
@@ -247,8 +282,8 @@ class _VariableState extends State<Variable> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    setCommonText("Listos", Colors.white, 16.0, FontWeight.w800, 20),
-                    setCommonText("Pendientes", Colors.white, 16.0, FontWeight.w800, 20),
+                    setCommonText("Listos: "+_listos.toString(), Colors.white, 16.0, FontWeight.w800, 20),
+                    setCommonText("Total: "+_total.toString(), Colors.white, 16.0, FontWeight.w800, 20),
                   ],
                 ),
               ],

@@ -1,22 +1,31 @@
 class _gqlControl {
   _gqlControl() {}
 
-  String almacenamiento() {
+  String gqlOrgaInstrument() {
     return r"""
-           mutation InsertAlmacenamiento($fields: fieldAlmacenamiento) {
-            insertAlmacenamiento(fields: $fields) {
-              ... on msg {
-                tipo
-                mensaje
+        query LoadDataRevisiones($orgaId: String!) {
+          loadDataRevisiones(orga_id: $orgaId) {
+            ... on Configuracion {
+              data
+            }
+          }
+        }
+        """;
+  }
+
+  String gqlOrganizations() {
+    return r"""
+       query Organizaciones($filter: filter) {
+            organizaciones(filter: $filter) {
+              ... on organizaciones {      
+                data {
+                  orga_id
+                  orga_nombre
+                  orga_activo
+                  orga_prefijo
+                }
               }
-              ... on almacenamiento {
-                alma_id
-                alma_activo
-                alma_bach_id
-                alma_estr_id
-                alma_fecha_entrada
-                alma_fecha_salida
-              }
+             
             }
           }
         """;
@@ -25,4 +34,4 @@ class _gqlControl {
 
 }
 
-final gqlAlmacenamiento = _gqlControl();
+final gqlControl = _gqlControl();

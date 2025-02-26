@@ -1,5 +1,6 @@
 import 'package:control/pages/mainMenu.dart';
-import 'package:control/pages/organization.dart';
+import 'package:control/pages/showOrganization.dart';
+import 'package:control/pages/welcome.dart';
 import 'package:flutter/material.dart';
 
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
     return GraphQLProvider(
       client: client,
       child: new MaterialApp(
-        home: new Organization(),
+        home: new Welcome(),
         debugShowCheckedModeBanner: false,
         supportedLocales: [SharedManager.shared.language],
         localizationsDelegates: [

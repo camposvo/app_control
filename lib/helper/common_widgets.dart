@@ -417,11 +417,12 @@ void showError(String msg) {
 
 void showMsg(String msg) {
   Fluttertoast.showToast(
-    msg: msg,
-    fontSize: 16,
-    toastLength: Toast.LENGTH_LONG,
-    backgroundColor: AppColor.secondaryColor,
-    textColor: Colors.white,
-    gravity: ToastGravity.CENTER,
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: AppColor.color1,
+      textColor: Colors.white,
+      fontSize: 16.0
   );
 }

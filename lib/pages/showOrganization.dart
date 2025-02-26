@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:control/models/organizacion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -13,15 +14,19 @@ import '../models/orgaInstrumento.dart';
 import '../models/variable.dart';
 import '../providers/providers_pages.dart';
 
+enum WidgetState { LOADING, LOADED, ERROR_GRAPHQL }
+
 class ShowOrganization extends StatefulWidget {
   @override
   _ShowOrganizationState createState() => _ShowOrganizationState();
 }
 
 class _ShowOrganizationState extends State<ShowOrganization> {
-  List<> _organizations = [];
-  List<> _filterList = [];
+  List<Organization> _organizations = [];
+  List<Organization> _filterList = [];
   bool isLoading = true;
+
+  WidgetState _widgetState = WidgetState.LOADING;
 
   @override
   void initState() {
@@ -29,44 +34,67 @@ class _ShowOrganizationState extends State<ShowOrganization> {
      _loadJsonData(context);
   }
 
-  Future<void> _loadJsonData(BuildContext context) async {
-    final info = Provider.of<ProviderPages>(context, listen: false);
+  Future<void> _loadJsonData(BuildContext context) async {    
+    final result = await _getOrganizations(context);
+   
+    if (!result){
+      _widgetState = WidgetState.ERROR_GRAPHQL;
+      setState(() {});
+      return;
+    }
 
-    final token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsidXN1YV9pZCI6IkFuZHJvaWQifX0.';
-    await api.saveToken(token);
-    await _getOrganizations(context);
-
-    setState(() {
-      isLoading = false;
-    });
+    _widgetState = WidgetState.LOADED;
+    setState(() {});
+    return;
   }
 
-  Future<void> _getOrganizations(BuildContext context) async {
+  Future<bool> _getOrganizations(BuildContext context) async {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final result =await api.getOrganization();
 
-
     if(result == null){
-        return;
+        return false;
     }
-    _organizations = organizacionFromJson(result);
-    _filterList =orgaInstrumentoFromJson(result);
-    info.organizations = orgaInstrumentoFromJson(result);
-
+    _organizations = organizationFromJson(result);
+    _filterList =organizationFromJson(result);
+    info.organizations = organizationFromJson(result);
+    return true;
   }
 
 
   @override
   Widget build(BuildContext context) {
+
+    switch (_widgetState) {     
+
+      case WidgetState.LOADING:
+        return _buildScaffold(context,Center(
+          child: CircularProgressIndicator(),
+        ) ) ;
+
+      case WidgetState.LOADED:
+        return _buildScaffold(context, _showList(context)) ;
+
+      case WidgetState.ERROR_GRAPHQL:
+        return _buildScaffold(context,Center(
+          child: Text("Error con el Servidor Graphql"),
+        ) ) ;
+
+    }
+    
+  }
+
+
+  Widget _buildScaffold(BuildContext context, Widget body) {
     return Scaffold(
-      backgroundColor: AppColor.containerBody,
-      appBar: setAppBarTwo(context, "Edificios"),
-      body: contentBody(context)
+        backgroundColor: AppColor.containerBody,
+        appBar: setAppBarTwo(context, "Edificios"),
+        body: body
     );
   }
 
 
-  onSearch(String search) {
+  _onSearch(String search) {
     _filterList = _organizations.where((item) {
       return item.orgaNombre.toLowerCase().contains(search);
     }).toList();
@@ -78,13 +106,13 @@ class _ShowOrganizationState extends State<ShowOrganization> {
     return Container(
       height: 48,
       child: TextField(
-        onChanged: (value) => onSearch(value),
+        onChanged: (value) => _onSearch(value),
         decoration: setSearchDecoration(),
       ),
     );
   }
 
-  Widget contentBody(BuildContext context) {
+  Widget _showList(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       child: Column(
@@ -94,9 +122,7 @@ class _ShowOrganizationState extends State<ShowOrganization> {
             height: 7,
           ),
           Expanded(
-            child: (isLoading)
-                ? Center(child: CircularProgressIndicator())
-                : _createListView(context),
+            child:_createListView(context),
           ),
           SizedBox(
             height: 10,
@@ -134,7 +160,6 @@ class _ShowOrganizationState extends State<ShowOrganization> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     final nombre = _filterList[index].orgaNombre;
-    final instrument = _filterList[index].orgaInstrumentos;
 
     final size = MediaQuery.of(context).size;
     final width = size.width;
@@ -160,8 +185,6 @@ class _ShowOrganizationState extends State<ShowOrganization> {
                       width: 10,
                     ),
                     setCommonText2(nombre.toUpperCase(), Colors.black, 16.0, FontWeight.w800, 20),
-                    setCommonText(instrument.length.toString(), AppColor.themeColor, 16.0, FontWeight.w800, 20),
-
 
                   ],
                 ),
@@ -176,10 +199,10 @@ class _ShowOrganizationState extends State<ShowOrganization> {
                 ),
                 onPressed: () async {
                   setState(() {
-                    info.orgaId = _filterList[index].orgaId;
+                    info.organization = _filterList[index];
                   });
 
-                  Navigator.pushNamed(context, 'selectMode',
+                  Navigator.pushNamed(context, 'showRevision',
                       arguments: {'id': _filterList[index].orgaId})
                       .then((_) async {
                   });

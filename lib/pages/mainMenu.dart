@@ -18,8 +18,6 @@ class MainMenu extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final width = size.width;
 
-
-
     return Scaffold(
         appBar: setAppBarTwo(context, "Bienvenido"),
         body: Container(
