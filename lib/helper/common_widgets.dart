@@ -331,7 +331,7 @@ setAppBarTwo(BuildContext context, String title) {
     //actions: setCommonCartNotificationView(context),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+          bottomLeft: Radius.circular(0), bottomRight: Radius.circular(0)),
     ),
     bottom: PreferredSize(
       preferredSize: Size.fromHeight(30),
@@ -361,7 +361,7 @@ setAppBarSubTitle(BuildContext context, String title, String subTitle) {
     //actions: setCommonCartNotificationView(context),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+          bottomLeft: Radius.circular(0), bottomRight: Radius.circular(0)),
     ),
     bottom: PreferredSize(
       preferredSize: Size.fromHeight(30),

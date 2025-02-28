@@ -15,7 +15,6 @@ import '../models/orgaInstrumento.dart';
 import '../providers/providers_pages.dart';
 
 enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
-
 enum ImageState { RECEIVED, WAITING }
 
 class TakePhoto extends StatefulWidget {
@@ -99,6 +98,12 @@ class _TakePhotoState extends State<TakePhoto> {
       setState(() {});
       return;
     }
+
+    _tramaDatos.instNombre = instrument.instNombre;
+    _tramaDatos.orgaNombre = orgaInstrument.orgaNombre;
+    _tramaDatos.variNombre = variable.variNombre;
+    _tramaDatos.subuAbreviatura = variable.subuAbreviatura;
+
 
     _widgetState = WidgetState.LOADED;
     setState(() {});
@@ -312,6 +317,9 @@ class _TakePhotoState extends State<TakePhoto> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          SizedBox(
+            height: 20,
+          ),
           Text(
             'Cámara Local',
             textAlign: TextAlign.center, // Centra el texto
@@ -377,37 +385,57 @@ class _TakePhotoState extends State<TakePhoto> {
               ),
             ),
           ),
-
           // Botones de iconos
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              IconButton(
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape:  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                  ),
+                  backgroundColor: AppColor.redColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: const Icon(Icons.check),
+                child: Text('Cancelar',  style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),),
               ),
-              IconButton(
-                onPressed: () {
-                  // Lógica para deshacer
-                  setState(() {
-                    comment = '';
-                  });
-                },
-                icon: const Icon(Icons.undo),
+              CircleAvatar(
+                backgroundColor: Colors.green, // Color del círculo (puedes cambiarlo)
+                child:  IconButton(
+                  onPressed: () {
+                    variable.puntPrueba.where(item => )
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.check, color: Colors.white,),
+                ),
               ),
-              IconButton(
-                onPressed: () {
-                  // Lógica para rechazar
-                  print('Comentario rechazado: $comment');
-                },
-                icon: const Icon(Icons.close),
+
+              CircleAvatar(
+                backgroundColor: AppColor.redColor, // Color del círculo (puedes cambiarlo)
+                child:   IconButton(
+                  onPressed: () {
+                    // Lógica para rechazar
+                    print('Comentario rechazado: $comment');
+                  },
+                  icon: const Icon(Icons.close, color: Colors.white,),
+                ),
               ),
+
+
+
+
+
             ],
           ),
           SizedBox(
-            height: 50,
+            height: 100,
           )
         ],
       ),

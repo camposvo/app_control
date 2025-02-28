@@ -189,6 +189,7 @@ class _ShowRevisionState extends State<ShowRevision> {
         ),
         filled: true, // Habilita el color de fondo
         fillColor: Colors.white, // Color de fondo
+        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       ),
       child: DropdownButton<OrgaRevisione>(
         value: dropdownValue, // Objeto actual seleccionado
@@ -197,7 +198,7 @@ class _ShowRevisionState extends State<ShowRevision> {
             value: value,
             child: Text(value.reviNumero,  style: TextStyle(
               color: Colors.black,
-              fontSize: 20,
+              fontSize: 18,
             ),), //, // Muestra el nombre del objeto
           );
         }).toList(),

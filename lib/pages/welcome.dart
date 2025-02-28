@@ -47,9 +47,11 @@ class Welcome extends StatelessWidget {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                             minimumSize: Size(width -20, 40),
-                            shape: StadiumBorder(),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                          ),
                             backgroundColor: AppColor.themeColor,
-                            padding: EdgeInsets.all(20.0),
+                            padding: EdgeInsets.all(10.0),
                         ),
                         onPressed: () async {
                           Navigator.pushNamed(context, 'organizations');
