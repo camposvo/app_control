@@ -88,7 +88,8 @@ class _ShowOrganizationState extends State<ShowOrganization> {
   Widget _buildScaffold(BuildContext context, Widget body) {
     return Scaffold(
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarTwo(context, "Edificios"),
+        drawer: setDrawer(context),
+        appBar: setAppBarMain(context, "Organizaciones","Listado"),
         body: body
     );
   }

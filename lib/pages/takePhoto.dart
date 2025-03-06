@@ -13,9 +13,12 @@ import '../helper/constant.dart';
 import '../helper/mqttManager.dart';
 import '../models/orgaInstrumento.dart';
 import '../providers/providers_pages.dart';
+import 'dart:developer' as developer;
+import 'package:logger/logger.dart';
 
 enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
 enum ImageState { RECEIVED, WAITING }
+const String infoPrefix = 'MyAPP ';
 
 class TakePhoto extends StatefulWidget {
   @override
@@ -23,6 +26,11 @@ class TakePhoto extends StatefulWidget {
 }
 
 class _TakePhotoState extends State<TakePhoto> {
+  var logger = Logger();
+
+
+
+
   late List<CameraDescription> _cameras;
   CameraController? _controller;
   final mqttManager = MqttManager(
@@ -137,6 +145,42 @@ class _TakePhotoState extends State<TakePhoto> {
       return 0;
     }
     return 1;
+  }
+
+  void _savePuntoPrueba(BuildContext context, int value){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    developer.log('$infoPrefix Información general');
+    logger.i('$infoPrefix: orgaId: ${info.orgaInstrument.orgaId}');
+
+
+
+    for (var j = 0; j < info.orgaInstrument.orgaInstrumentos.length; j++) {
+          if (info.orgaInstrument.orgaInstrumentos[j].instId == info.instId) {
+            for (var k = 0; k < info.orgaInstrument.orgaInstrumentos[j].instVariables.length; k++) {
+              if (info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntId == info.puntId) {
+                for (var l = 0; l < info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba.length; l++) {
+                  if (info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueReviId == info.revision?.reviId) {
+                    // Modificar el elemento directamente en la lista
+                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueDescripcion = comment;
+                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFecha = DateTime.now();
+                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFoto1 = imageBase64_1;
+                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFoto2 = imageBase64_2;
+                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueEnviado = value;
+                    setState(() {
+                    });
+                    logger.i(info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueEnviado);
+                   // logger.i(info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l]);
+                   return; // Elemento encontrado y modificado
+                  }
+                }
+              }
+            }
+          }
+        }
+
+
+
   }
 
   void _subscribeMaster() {
@@ -313,6 +357,7 @@ class _TakePhotoState extends State<TakePhoto> {
   }
 
   Widget _viewImage(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -410,7 +455,8 @@ class _TakePhotoState extends State<TakePhoto> {
                 backgroundColor: Colors.green, // Color del círculo (puedes cambiarlo)
                 child:  IconButton(
                   onPressed: () {
-                    variable.puntPrueba.where(item => )
+                    print("AQUI VA");
+                    _savePuntoPrueba(context, 2);
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.check, color: Colors.white,),
@@ -421,17 +467,11 @@ class _TakePhotoState extends State<TakePhoto> {
                 backgroundColor: AppColor.redColor, // Color del círculo (puedes cambiarlo)
                 child:   IconButton(
                   onPressed: () {
-                    // Lógica para rechazar
-                    print('Comentario rechazado: $comment');
+                    _savePuntoPrueba(context, 3);
                   },
                   icon: const Icon(Icons.close, color: Colors.white,),
                 ),
               ),
-
-
-
-
-
             ],
           ),
           SizedBox(

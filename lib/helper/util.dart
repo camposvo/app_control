@@ -5,12 +5,23 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
+import 'package:logger/logger.dart';
 
-
+const String infoPrefix = 'MyAPP ';
 
 class Util {
 
   Util() {}
+
+  static void printInfo(String msg) {
+    var logger = Logger(
+      printer: PrettyPrinter(),
+    );
+
+    logger.i('$infoPrefix: $msg');
+
+    return;
+  }
 
   static String formatearFecha(DateTime fecha) {
     // Crear un nuevo objeto DateTime con la hora a las 00:00:00
@@ -71,6 +82,15 @@ class Util {
     String header = "data:image/png;base64,";//convert to bytes
     String base64string = base64.encode(imagebytes); //convert bytes to base64 string
     return header + base64string;
+  }
+
+  static Uint8List dataFromBase64String(String base64String) {
+    // Convert to UriData
+    final UriData? data = Uri.parse(base64String).data;
+    // You can check if data is normal base64 - should return true
+    // Will returns your image as Uint8List
+    Uint8List myImage = data!.contentAsBytes();
+    return myImage;
   }
 
 

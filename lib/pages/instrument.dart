@@ -32,9 +32,6 @@ class _InstrumentState extends State<Instrument> {
   void initState() {
     super.initState();
     _loadData();
-
-
-
   }
 
   Future<void> _loadData() async {
@@ -86,9 +83,10 @@ class _InstrumentState extends State<Instrument> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: setDrawer(context),
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarSubTitle(context, orgaInstrument.orgaNombre, "Medidores"),
-      body: contentBody(context)
+      appBar: setAppBarMain(context, orgaInstrument.orgaNombre, "Medidores"),
+      body: showInstrumentList(context)
     );
   }
 
@@ -111,7 +109,7 @@ class _InstrumentState extends State<Instrument> {
     );
   }
 
-  Widget contentBody(BuildContext context) {
+  Widget showInstrumentList(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
@@ -132,7 +130,7 @@ class _InstrumentState extends State<Instrument> {
             height: 20,
           ),
           Container(
-            color: AppColor.color1,
+            color: AppColor.secondaryColor,
             padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

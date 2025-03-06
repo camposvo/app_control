@@ -19,6 +19,7 @@ class ProviderPages with ChangeNotifier {
   String _orgaId = '';
   String _instId = '';
   String _varId = '';
+  String _puntId = '';
   String _reviId = '';
 
   String _mainTopic = '';
@@ -43,8 +44,6 @@ class ProviderPages with ChangeNotifier {
     _organization = value;
     notifyListeners();
   }
-
-
 
 
   OrgaInstrumento get orgaInstrument => _orgaInstrument;
@@ -75,6 +74,13 @@ class ProviderPages with ChangeNotifier {
   String get instId => _instId;
   set instId(String value) {
     _instId = value;
+    notifyListeners();
+  }
+
+
+  String get puntId => _puntId;
+  set puntId(String value) {
+    _puntId = value;
     notifyListeners();
   }
 

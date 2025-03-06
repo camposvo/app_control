@@ -7,7 +7,27 @@ import 'package:provider/provider.dart';
 import 'package:control/helper/constant.dart';
 import 'package:control/providers/providers_pages.dart';
 
-class Welcome extends StatelessWidget {
+class SendData extends StatefulWidget {
+  @override
+  State<SendData> createState() => _SendDataState();
+}
+
+class _SendDataState extends State<SendData> {
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async
+  {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+
+
+
+  }
   @override
   Widget build(BuildContext context) {
     final info = Provider.of<ProviderPages>(context);
@@ -16,7 +36,7 @@ class Welcome extends StatelessWidget {
 
     return Scaffold(
       drawer: setDrawer(context),
-        appBar: setAppBarMain(context, "Ribe","Bienvenido"),
+        appBar: setAppBarTwo(context, "Enviar Datos"),
         body: Container(
             padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 40.0),
             child: Theme(
@@ -32,10 +52,9 @@ class Welcome extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                         SizedBox(
+                      SizedBox(
                         height: 100,
                       ),
-
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                             minimumSize: Size(width -20, 40),
@@ -46,9 +65,9 @@ class Welcome extends StatelessWidget {
                             padding: EdgeInsets.all(10.0),
                         ),
                         onPressed: () async {
-                          Navigator.pushNamed(context, 'organizations');
+                          //Navigator.pushNamed(context, 'organizations');
                         },
-                        child: Text('Iniciar',  style: TextStyle(
+                        child: Text('Enviar Datos',  style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                         ),),

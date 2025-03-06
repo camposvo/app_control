@@ -1,5 +1,6 @@
 import 'package:control/pages/controlList.dart';
 import 'package:control/pages/instrument.dart';
+import 'package:control/pages/sendData.dart';
 import 'package:control/pages/showOrganization.dart';
 import 'package:control/pages/selectMode.dart';
 import 'package:control/pages/takePhoto.dart';
@@ -22,6 +23,7 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'selectMode': (BuildContext context) => SelectMode(),
     'variable': (BuildContext context) => Variable(),
     'showRevision': (BuildContext context) => ShowRevision(),
+    'sendData': (BuildContext context) => SendData(),
 
   };
 }

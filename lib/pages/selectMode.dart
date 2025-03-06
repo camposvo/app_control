@@ -111,7 +111,7 @@ class _SelectModeState extends State<SelectMode> {
   Widget _buildScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
-        appBar: setAppBarTwo(context, info.organization.orgaNombre),
+        appBar: setAppBarMain(context, info.organization.orgaNombre, "Emparejar Dispositivo"),
         body: body
     );
   }

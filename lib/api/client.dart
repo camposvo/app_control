@@ -104,6 +104,7 @@ class _Clients {
       if (result.data != null) {
         String str =
         getPrettyJSONString(result.data?['loadDataRevisiones']['data']);
+        print(str);
         return str;
       }
 

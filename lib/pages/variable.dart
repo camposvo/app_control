@@ -11,6 +11,7 @@ import '../helper/constant.dart';
 import '../models/orgaInstrumento.dart';
 import '../models/variable.dart';
 import '../providers/providers_pages.dart';
+import 'package:logger/logger.dart';
 
 
 enum WidgetState { LOADING, SHOW_LIST }
@@ -23,6 +24,11 @@ class Variable extends StatefulWidget {
 }
 
 class _VariableState extends State<Variable> {
+  var logger = Logger(
+    printer: PrettyPrinter(),
+  );
+
+
   List<InstVariable> _variables = [];
   List<InstVariable> _filterList = [];
   late OrgaInstrumentoElement instrument;
@@ -33,7 +39,6 @@ class _VariableState extends State<Variable> {
   WidgetState _widgetState = WidgetState.LOADING;
 
   String orgaId = '';
-
   int _listos = 0;
   int _total= 0;
 
@@ -42,6 +47,12 @@ class _VariableState extends State<Variable> {
     super.initState();
     _loadData();
 
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadData();
   }
 
   Future<void> _loadData() async {
@@ -103,7 +114,7 @@ class _VariableState extends State<Variable> {
         ) ) ;
 
       case WidgetState.SHOW_LIST:
-        return _buildScaffold(context,contentBody(context) ) ;
+        return _mainScaffold(context,showVariableList(context) ) ;
 
     }
   }
@@ -112,7 +123,17 @@ class _VariableState extends State<Variable> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarSubTitle(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
+        appBar: setAppBarMain(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
+        body: body
+    );
+  }
+
+  Widget _mainScaffold(BuildContext context, Widget body) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return Scaffold(
+        drawer: setDrawer(context),
+        backgroundColor: AppColor.containerBody,
+        appBar: setAppBarMain(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
         body: body
     );
   }
@@ -173,7 +194,7 @@ class _VariableState extends State<Variable> {
     setState(() {});
   }
 
-  onSearch(String search) {
+  _onSearch(String search) {
     _filterList = _variables.where((item) {
       return item.variNombre.toLowerCase().contains(search);
     }).toList();
@@ -186,13 +207,13 @@ class _VariableState extends State<Variable> {
       padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
       height: 48,
       child: TextField(
-        onChanged: (value) => onSearch(value),
+        onChanged: (value) => _onSearch(value),
         decoration: setSearchDecoration(),
       ),
     );
   }
 
-  Widget contentBody(BuildContext context) {
+  Widget showVariableList(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
@@ -216,7 +237,7 @@ class _VariableState extends State<Variable> {
             height: 10,
           ),
           Container(
-            color: AppColor.color1,
+            color: AppColor.secondaryColor,
             padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
             child: Column(
               children: [
@@ -329,14 +350,37 @@ class _VariableState extends State<Variable> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final nombre = _filterList[index].variNombre;
     final abbreviation = _filterList[index].subuAbreviatura;
+    Color colorState = Colors.red;
+
+
+   for (var item in _filterList[index].puntPrueba) {
+      if (item.prueReviId == info.revision?.reviId) {
+
+        logger.i('MyAPP: PASO ${item.prueDescripcion}');
+
+        logger.i('MyAPP: PASO ${item.prueEnviado}');
+
+        if(item.prueEnviado == 1){
+          colorState = Colors.white;
+        }
+
+        if(item.prueEnviado == 2){
+          colorState = Colors.green;
+        }
+
+        if(item.prueEnviado == 3){
+          colorState = Colors.red;
+        }
+
+      }
+    }
 
     final size = MediaQuery.of(context).size;
-    final width = size.width;
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color: Colors.white,
+        color:  colorState,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
@@ -370,9 +414,16 @@ class _VariableState extends State<Variable> {
                 ),
                 onPressed: () async {
                   setState(() {
+                    info.puntId = _filterList[index].puntId;
                     info.varId = _filterList[index].variId;
                   });
-                  Navigator.pushNamed(context, 'takePhoto');
+
+                  Navigator.pushNamed(context, 'takePhoto')
+                      .then((_) async {
+                    logger.i('MyAPP: PASO ');
+                        await _loadData();
+                  });
+                  //Navigator.pushNamed(context, 'takePhoto');
                 },
                 child: Text('Ir',  style: TextStyle(
                   color: Colors.white,

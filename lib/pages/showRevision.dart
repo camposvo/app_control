@@ -96,7 +96,8 @@ class _ShowRevisionState extends State<ShowRevision> {
   Widget _buildScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
-        appBar: setAppBarTwo(context, info.organization.orgaNombre),
+        drawer: setDrawer(context),
+        appBar: setAppBarMain(context, info.organization.orgaNombre,"Revisiones"),
         body: body
     );
   }

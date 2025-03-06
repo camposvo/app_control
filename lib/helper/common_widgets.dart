@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:control/pages/sendData.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -267,57 +268,42 @@ setCommonText2(String title, dynamic color, dynamic fontSize, dynamic fontweight
   );
 }
 
-
-
-
-
-/*
-setAppBarMain(BuildContext context, String title) {
-  final info = Provider.of<ProviderPages>(context);
-  String img = Util.photoProfile(info.persona.profile);
-
-  return AppBar(
-    automaticallyImplyLeading: false,
-    centerTitle: true,
-    leading: Builder(
-      builder: (context) => IconButton(
-        icon: new Icon(MdiIcons.dotsVertical),
-        onPressed: () => Scaffold.of(context).openDrawer(),
-      ),
-    ),
-    backgroundColor: AppColor.themeColor,
-    elevation: 1.0,
-    actions: setCommonCartNotificationView(context),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-    ),
-    bottom: PreferredSize(
-      preferredSize: Size.fromHeight(80),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            height: 80,
-            width: 80,
-            padding: EdgeInsets.symmetric(vertical: 10.0),
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                    image: MemoryImage(Util.dataFromBase64String(img)),
-                    fit: BoxFit.cover)),
+setDrawer(BuildContext context) {
+  return Drawer(
+    width: 200.0,
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        DrawerHeader(
+          decoration: BoxDecoration(
+            color: Colors.blue,
           ),
-          SizedBox(
-            height: 15,
+          child: Text(
+            'Menú',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+            ),
           ),
-        ],
-      ),
+        ),
+        ListTile(
+          leading: Icon(Icons.send),
+          title: Text('Enviar'),
+          onTap: () {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SendData()),);
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.home),
+          title: Text('Inico'),
+          onTap: () {
+            Navigator.pop(context); // Cierra el Drawer
+          },
+        ),
+      ],
     ),
   );
 }
-*/
-
 
 setAppBarTwo(BuildContext context, String title) {
   return AppBar(
@@ -355,7 +341,17 @@ setAppBarSubTitle(BuildContext context, String title, String subTitle) {
       color: Colors.white, // Cambia el color del icono a blanco
     ),
     centerTitle: true,
-    automaticallyImplyLeading: false,
+    leading: Builder(
+      builder: (BuildContext context) {
+        return IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+          //tooltip: MaterialLocalizations.of(context).menuBarMenuLabel,
+        );
+      },
+    ),
     backgroundColor: AppColor.themeColor,
     elevation: 1.0,
     //actions: setCommonCartNotificationView(context),
@@ -364,6 +360,7 @@ setAppBarSubTitle(BuildContext context, String title, String subTitle) {
           bottomLeft: Radius.circular(0), bottomRight: Radius.circular(0)),
     ),
     bottom: PreferredSize(
+
       preferredSize: Size.fromHeight(30),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -371,7 +368,7 @@ setAppBarSubTitle(BuildContext context, String title, String subTitle) {
           setHeaderTitle(title, Colors.white),
           setHeaderSubTitle(subTitle, Colors.white),
           SizedBox(
-            height: 10,
+            height: 0,
           ),
         ],
       ),
@@ -379,31 +376,41 @@ setAppBarSubTitle(BuildContext context, String title, String subTitle) {
   );
 }
 
-/*
-setAppBarSimple(BuildContext context, String title) {
+AppBar setAppBarMain(BuildContext context, String title, String subTitle) {
   return AppBar(
-    centerTitle: true,
+    toolbarHeight: 80.0,
+    iconTheme: IconThemeData(
+      color: Colors.white,
+    ),
+    centerTitle: false, // Alinea el título a la izquierda
+    leading: Builder(
+      builder: (BuildContext context) {
+        return IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        );
+      },
+    ),
     backgroundColor: AppColor.themeColor,
     elevation: 1.0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-    ),
-    bottom: PreferredSize(
-      preferredSize: Size.fromHeight(80),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          setHeaderTitle(AppTranslations.of(context).text(title), Colors.white),
-          SizedBox(
-            height: 50,
-          ),
-        ],
+        bottomLeft: Radius.circular(0),
+        bottomRight: Radius.circular(0),
       ),
+    ),
+    title: Column( // Usamos Column dentro de title para título y subtítulo
+      crossAxisAlignment: CrossAxisAlignment.start, // Alinea a la izquierda dentro de la columna.
+      children: [
+        setHeaderTitle(title, Colors.white),
+        setHeaderSubTitle(subTitle, Colors.white),
+
+      ],
     ),
   );
 }
-*/
 
 void showError(String msg) {
   Fluttertoast.showToast(
