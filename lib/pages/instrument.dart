@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
 import '../models/orgaInstrumento.dart';
-import '../models/variable.dart';
+
 import '../providers/providers_pages.dart';
 
 class Instrument extends StatefulWidget {
@@ -41,31 +41,16 @@ class _InstrumentState extends State<Instrument> {
       return;
     }
 
-    final _reviId = info.revision!.reviId;
-    orgaInstrument = info.orgaInstrument;
+    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
 
-    _instruments = orgaInstrument.orgaInstrumentos.where((elemento) {
-      for (var item in elemento.instComentarios) {
-        if (item.comeReviId == _reviId) {
-          return true;
-        }
-      }
-      return false;
-    }).toList();
+    _instruments =  [...orgaInstrument.orgaInstrumentos];
+    _filterList =  [...orgaInstrument.orgaInstrumentos];
 
-    _filterList = orgaInstrument.orgaInstrumentos.where((elemento) {
-      for (var item in elemento.instComentarios) {
-        if (item.comeReviId == _reviId) {
-          return true;
-        }
-      }
-      return false;
-    }).toList();
 
     //Cantidad de Medidores Listos
     _listos = _instruments.where((elemento) {
       for (var item in elemento.instComentarios) {
-        if (item.comeEnviado == 1) {
+        if (item.comeEnviado == 2) {
           return true;
         }
       }
@@ -179,15 +164,34 @@ class _InstrumentState extends State<Instrument> {
   }
 
   Widget _itemListView(int index, BuildContext context) {
-    final nombre = _filterList[index].instNombre;
-    final variables = _filterList[index].instVariables;
     final info = Provider.of<ProviderPages>(context, listen: false);
+    final nombre = _filterList[index].instNombre;
+    Color stateColor = Colors.white;
+    Color stateFontColor = Colors.black;
+
+
+    final variables =  [..._filterList[index].instVariables];
+
+    for (var comment in _filterList[index].instComentarios) {
+      if(comment.comeReviId == info.revision?.reviId) {
+        if(comment.comeEnviado == 1){
+          stateColor = AppColor.GreenReady;
+          stateFontColor = Colors.white;
+        }
+
+        if(comment.comeEnviado == 2){
+          stateColor = AppColor.editColor;
+          stateFontColor = Colors.white;
+        }
+      }
+    }
+
 
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color: Colors.white,
+        color:  stateColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
@@ -202,8 +206,8 @@ class _InstrumentState extends State<Instrument> {
                   SizedBox(
                     width: 10,
                   ),
-                  setCommonText(nombre, Colors.black, 16.0, FontWeight.w800, 20),
-                  setCommonText(variables.length.toString(), AppColor.themeColor, 16.0, FontWeight.w800, 20),
+                  setCommonText(nombre, stateFontColor, 16.0, FontWeight.w500, 20),
+                  setCommonText(variables.length.toString(), stateFontColor, 16.0, FontWeight.w800, 20),
 
                 ],
               ),
@@ -219,7 +223,11 @@ class _InstrumentState extends State<Instrument> {
                   setState(() {
                     info.instId = _filterList[index].instId;
                   });
-                  Navigator.pushNamed(context, 'variable');
+
+                  Navigator.pushNamed(context, 'variable')
+                      .then((_) async {
+                    await _loadData();
+                  });
                 },
                 child: Text('Ir',  style: TextStyle(
                   color: Colors.white,

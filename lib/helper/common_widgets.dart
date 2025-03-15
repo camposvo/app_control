@@ -1,5 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:control/pages/sendData.dart';
+import 'package:control/pages/welcome.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -297,7 +299,7 @@ setDrawer(BuildContext context) {
           leading: Icon(Icons.home),
           title: Text('Inico'),
           onTap: () {
-            Navigator.pop(context); // Cierra el Drawer
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage()),);
           },
         ),
       ],
@@ -412,22 +414,23 @@ AppBar setAppBarMain(BuildContext context, String title, String subTitle) {
   );
 }
 
-void showError(String msg) {
-  Fluttertoast.showToast(
+Future<void> showError(String msg) async {
+  await Fluttertoast.showToast(
     msg: msg,
     toastLength: Toast.LENGTH_LONG,
     backgroundColor: Colors.red,
     textColor: Colors.white,
+    timeInSecForIosWeb: 2,
     gravity: ToastGravity.CENTER,
   );
 }
 
-void showMsg(String msg) {
-  Fluttertoast.showToast(
+Future<void> showMsg(String msg) async {
+  await Fluttertoast.showToast(
       msg: msg,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 1,
+      timeInSecForIosWeb: 2,
       backgroundColor: AppColor.color1,
       textColor: Colors.white,
       fontSize: 16.0

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,10 +9,13 @@ import 'package:provider/provider.dart';
 
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/util.dart';
 import '../models/orgaInstrumento.dart';
+import '../models/resultRevision.dart';
 import '../models/variable.dart';
 import '../providers/providers_pages.dart';
 import 'package:logger/logger.dart';
+import 'package:control/helper/util.dart';
 
 
 enum WidgetState { LOADING, SHOW_LIST }
@@ -28,13 +32,21 @@ class _VariableState extends State<Variable> {
     printer: PrettyPrinter(),
   );
 
+  static const List<String> commentInstrument = [
+    'El medidor está bien',
+    'El medidor está regular',
+    'El medidor está malo'
+  ];
 
-  List<InstVariable> _variables = [];
+  String? dropdownValue;
+
+  TextEditingController _controller = TextEditingController(text: '');
+
+  List<InstVariable> variables = [];
   List<InstVariable> _filterList = [];
   late OrgaInstrumentoElement instrument;
   late OrgaInstrumento orgaInstrument;
   int _indiceSeleccionado = 0; // Índice del botón activo
-  String comentario = '';
 
   WidgetState _widgetState = WidgetState.LOADING;
 
@@ -50,9 +62,9 @@ class _VariableState extends State<Variable> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -61,34 +73,26 @@ class _VariableState extends State<Variable> {
 
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    final _reviId = info.revision!.reviId;
+    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
+    instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
-    instrument = info.orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
-    _variables = instrument.instVariables.where((elemento) {
-      for (var item in elemento.puntPrueba) {
-        if (item.prueReviId == _reviId) {
-          return true;
-        }
+    for (var item in instrument.instComentarios) {
+      if (item.comeReviId == info.revision?.reviId) {
+        if(commentInstrument.contains(item.comeDescripcion)) dropdownValue = item.comeDescripcion;
       }
-      return false;
-    }).toList();
-    _filterList = instrument.instVariables.where((elemento) {
-      for (var item in elemento.puntPrueba) {
-        if (item.prueReviId == _reviId) {
-          return true;
-        }
-      }
-      return false;
-    }).toList();
+    }
+
+    variables =  [...instrument.instVariables];
+    _filterList =  [...instrument.instVariables];
 
 
     // Por defecto se muestra solo las Energias
-    _filterList = _variables.where((item) {
+    _filterList = variables.where((item) {
       return item.variNombre.toLowerCase().contains("energia");
     }).toList();
 
     //Cantidad de Variables Listos
-    _listos = _variables.where((elemento) {
+    _listos = variables.where((elemento) {
       for (var item in elemento.puntPrueba) {
         if (item.prueEnviado == 1) {
           return true;
@@ -98,10 +102,58 @@ class _VariableState extends State<Variable> {
     }).toList().length;
 
     //Cantidad de Medidores Total
-    _total = _variables.length;
+    _total = variables.length;
 
     _widgetState = WidgetState.SHOW_LIST;
     setState(() {});
+
+  }
+
+  void _savePuntoPrueba(BuildContext context, int value){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    bool found = false;
+
+    InstComentario comment = new InstComentario(
+        comeId: Util.generateUUID(),
+        comeFecha:  DateTime.now(),
+        comeReviId: info.revision!.reviId,
+        comeDescripcion:  dropdownValue!,
+        reviNumero:  info.revision!.reviNumero,
+        comeEnviado: 2,
+        reviEntiId: info.revision!.reviEntiId,
+    );
+
+    for (var i = 0; i < info.mainData.length; i++) {
+      if (info.mainData[i].orgaId == info.organization.orgaId) {
+        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
+          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
+
+            for (var k = 0; k <
+                info.mainData[i].orgaInstrumentos[j].instComentarios
+                    .length; k++) {
+              if (info.mainData[i].orgaInstrumentos[j].instComentarios[k]
+                  .comeReviId == info.revision?.reviId) {
+
+                found=true;
+                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
+                    .comeId = Util.generateUUID();
+                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
+                    .comeEnviado = value;
+                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
+                    .comeDescripcion = dropdownValue!;
+                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
+                    .comeFecha = DateTime.now();
+
+              }
+            }
+
+            if(!found) info.mainData[i].orgaInstrumentos[j].instComentarios.add(comment);
+
+          }
+        }
+      }
+    }
 
   }
 
@@ -123,7 +175,7 @@ class _VariableState extends State<Variable> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarMain(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
+        appBar: setAppBarMain(context, info.organization.orgaNombre, instrument.instNombre),
         body: body
     );
   }
@@ -133,7 +185,7 @@ class _VariableState extends State<Variable> {
     return Scaffold(
         drawer: setDrawer(context),
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarMain(context, info.orgaInstrument.orgaNombre, instrument.instNombre),
+        appBar: setAppBarMain(context, info.organization.orgaNombre, instrument.instNombre),
         body: body
     );
   }
@@ -155,7 +207,7 @@ class _VariableState extends State<Variable> {
       onTap: () {
         setState(() {
           _indiceSeleccionado = indice;
-          onChangeBoton();
+          _onChangeBoton();
         });
       },
       child: Container(
@@ -175,27 +227,27 @@ class _VariableState extends State<Variable> {
     );
   }
 
-  onChangeBoton() {
+  _onChangeBoton() {
     switch(_indiceSeleccionado) {
       case 0:
-        _filterList = _variables.where((item) {
+        _filterList = variables.where((item) {
           return item.variNombre.toLowerCase().contains("energia");
         }).toList();
 
       case 1:
-        _filterList = _variables.where((item) {
+        _filterList = variables.where((item) {
           return item.variNombre.toLowerCase().contains("potencia");
         }).toList();
 
       case 2:
-        _filterList = [..._variables];
+        _filterList = [...variables];
 
     }
     setState(() {});
   }
 
   _onSearch(String search) {
-    _filterList = _variables.where((item) {
+    _filterList = variables.where((item) {
       return item.variNombre.toLowerCase().contains(search);
     }).toList();
 
@@ -217,7 +269,6 @@ class _VariableState extends State<Variable> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
-
         children: [
           SizedBox(
             height: 16,
@@ -241,26 +292,7 @@ class _VariableState extends State<Variable> {
             padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
             child: Column(
               children: [
-                TextField(
-                  maxLines: 2,
-                  onChanged: (value) {
-                    setState(() {
-                      comentario = value; // Actualiza la variable con el nuevo valor
-                    });
-                  },
-                  decoration: InputDecoration(
-                    fillColor: Colors.white, // Color de fondo gris claro
-                    filled: true, // Habilita el color de fondo
-                    hintText: 'Escribe tu comentario aquí...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide(
-                        color: Colors.white,
-                        width: 0.0// Color del borde
-                      ),
-                    ),
-                  ),
-                ),
+               _commentList(context),
                 SizedBox(height: 10,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -290,6 +322,16 @@ class _VariableState extends State<Variable> {
                         padding: EdgeInsets.all(10.0),
                       ),
                       onPressed: () async {
+
+                        if(dropdownValue == null) {
+                          await showError('Debe seleccionar un Comentario');
+                          return;
+                        }
+
+                        _savePuntoPrueba(context, 2);
+                        await showMsg('Medidor Finalizado');
+                        await Future.delayed(Duration(seconds: 2));
+                        Navigator.pop(context);
 
                       },
                       child: Text('Finalizar Medidor',  style: TextStyle(
@@ -350,37 +392,31 @@ class _VariableState extends State<Variable> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final nombre = _filterList[index].variNombre;
     final abbreviation = _filterList[index].subuAbreviatura;
-    Color colorState = Colors.red;
+    Color stateColor = Colors.white;
+    Color stateFontColor = Colors.black;
 
 
    for (var item in _filterList[index].puntPrueba) {
       if (item.prueReviId == info.revision?.reviId) {
 
-        logger.i('MyAPP: PASO ${item.prueDescripcion}');
-
-        logger.i('MyAPP: PASO ${item.prueEnviado}');
-
         if(item.prueEnviado == 1){
-          colorState = Colors.white;
+          stateColor = Colors.green;
+          stateFontColor = Colors.white;
         }
 
         if(item.prueEnviado == 2){
-          colorState = Colors.green;
-        }
-
-        if(item.prueEnviado == 3){
-          colorState = Colors.red;
+          stateColor = AppColor.editColor;
+          stateFontColor = Colors.white;
         }
 
       }
     }
 
-    final size = MediaQuery.of(context).size;
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color:  colorState,
+        color:  stateColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
@@ -397,43 +433,78 @@ class _VariableState extends State<Variable> {
                     SizedBox(
                       width: 10,
                     ),
-                    setCommonText(nombre, Colors.black, 16.0, FontWeight.w800, 20),
-                    setCommonText(abbreviation, Colors.black, 16.0, FontWeight.w800, 20),
+                    setCommonText(nombre, stateFontColor, 16.0, FontWeight.w800, 20),
+                    setCommonText(abbreviation, stateFontColor, 16.0, FontWeight.w800, 20),
 
 
                   ],
                 ),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape:  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                  ),
-                  backgroundColor: AppColor.secondaryColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
+              IconButton(
                 onPressed: () async {
                   setState(() {
                     info.puntId = _filterList[index].puntId;
                     info.varId = _filterList[index].variId;
                   });
 
-                  Navigator.pushNamed(context, 'takePhoto')
-                      .then((_) async {
-                    logger.i('MyAPP: PASO ');
-                        await _loadData();
+                  Navigator.pushNamed(context, 'takePhoto').then((_) async {
+                    await _loadData();
                   });
-                  //Navigator.pushNamed(context, 'takePhoto');
                 },
-                child: Text('Ir',  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),),
+                icon: Icon(
+                  Icons.camera_alt,
+                  color: stateFontColor,
+                  size: 24.0,
+                ),
               ),
+
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget  _commentList(BuildContext context){
+    return InputDecorator(
+      decoration: InputDecoration(
+        border: OutlineInputBorder( // Define el borde
+          borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
+        ),
+        filled: true, // Habilita el color de fondo
+        fillColor: Colors.white, // Color de fondo
+        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      ),
+      child: DropdownButton<String>(
+        value: dropdownValue,
+        items: commentInstrument.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            dropdownValue = newValue;
+            if(newValue != null){
+              print('Estado seleccionado: $newValue');
+            }
+          });
+        },
+        hint: const Text('Selección ...', style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+        ),),
+      ),
+    );
+
+  }
+
+
 } // FIn MAIN WIDGET

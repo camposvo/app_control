@@ -24,7 +24,6 @@ class ShowOrganization extends StatefulWidget {
 class _ShowOrganizationState extends State<ShowOrganization> {
   List<Organization> _organizations = [];
   List<Organization> _filterList = [];
-  bool isLoading = true;
 
   WidgetState _widgetState = WidgetState.LOADING;
 
@@ -49,7 +48,6 @@ class _ShowOrganizationState extends State<ShowOrganization> {
   }
 
   Future<bool> _getOrganizations(BuildContext context) async {
-    final info = Provider.of<ProviderPages>(context, listen: false);
     final result =await api.getOrganization();
 
     if(result == null){
@@ -57,7 +55,6 @@ class _ShowOrganizationState extends State<ShowOrganization> {
     }
     _organizations = organizationFromJson(result);
     _filterList =organizationFromJson(result);
-    info.organizations = organizationFromJson(result);
     return true;
   }
 
@@ -69,7 +66,7 @@ class _ShowOrganizationState extends State<ShowOrganization> {
 
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator( color: AppColor.themeColor,),
         ) ) ;
 
       case WidgetState.LOADED:
@@ -201,6 +198,7 @@ class _ShowOrganizationState extends State<ShowOrganization> {
                 onPressed: () async {
                   setState(() {
                     info.organization = _filterList[index];
+                    info.isOrganization = true;
                   });
 
                   Navigator.pushNamed(context, 'showRevision',

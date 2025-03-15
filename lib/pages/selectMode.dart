@@ -33,7 +33,6 @@ class _SelectModeState extends State<SelectMode> {
     username: 'root',
     password: '*R1b3x#99',
   );
-  late OrgaInstrumento orgaInstrument;
   bool isActive = true;
 
   @override
@@ -76,9 +75,10 @@ class _SelectModeState extends State<SelectMode> {
       if(message == msgACK){
         isActive = true;
         setState(() {});
-        info.connected = "CONNECTED";
+        info.connected = true;
         mqttManager.publish(topic, msgConfirm);
-        Navigator.pushNamed(context, 'instrument');
+
+        //Navigator.pushNamed(context, 'instrument');
       }
     });
   }
@@ -111,6 +111,7 @@ class _SelectModeState extends State<SelectMode> {
   Widget _buildScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Scaffold(
+        drawer: setDrawer(context),
         appBar: setAppBarMain(context, info.organization.orgaNombre, "Emparejar Dispositivo"),
         body: body
     );
@@ -174,7 +175,7 @@ class _SelectModeState extends State<SelectMode> {
                   topic = Util.geenerateCode(5);
                   _subscribeTopic(topic);
                   info.mainTopic = topic;
-                  info.connected = "";
+                  info.connected = false;
                   setState(() {});
 
                 }
@@ -213,7 +214,7 @@ class _SelectModeState extends State<SelectMode> {
 
               SizedBox(height: 20,),
 
-              (info.connected == '') ? SizedBox.shrink() : ElevatedButton(
+              (!info.connected) ? SizedBox.shrink() : ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(width -20, 40),
                   shape:  RoundedRectangleBorder(
@@ -223,7 +224,7 @@ class _SelectModeState extends State<SelectMode> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  Navigator.pushNamed(context, 'instrument');
+                  Navigator.pushNamed(context, 'dashboard');
                 },
                 child: Text('Continuar',  style: TextStyle(
                   color: Colors.white,

@@ -244,14 +244,12 @@ class OrgaRevisione {
   String reviId;
   String reviEstado;
   String reviNumero;
-  String reviEntiId;
   String reviDescripcion;
 
   OrgaRevisione({
     required this.reviId,
     required this.reviEstado,
     required this.reviNumero,
-    required this.reviEntiId,
     required this.reviDescripcion,
   });
 
@@ -259,7 +257,6 @@ class OrgaRevisione {
     reviId: json["revi_id"],
     reviEstado: json["revi_estado"],
     reviNumero: json["revi_numero"],
-    reviEntiId: json["revi_enti_id"],
     reviDescripcion: json["revi_descripcion"],
   );
 
@@ -267,7 +264,6 @@ class OrgaRevisione {
     "revi_id": reviId,
     "revi_estado": reviEstado,
     "revi_numero": reviNumero,
-    "revi_enti_id": reviEntiId,
     "revi_descripcion": reviDescripcion,
   };
 }

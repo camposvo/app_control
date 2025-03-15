@@ -59,8 +59,11 @@ class _ShowRevisionState extends State<ShowRevision> {
     }
 
     final _orgaInstruments = orgaInstrumentoFromJson(result);
+    final temp = _orgaInstruments.firstWhere((item) => item.orgaId == id);
 
-    info.orgaInstrument = _orgaInstruments.firstWhere((item) => item.orgaId == id);
+    final idExists = info.mainData.any((item) => item.orgaId == id);
+    if (!idExists) info.mainData.add(temp);
+
     orgaInstrument = _orgaInstruments.firstWhere((item) => item.orgaId == id);
     revisions = orgaInstrument.orgaRevisiones;
 
@@ -76,7 +79,7 @@ class _ShowRevisionState extends State<ShowRevision> {
 
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child: CircularProgressIndicator(),
+          child:  CircularProgressIndicator( color: AppColor.themeColor,),
         ) ) ;
 
       case WidgetState.LOADED:
@@ -138,40 +141,18 @@ class _ShowRevisionState extends State<ShowRevision> {
                     }
 
                     info.revision = dropdownValue;
-                    Navigator.pushNamed(context, 'selectMode')
+                    Navigator.pushNamed(context, 'dashboard')
                         .then((_) async {
                     });
 
                   },
-                  child: Text('Sin Sistema',  style: TextStyle(
+                  child: Text('Aceptar',  style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                   ),),
                 ),
                 SizedBox(
                   height: 50,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(width -20, 40),
-                    shape:  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: Colors.grey,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-                   /* if(info.reviId == ""){
-                      showMsg("Debe Seleccionar una Revisión");
-                      return;
-                    }*/
-                    //await api.testNotify(info.persona.user.pkUsuario);
-                    //Navigator.pushNamed(context, 'Automatico');
-                  },
-                  child: Text('Con Sistema',  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),),
                 ),
               ],
             ),
@@ -181,8 +162,6 @@ class _ShowRevisionState extends State<ShowRevision> {
   }
 
   Widget  _revisionList(BuildContext context){
-    final info = Provider.of<ProviderPages>(context);
-
     return InputDecorator(
       decoration: InputDecoration(
         border: OutlineInputBorder( // Define el borde

@@ -5,25 +5,28 @@ import 'package:flutter/material.dart';
 import '../models/orgaInstrumento.dart';
 
 class ProviderPages with ChangeNotifier {
-  List<OrgaInstrumento> _orgaInstruments = [];
-  late OrgaInstrumento _orgaInstrument;
-  List<OrgaInstrumento> _filterList = [];
-
+  List<OrgaInstrumento> _mainData = [];
   late Organization _organization;
-  List<Organization> _organizations = [];
-
+  bool _isOrganization = false;
   OrgaRevisione? _revision;
 
 
-
-  String _orgaId = '';
   String _instId = '';
   String _varId = '';
   String _puntId = '';
   String _reviId = '';
 
   String _mainTopic = '';
-  String _connected = '';
+  bool _connected = false;
+
+
+
+  bool get isOrganization => _isOrganization;
+  set isOrganization(bool value) {
+    _isOrganization = value;
+    notifyListeners();
+  }
+
 
 
   OrgaRevisione? get revision => _revision;
@@ -32,13 +35,6 @@ class ProviderPages with ChangeNotifier {
     notifyListeners();
   }
 
-  List<Organization> get organizations => _organizations;
-  set organizations(List<Organization> value) {
-    _organizations = value;
-    notifyListeners();
-  }
-
-
   Organization get organization => _organization;
   set organization(Organization value) {
     _organization = value;
@@ -46,30 +42,12 @@ class ProviderPages with ChangeNotifier {
   }
 
 
-  OrgaInstrumento get orgaInstrument => _orgaInstrument;
-  set orgaInstrument(OrgaInstrumento value) {
-    _orgaInstrument = value;
+  List<OrgaInstrumento> get mainData => _mainData;
+  set mainData(List<OrgaInstrumento> value) {
+    _mainData = value;
     notifyListeners();
   }
 
-  List<OrgaInstrumento> get orgaInstruments => _orgaInstruments;
-  List<OrgaInstrumento> get filterList => _filterList;
-
-  set orgaInstruments(List<OrgaInstrumento> value) {
-    _orgaInstruments = value;
-    notifyListeners();
-  }
-
-  set filterList(List<OrgaInstrumento> value) {
-    _filterList = value;
-    notifyListeners();
-  }
-
-  String get orgaId => _orgaId;
-  set orgaId(String value) {
-    _orgaId = value;
-    notifyListeners();
-  }
 
   String get instId => _instId;
   set instId(String value) {
@@ -91,8 +69,8 @@ class ProviderPages with ChangeNotifier {
     notifyListeners();
   }
 
-  String get connected => _connected;
-  set connected(String value) {
+  bool get connected => _connected;
+  set connected(bool value) {
     _connected = value;
     notifyListeners();
   }

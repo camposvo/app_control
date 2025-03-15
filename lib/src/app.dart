@@ -1,3 +1,4 @@
+import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:control/pages/mainMenu.dart';
 import 'package:control/pages/showOrganization.dart';
 import 'package:control/pages/welcome.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
     return GraphQLProvider(
       client: client,
       child: new MaterialApp(
-        home: new Welcome(),
+        home: new DashboardPage(),
         debugShowCheckedModeBanner: false,
         supportedLocales: [SharedManager.shared.language],
         localizationsDelegates: [

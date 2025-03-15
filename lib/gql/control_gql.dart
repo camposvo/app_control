@@ -32,6 +32,23 @@ class _gqlControl {
   }
 
 
+  String gqlSaveComment() {
+    return r"""
+      mutation GuardarDataComentariosRevisiones($orgaId: String!, $comentarios: JSONObject) {
+          guardarDataComentariosRevisiones(orga_id: $orgaId, comentarios: $comentarios)
+        }
+        """;
+  }
+
+  String gqlSaveTest() {
+    return r"""
+     mutation GuardarDataPruebasRevisiones($orgaId: String!, $prueba: JSONObject) {
+        guardarDataPruebasRevisiones(orga_id: $orgaId, prueba: $prueba)
+      }
+        """;
+  }
+
+
 }
 
 final gqlControl = _gqlControl();

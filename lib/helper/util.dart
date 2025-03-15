@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:logger/logger.dart';
+import 'package:uuid/uuid.dart';
 
 const String infoPrefix = 'MyAPP ';
 
@@ -13,12 +14,12 @@ class Util {
 
   Util() {}
 
-  static void printInfo(String msg) {
+  static void printInfo(String title, String msg) {
     var logger = Logger(
       printer: PrettyPrinter(),
     );
 
-    logger.i('$infoPrefix: $msg');
+    logger.i('$infoPrefix $title: $msg');
 
     return;
   }
@@ -93,7 +94,10 @@ class Util {
     return myImage;
   }
 
-
+  static String generateUUID() {
+    var uuid = Uuid();
+    return uuid.v4(); // Genera un UUID versión 4 (aleatorio)
+  }
 
   static String geenerateCode(int longitud) {
     const caracteres =

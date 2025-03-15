@@ -15,6 +15,7 @@ import '../models/orgaInstrumento.dart';
 import '../providers/providers_pages.dart';
 import 'dart:developer' as developer;
 import 'package:logger/logger.dart';
+import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
 enum ImageState { RECEIVED, WAITING }
@@ -28,11 +29,16 @@ class TakePhoto extends StatefulWidget {
 class _TakePhotoState extends State<TakePhoto> {
   var logger = Logger();
 
-
-
+  static const List<String> commentPunto = [
+    'La prueba esta correcta',
+    'La prueba esta incorrecta'
+  ];
 
   late List<CameraDescription> _cameras;
   CameraController? _controller;
+
+  String? dropdownValue;
+
   final mqttManager = MqttManager(
     broker: 'manuales.ribe.cl',
     port: 8883,
@@ -81,7 +87,9 @@ class _TakePhotoState extends State<TakePhoto> {
 
     // Load Data
     final info = Provider.of<ProviderPages>(context, listen: false);
-    orgaInstrument = info.orgaInstrument;
+
+    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
+
     instrument = orgaInstrument.orgaInstrumentos
         .firstWhere((item) => item.instId == info.instId);
     variable = instrument.instVariables
@@ -149,37 +157,75 @@ class _TakePhotoState extends State<TakePhoto> {
 
   void _savePuntoPrueba(BuildContext context, int value){
     final info = Provider.of<ProviderPages>(context, listen: false);
+    bool found = false;
 
-    developer.log('$infoPrefix Información general');
-    logger.i('$infoPrefix: orgaId: ${info.orgaInstrument.orgaId}');
+    PuntPrueba puntPrueba = new PuntPrueba(
+        prueId: Util.generateUUID(),
+        prueFecha: DateTime.now(),
+        prueFoto1: imageBase64_1,
+        prueFoto2: imageBase64_2,
+        reviNumero: info.revision!.reviNumero,
+        prueEnviado: 2,
+        prueReviId: info.revision!.reviId,
+        reviEntiId: info.revision!.reviEntiId,
+        prueDescripcion: dropdownValue!,
+    );
 
 
+    for (var i = 0; i < info.mainData.length; i++) {
+      if (info.mainData[i].orgaId == info.organization.orgaId) {
 
-    for (var j = 0; j < info.orgaInstrument.orgaInstrumentos.length; j++) {
-          if (info.orgaInstrument.orgaInstrumentos[j].instId == info.instId) {
-            for (var k = 0; k < info.orgaInstrument.orgaInstrumentos[j].instVariables.length; k++) {
-              if (info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntId == info.puntId) {
-                for (var l = 0; l < info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba.length; l++) {
-                  if (info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueReviId == info.revision?.reviId) {
-                    // Modificar el elemento directamente en la lista
-                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueDescripcion = comment;
-                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFecha = DateTime.now();
-                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFoto1 = imageBase64_1;
-                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueFoto2 = imageBase64_2;
-                    info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueEnviado = value;
-                    setState(() {
-                    });
-                    logger.i(info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l].prueEnviado);
-                   // logger.i(info.orgaInstrument.orgaInstrumentos[j].instVariables[k].puntPrueba[l]);
-                   return; // Elemento encontrado y modificado
-                  }
-                }
+    for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
+      if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
+        for (var k = 0; k <
+            info.mainData[i].orgaInstrumentos[j].instVariables
+                .length; k++) {
+
+          if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
+              .puntId == info.puntId) {
+
+            for (var l = 0; l <
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba.length; l++) {
+              if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                  .puntPrueba[l].prueReviId == info.revision?.reviId) {
+
+
+                found=true;
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueId = puntPrueba.prueId;
+
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueDescripcion = puntPrueba.prueDescripcion;
+
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueFecha = puntPrueba.prueFecha;
+
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueFoto1 = puntPrueba.prueFoto1;
+
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueFoto2 = puntPrueba.prueFoto2;
+
+                info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                    .puntPrueba[l].prueEnviado = puntPrueba.prueEnviado;
+
+
+                setState(() {});
+
+                return; // Elemento encontrado y modificado
               }
             }
+
+
+            if(!found) info.mainData[i].orgaInstrumentos[j].instVariables[k].puntPrueba.add(puntPrueba);
+
           }
         }
-
-
+      }
+    }
+          }
+        }
 
   }
 
@@ -411,26 +457,12 @@ class _TakePhotoState extends State<TakePhoto> {
                     fit: BoxFit.contain, // Importante: Usa BoxFit.contain
                   ),
                 ),
-
-          // Cuadro de entrada para comentarios
           Center(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: TextField(
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Agrega un comentario...',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    comment = value;
-                  });
-                },
-              ),
+              child: _commentList(context)
             ),
           ),
-          // Botones de iconos
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -455,7 +487,11 @@ class _TakePhotoState extends State<TakePhoto> {
                 backgroundColor: Colors.green, // Color del círculo (puedes cambiarlo)
                 child:  IconButton(
                   onPressed: () {
-                    print("AQUI VA");
+                    if(dropdownValue == null) {
+                      showError('Debe seleccionar un Comentario');
+                      return;
+                    }
+
                     _savePuntoPrueba(context, 2);
                     Navigator.pop(context);
                   },
@@ -480,6 +516,47 @@ class _TakePhotoState extends State<TakePhoto> {
         ],
       ),
     );
+  }
+  
+  Widget  _commentList(BuildContext context){
+    return InputDecorator(
+      decoration: InputDecoration(
+        border: OutlineInputBorder( // Define el borde
+          borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
+        ),
+        filled: true, // Habilita el color de fondo
+        fillColor: Colors.white, // Color de fondo
+        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+      ),
+      child: DropdownButton<String>(
+        value: dropdownValue, // Objeto actual seleccionado
+        items: commentPunto.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            dropdownValue = newValue;
+            if(newValue != null){
+              print('Estado seleccionado: $newValue');
+            }
+          });
+        },
+        hint: const Text('Selección ...', style: TextStyle(
+          color: Colors.black,
+          fontSize: 18,
+        ),),
+      ),
+    );
+
   }
 
   @override
