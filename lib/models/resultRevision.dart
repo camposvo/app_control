@@ -30,6 +30,12 @@ ResultRevision resultRevisionFromJson(String str) => ResultRevision.fromJson(jso
 
 String resultRevisionToJson(ResultRevision data) => json.encode(data.toJson());
 
+List<Map<String, dynamic>> comentariosToJson(List<Comentario> comentarios) {
+  List<Map<String, dynamic>> jsonList = comentarios.map((comentario) => comentario.toJson()).toList();
+  return jsonList;
+  //return json.encode(jsonList);
+}
+
 class ResultRevision {
   String orgaId;
   List<Comentario> comentarios;

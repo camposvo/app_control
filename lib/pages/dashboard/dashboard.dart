@@ -21,52 +21,71 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
   }
 
-  Future<bool> _refresh() async {
-    _isLoading = true;
-    setState(() {});
-    final info = Provider.of<ProviderPages>(context, listen: false);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    Util.printInfo("refres", "dashboard");
+    setState(() {
+    });
 
-    final id = info.organization.orgaId;
-    final result =await api.getOrganInstruments(id);
-    if(result == null){
-      showError("Error Recuperando la Data");
-      _isLoading = false;
-      setState(() {});
-      return false;
-    }
-
-    final _orgaInstruments = orgaInstrumentoFromJson(result);
-    final temp = _orgaInstruments.firstWhere((item) => item.orgaId == id);
-
-    info.mainData.removeWhere((element) => element.orgaId == id);
-    info.mainData.add(temp);
-
-    showMsg("Data ha sido Actualizada");
-    _isLoading = false;
-    setState(() {});
-   
-    return true;
   }
 
-  bool checkOrganization(BuildContext context) {
+
+
+  bool existOrganization(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return info.isOrganization;
   }
 
-  bool checkConnection(BuildContext context) {
+  bool isConnected(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return info.connected;
   }
 
+  bool dataPending(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return info.pendingData;
+  }
+
+  Color getColor(int index, BuildContext context) {
+
+    if( index == 0 ) return AppColor.secondaryColor; // Organizacion
+
+    if( index == 1){ // Conectar Dispositivo
+      if( isConnected(context)) return AppColor.GreenReady;
+      if(existOrganization(context)) return AppColor.secondaryColor;
+    }
+
+    if( index == 2 && existOrganization(context) && isConnected(context))  //Cargar datos Sin sistema
+        return AppColor.secondaryColor;
+
+
+    if( index == 3){ // Conectar Dispositivo
+      if(dataPending(context)){
+        return AppColor.GreenReady;
+      }
+
+    }
+
+    if( index == 4){ // Conectar Dispositivo
+      return AppColor.secondaryColor;
+    }
+
+
+    return Colors.grey;
+
+
+    }
+
   Widget build(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    final name = info.isOrganization ? info.organization.orgaNombre : '';
+    final name = info.isOrganization ? info.organization!.orgaNombre : '';
     final revision = info.revision != null ? info.revision!.reviNumero : '';
 
     return Scaffold(
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarMain(context, "Titulo Dashboard", "Otro"),
+      appBar: setAppBarMain(context, "Dashboard", "Ribe"),
       drawer: setDrawer(context),
       body: Stack(
         children:[ ListView(
@@ -92,14 +111,14 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
           _isLoading ? Center(
-            child: CircularProgressIndicator(),
+            child: circularProgressMain(),
           ): SizedBox.shrink(),
       ]
       ),
     );
   }
 
-  _gridAdmin(BuildContext context) {
+  Widget _gridAdmin(BuildContext context) {
     return new Container(
       height: MediaQuery.of(context).size.height,
       child: new GridView.count(
@@ -116,44 +135,65 @@ class _DashboardPageState extends State<DashboardPage> {
                 AppDashb.listAdmin[index]['isSelect'] = true;
                 switch (index) {
                   case 0:
-                    Navigator.pushNamed(context, 'organizations');
+                    Navigator.pushNamed(context, 'organizations')
+                        .then((_)  {
+                          setState(() {});
+                    });
                     break;
                   case 1:
-                    if (!checkOrganization(context)) break;
-                    Navigator.pushNamed(context, 'selectMode');
+                    if (!existOrganization(context)) break;
+                    Navigator.pushNamed(context, 'selectMode')
+                        .then((_)  {
+                      setState(() {});
+                    });
+
                     break;
                   case 2:
-                    if (!checkOrganization(context)) break;
-                    if (!checkConnection(context)) break;
-                    Navigator.pushNamed(context, 'instrument');
+                    if (!existOrganization(context)) break;
+                    if (!isConnected(context)) break;
+
+                    Navigator.pushNamed(context, 'instrument')
+                        .then((_)  {
+                      setState(() {});
+                    });
+
                     break;
                   case 3:
-                    if (!checkOrganization(context)) break;
-                    await _refresh();
+                    if (!dataPending(context)) break;
+
+                    Navigator.pushNamed(context, 'sendData')
+                        .then((_)  {
+                      setState(() {});
+                    });
+
                     break;
+
                   case 4:
-                    if (!checkOrganization(context)) break;
-                    Navigator.pushNamed(context, 'sendData');
+                    Navigator.pushNamed(context, 'settingData')
+                        .then((_)  {
+                      setState(() {});
+                    });
+
                     break;
 
                   default:
                 }
               },
-              child: new Container(
-                  padding: new EdgeInsets.all(5),
-                  child: new Material(
-                    color: AppColor.secondaryColor,
+              child: Container(
+                  padding: EdgeInsets.all(5),
+                  child:  Material(
+                    color: getColor(index, context),
                     elevation: 2.0,
                     borderRadius:
                         BorderRadius.circular(AppConst.borderRadiusDash),
-                    child: new Container(
-                      padding: new EdgeInsets.all(12),
-                      child: new Column(
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           AppDashb.listAdmin[index]['icon'],
-                          new Column(
+                           Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[

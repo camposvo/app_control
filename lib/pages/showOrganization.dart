@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:control/helper/util.dart';
 import 'package:control/models/organizacion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,7 +67,7 @@ class _ShowOrganizationState extends State<ShowOrganization> {
 
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child: CircularProgressIndicator( color: AppColor.themeColor,),
+          child: circularProgressMain(),
         ) ) ;
 
       case WidgetState.LOADED:
@@ -131,6 +132,7 @@ class _ShowOrganizationState extends State<ShowOrganization> {
   }
 
   Widget _createListView(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return Container(
         height: MediaQuery.of(context).size.height,
         child: _filterList.length > 0
@@ -139,6 +141,13 @@ class _ShowOrganizationState extends State<ShowOrganization> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
+              info.organization = _filterList[index];
+              setState(() {});
+
+              Navigator.pushNamed(context, 'showRevision',
+                  arguments: {'id': _filterList[index].orgaId})
+                  .then((_)  {
+              });
             });
           },
         )
@@ -156,38 +165,34 @@ class _ShowOrganizationState extends State<ShowOrganization> {
 
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-
     final nombre = _filterList[index].orgaNombre;
 
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
+    final widthItem = MediaQuery.of(context).size.width - 80;
+
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color: Colors.white,
+        color: Colors.grey,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
-          padding: new EdgeInsets.all(8),
+          padding: new EdgeInsets.all(15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
-                width: 220,
+                width: widthItem,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
-                    SizedBox(
-                      width: 10,
-                    ),
-                    setCommonText2(nombre.toUpperCase(), Colors.black, 16.0, FontWeight.w800, 20),
+                    setCommonText2(nombre.toUpperCase(), Colors.white, 16.0, FontWeight.w800, 20),
 
                   ],
                 ),
               ),
-              ElevatedButton(
+             /* ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape:  RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
@@ -195,24 +200,21 @@ class _ShowOrganizationState extends State<ShowOrganization> {
                   backgroundColor: AppColor.secondaryColor,
                   padding: EdgeInsets.all(10.0),
                 ),
-                onPressed: () async {
-                  setState(() {
-                    info.organization = _filterList[index];
-                    info.isOrganization = true;
-                  });
+                onPressed: () {
+                  info.organization = _filterList[index];
+                  setState(() {});
 
                   Navigator.pushNamed(context, 'showRevision',
                       arguments: {'id': _filterList[index].orgaId})
-                      .then((_) async {
+                      .then((_)  {
                   });
-
 
                 },
                 child: Text('Ir',  style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
                 ),),
-              ),
+              ),*/
             ],
           ),
         ),

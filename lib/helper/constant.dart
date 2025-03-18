@@ -29,32 +29,29 @@ class AppDashb {
     {
       "title": "Sin Sistema",
       "icon":  Icon(
-        MdiIcons.cogStopOutline,
+        MdiIcons.meterElectricOutline,
         color: Colors.white,
         size: 40,
       ),
       "isSelect": false,
       "isEnabled": false,
     },
-
-
-    {
-      "title": "Refrescar Data",
-      "icon": Icon(
-        Icons.refresh,
-        color: Colors.white,
-        size: 40,
-      ),
-      "isSelect": false,
-      "isEnabled": false,
-    },
-
-
 
     {
       "title": "Enviar Datos",
       "icon": Icon(
-        Icons.ad_units,
+        MdiIcons.send,
+        color: Colors.white,
+        size: 40,
+      ),
+      "isSelect": false,
+      "isEnabled": false,
+    },
+
+    {
+      "title": "Configuración",
+      "icon": Icon(
+        MdiIcons.cogStopOutline,
         color: Colors.white,
         size: 40,
       ),
@@ -74,12 +71,12 @@ bool get isIos =>
 class AppColor {
   static var containerBody = HexToColor("#E5E6E9");
   static var themeColor = HexToColor("#0046c7");
-  static var secondaryColor =  HexToColor("#4ca7f1");
+  static var secondaryColor =  HexToColor("#219ebc");
   static var redColor = HexToColor("#e41a28");
   static var GreenReady = HexToColor("#06b753");
 
   static var color1 = HexToColor("#39b4a5");
-  static var editColor = HexToColor("#FFB347");
+  static var editColor = HexToColor("#FFC266");
 
 
 }

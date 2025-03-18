@@ -1,4 +1,5 @@
 import 'package:control/models/organizacion.dart';
+import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +13,7 @@ import '../helper/util.dart';
 import '../models/orgaInstrumento.dart';
 import 'package:flutter/services.dart';
 
-enum WidgetState { SHOW_MENU, LOADING, LOADED, ERROR_GRAPHQL }
+enum WidgetState { LOADED, LOADING, ERROR_GRAPHQL }
 
 class ShowRevision extends StatefulWidget {
   const ShowRevision({super.key});
@@ -26,7 +27,9 @@ class _ShowRevisionState extends State<ShowRevision> {
   WidgetState _widgetState = WidgetState.LOADING;
 
   late OrgaInstrumento orgaInstrument;
-  late List<OrgaRevisione> revisions;
+  List<OrgaRevisione> _revisions = [];
+  List<OrgaRevisione> _filterList = [];
+  
   OrgaRevisione? dropdownValue;
 
   @override
@@ -38,14 +41,14 @@ class _ShowRevisionState extends State<ShowRevision> {
   Future<void> _loadData() async {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    final result = await _getOrgaInstrument(info.organization.orgaId);
+    final result = await _getOrgaInstrument(info.organization!.orgaId);
     if(!result){
       _widgetState = WidgetState.ERROR_GRAPHQL;
       setState(() {});
       return;
     }
 
-    _widgetState = WidgetState.SHOW_MENU;
+    _widgetState = WidgetState.LOADED;
     setState(() {});
 
   }
@@ -61,11 +64,13 @@ class _ShowRevisionState extends State<ShowRevision> {
     final _orgaInstruments = orgaInstrumentoFromJson(result);
     final temp = _orgaInstruments.firstWhere((item) => item.orgaId == id);
 
-    final idExists = info.mainData.any((item) => item.orgaId == id);
-    if (!idExists) info.mainData.add(temp);
+    info.mainData.clear();
+    info.mainData.add(temp);
+    info.mainDataUpdate(info.mainData);
 
     orgaInstrument = _orgaInstruments.firstWhere((item) => item.orgaId == id);
-    revisions = orgaInstrument.orgaRevisiones;
+    _revisions = [...orgaInstrument.orgaRevisiones];
+    _filterList = [...orgaInstrument.orgaRevisiones];
 
     return true;
   }
@@ -74,19 +79,13 @@ class _ShowRevisionState extends State<ShowRevision> {
   Widget build(BuildContext context) {
     switch (_widgetState) {
 
-      case WidgetState.SHOW_MENU:
-        return _buildScaffold(context,_menu(context) ) ;
+      case WidgetState.LOADED:
+        return _buildScaffold(context,_showList(context) ) ;
 
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child:  CircularProgressIndicator( color: AppColor.themeColor,),
+          child:  circularProgressMain(),
         ) ) ;
-
-      case WidgetState.LOADED:
-        return Center(
-          child: Text("La cámara No se pudo Cargar. Reincie la App"),
-        );
-
 
       case WidgetState.ERROR_GRAPHQL:
         return _buildScaffold(context,Center(
@@ -98,105 +97,143 @@ class _ShowRevisionState extends State<ShowRevision> {
 
   Widget _buildScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final name = info.organization != null  ? info.organization!.orgaNombre : '';
+
     return Scaffold(
         drawer: setDrawer(context),
-        appBar: setAppBarMain(context, info.organization.orgaNombre,"Revisiones"),
+        appBar: setAppBarMain(context, name,"Revisiones"),
         body: body
     );
   }
 
-  Widget _menu(BuildContext context) {
-    final info = Provider.of<ProviderPages>(context);
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
+  _onSearch(String search) {
+    _filterList = _revisions.where((item) {
+      return item.reviNumero.toLowerCase().contains(search);
+    }).toList();
+
+    setState(() {});
+  }
+
+  _search() {
     return Container(
-        padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                SizedBox(
-                  height: 20,
-                ),
-                _revisionList(context),
-                SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(width -20, 40),
-                    shape:  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.themeColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-                    if(dropdownValue == null){
-                      showMsg("Debe Seleccionar una Revisión");
-                      return;
-                    }
-
-                    info.revision = dropdownValue;
-                    Navigator.pushNamed(context, 'dashboard')
-                        .then((_) async {
-                    });
-
-                  },
-                  child: Text('Aceptar',  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),),
-                ),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
-            ),
-          ),
-        )
+      height: 48,
+      child: TextField(
+        onChanged: (value) => _onSearch(value),
+        decoration: setSearchDecoration(),
+      ),
     );
   }
 
-  Widget  _revisionList(BuildContext context){
-    return InputDecorator(
-      decoration: InputDecoration(
-        border: OutlineInputBorder( // Define el borde
-          borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
-        ),
-        filled: true, // Habilita el color de fondo
-        fillColor: Colors.white, // Color de fondo
-        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-      ),
-      child: DropdownButton<OrgaRevisione>(
-        value: dropdownValue, // Objeto actual seleccionado
-        items: revisions.map<DropdownMenuItem<OrgaRevisione>>((OrgaRevisione value) {
-          return DropdownMenuItem<OrgaRevisione>(
-            value: value,
-            child: Text(value.reviNumero,  style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-            ),), //, // Muestra el nombre del objeto
-          );
-        }).toList(),
-        onChanged: (OrgaRevisione? newValue) {
-          setState(() {
-            if (newValue != null) {
-              dropdownValue = newValue;
-              print('ID seleccionado: ${newValue.reviId}'); // Accede al ID del objeto
-            }
-          });
-        },
-        hint: const Text('Selecciona una Revisión', style: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-        ),),
+  Widget _showList(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      child: Column(
+        children: [
+          _search(),
+          SizedBox(
+            height: 7,
+          ),
+          Expanded(
+            child:_createListView(context),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+        ],
       ),
     );
+  }
 
+  Widget _createListView(BuildContext context) {
+
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return Container(
+        height: MediaQuery.of(context).size.height,
+        child: _filterList.length > 0
+            ? ListView.builder(
+          itemCount: _filterList.length,
+          itemBuilder: (context, index) {
+            return InkWell(
+                child: _itemListView(index, context), onTap: () {
+              info.revision = _filterList[index];
+              info.isOrganization = true;
+              info.refreshData();
+
+              Navigator.popUntil(context, (route) => route.isFirst);
+
+
+            });
+          },
+        )
+            : Center(
+          child: Text(
+            "No Encontrado",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ));
+  }
+
+  Widget _itemListView(int index, BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    final name = _filterList[index].reviNumero;
+
+    final widthItem = MediaQuery.of(context).size.width - 80;
+
+    return new Container(
+      padding: EdgeInsets.only(top: 5, bottom: 5),
+      child: Material(
+        color: Colors.grey,
+        elevation: 2.0,
+        borderRadius: BorderRadius.circular(10),
+        child: new Padding(
+          padding: new EdgeInsets.all(15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SizedBox(
+                width: widthItem,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    setCommonText2(name.toUpperCase(), Colors.white, 20.0, FontWeight.w800, 20),
+
+                  ],
+                ),
+              ),
+              /*ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape:  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                  ),
+                  backgroundColor: AppColor.secondaryColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed: () {
+
+                  info.revision = _filterList[index];
+                  info.isOrganization = true;
+                 info.refreshData();
+
+                  Navigator.popUntil(context, (route) => route.isFirst);
+
+                },
+                child: Text('Ir',  style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),),
+              ),*/
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
 }

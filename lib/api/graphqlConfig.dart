@@ -42,7 +42,9 @@ class GraphQLConfig {
 
     });
 
-    return authLink.concat(logLink).concat(httpLink);
+    return authLink.concat(httpLink);
+
+    //return authLink.concat(logLink).concat(httpLink);
   }
 
 

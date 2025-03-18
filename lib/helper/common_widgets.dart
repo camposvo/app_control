@@ -3,6 +3,7 @@ import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:control/pages/sendData.dart';
 import 'package:control/pages/welcome.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -188,13 +189,23 @@ svgNoData(BuildContext context) {
   );
 }
 
-circularProgress() {
+circularProgress(Color color) {
   return SizedBox(
-      width: 16,
-      height: 16,
+      width: 50,
+      height: 50,
       child: CircularProgressIndicator(
-        color: Colors.white,
-        strokeWidth: 1.5,
+        color: color,
+        strokeWidth: 6,
+      ));
+}
+
+circularProgressMain() {
+  return SizedBox(
+      width: 50,
+      height: 50,
+      child: CircularProgressIndicator(
+        color: AppColor.themeColor,
+        strokeWidth: 6,
       ));
 }
 
@@ -288,18 +299,18 @@ setDrawer(BuildContext context) {
             ),
           ),
         ),
-        ListTile(
+        /*ListTile(
           leading: Icon(Icons.send),
           title: Text('Enviar'),
           onTap: () {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SendData()),);
           },
-        ),
+        ),*/
         ListTile(
           leading: Icon(Icons.home),
           title: Text('Inico'),
-          onTap: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardPage()),);
+          onTap: () async {
+            Navigator.popUntil(context, (route) => route.isFirst);
           },
         ),
       ],
@@ -336,6 +347,68 @@ setAppBarTwo(BuildContext context, String title) {
   );
 }
 
+Future<bool> showConfirm(BuildContext context) async {
+  final info = Provider.of<ProviderPages>(context, listen: false);
+
+  return showDialog<bool>( // Cambia el tipo de retorno a Future<bool>
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirmación'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const <Widget>[
+              Text('¿Estás seguro de que quieres Borrar Todo?'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Retorna falso al cancelar
+            },
+          ),
+          TextButton(
+            child: const Text('Confirmar'),
+            onPressed: () async {
+              Navigator.of(context).pop(true); // Retorna verdadero al confirmar
+            },
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false); // Maneja el caso en que el diálogo se cierra sin seleccionar una opción
+}
+
+Future<void> showDialogMsg(BuildContext context, String mensaje) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // No permitir cerrar tocando fuera
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(mensaje, textAlign: TextAlign.center, // Centrar el texto
+                  style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Aceptar'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
 setAppBarSubTitle(BuildContext context, String title, String subTitle) {
   return AppBar(
@@ -431,7 +504,7 @@ Future<void> showMsg(String msg) async {
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
       timeInSecForIosWeb: 2,
-      backgroundColor: AppColor.color1,
+      backgroundColor: AppColor.secondaryColor,
       textColor: Colors.white,
       fontSize: 16.0
   );

@@ -78,6 +78,16 @@ class MqttManager {
     }
   }
 
+  void publishAndRetain(String topic, String message) {
+    if (client.connectionStatus!.state == MqttConnectionState.connected) {
+      final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+      builder.addString(message);
+      client.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!, retain: true);
+    } else {
+      print('ERROR: MQTT client is not connected. Cannot publish.');
+    }
+  }
+
   void unsubscribe(String topic) {
     client.unsubscribe(topic);
     _topicStreams.remove(topic);

@@ -12,6 +12,7 @@ import 'package:control/helper/constant.dart';
 import 'package:control/providers/providers_pages.dart';
 
 import '../api/client.dart';
+import '../models/orgaInstrumento.dart';
 
 class SendData extends StatefulWidget {
   @override
@@ -20,6 +21,9 @@ class SendData extends StatefulWidget {
 
 class _SendDataState extends State<SendData> {
   late ResultRevision resultRevision;
+
+  bool _isLoading = false;
+  String _message = "";
 
   @override
   void initState() {
@@ -31,10 +35,10 @@ class _SendDataState extends State<SendData> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     resultRevision = new ResultRevision(
-        orgaId: info.organization.orgaId, comentarios: [], pruebas: []);
+        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
 
     for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization.orgaId) {
+      if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
           if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
             for (var k = 0;
@@ -53,7 +57,6 @@ class _SendDataState extends State<SendData> {
                     comeDescripcion: info.mainData[i].orgaInstrumentos[j]
                         .instComentarios[k].comeDescripcion);
 
-
                 resultRevision.comentarios.add(comment);
               }
             }
@@ -70,24 +73,21 @@ class _SendDataState extends State<SendData> {
                         .puntPrueba[l].prueReviId ==
                     info.revision?.reviId) {
                   Prueba prueba = new Prueba(
-                    prueId: Util.generateUUID(),
-                    prueComentario: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].prueDescripcion,
-                    prueFecha: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].prueFecha,
-                    pruePuntId: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntId,
-                      prueRecurso1: "Foto 1",
-                      prueRecurso2: "Foto 2",
-                   /* prueRecurso1: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].prueFoto1,
-                    prueRecurso2: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].prueFoto1,*/
-                    prueReviId: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].prueReviId,
-                    reviNumero: info.mainData[i].orgaInstrumentos[j]
-                        .instVariables[k].puntPrueba[l].reviNumero
-                  );
+                      prueId: Util.generateUUID(),
+                      prueComentario: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueDescripcion,
+                      prueFecha: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueFecha,
+                      pruePuntId: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntId,
+                      prueRecurso1: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueFoto1,
+                      prueRecurso2: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueFoto2,
+                      prueReviId: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueReviId,
+                      reviNumero: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].reviNumero);
 
                   resultRevision.pruebas.add(prueba);
                 }
@@ -97,12 +97,31 @@ class _SendDataState extends State<SendData> {
         }
       }
     }
+  }
 
+  Future<bool> _getOrgaInstrument(String id) async {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final result = await api.getOrganInstruments(id);
+    if (result == null) {
+      return false;
+    }
+
+    final _orgaInstruments = orgaInstrumentoFromJson(result);
+    final temp = _orgaInstruments.firstWhere((item) => item.orgaId == id);
+
+    info.mainData.clear();
+    info.mainData.add(temp);
+    info.mainDataUpdate(info.mainData);
+
+    return true;
   }
 
   Future<bool> _saveComment() async {
-    final result =await api.insertComment(resultRevision);
-    if(result == null){
+    final orgaId = resultRevision.orgaId;
+
+    final result = await api.insertComment(orgaId, resultRevision.comentarios);
+    if (result == null) {
       showMsg("Error");
       return false;
     }
@@ -111,7 +130,6 @@ class _SendDataState extends State<SendData> {
   }
 
   Future<bool> _saveTest() async {
-
     final orgaId = resultRevision.orgaId;
 
     for (var test in resultRevision.pruebas) {
@@ -148,41 +166,92 @@ class _SendDataState extends State<SendData> {
                         secondary: AppColor.secondaryColor,
                       ),
                 ),
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      SizedBox(
-                        height: 100,
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(width - 20, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(10.0), // Radio de 10.0
-                          ),
-                          backgroundColor: AppColor.themeColor,
-                          padding: EdgeInsets.all(10.0),
+                child: Stack(children: [
+                  Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        SizedBox(
+                          height: 100,
                         ),
-                        onPressed: () async {
-                          _loadData(context);
-                          //await _saveComment();
-                          await _saveTest();
-                          //Navigator.pushNamed(context, 'organizations');
-                        },
-                        child: Text(
-                          'Enviar Datos',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(width - 20, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(10.0), // Radio de 10.0
+                            ),
+                            backgroundColor: AppColor.themeColor,
+                            padding: EdgeInsets.all(10.0),
+                          ),
+                          onPressed: () async {
+                            if (!info.pendingData) {
+                              showMsg("No ya Data para Enviar");
+                              return;
+                            }
+                            _isLoading = true;
+                            setState(() {});
+                            _loadData(context);
+
+                            _message = " Enviando Comentarios ...";
+                            setState(() {});
+                            await _saveComment();
+
+                            _message = " Enviando Pruebas ...";
+                            setState(() {});
+                            await _saveTest();
+
+                            _message = " Actualizando Data  Local ...";
+                            setState(() {});
+                            await _getOrgaInstrument(info.organization!.orgaId);
+
+                            info.pendingData = false;
+
+                            _isLoading = false;
+                            setState(() {});
+                            showDialogMsg(context, "Datos Enviados");
+                          },
+                          child: Text(
+                            'Enviar Datos',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        SizedBox(
+                          height: 50,
+                        ),
+                      ],
+                    ),
                   ),
-                ))));
+                  _isLoading
+                      ? Center(
+                          child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius: BorderRadius.circular(
+                                    20), // Radio de redondeo
+                              ),
+                              child: SizedBox(
+                                height: 150,
+                                width: 250,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    circularProgress(Colors.white),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    setCommonText(_message, Colors.white, 16.0,
+                                        FontWeight.w500, 20),
+                                  ],
+                                ),
+                              )),
+                        )
+                      : SizedBox.shrink(),
+                ]))));
   }
 }

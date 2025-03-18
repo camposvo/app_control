@@ -13,7 +13,7 @@ import '../models/orgaInstrumento.dart';
 import 'package:flutter/services.dart';
 
 
-enum WidgetState { LOADING, LOADED, SHOW_CODE,  ERROR_MQTT }
+enum WidgetState { LOADING, SHOW_CODE,  ERROR_MQTT }
 
 class SelectMode extends StatefulWidget {
   const SelectMode({super.key});
@@ -77,8 +77,6 @@ class _SelectModeState extends State<SelectMode> {
         setState(() {});
         info.connected = true;
         mqttManager.publish(topic, msgConfirm);
-
-        //Navigator.pushNamed(context, 'instrument');
       }
     });
   }
@@ -89,13 +87,8 @@ class _SelectModeState extends State<SelectMode> {
     switch (_widgetState) {
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child: CircularProgressIndicator(),
+          child: circularProgressMain(),
         ) ) ;
-
-      case WidgetState.LOADED:
-        return Center(
-          child: Text("La cámara No se pudo Cargar. Reincie la App"),
-        );
 
       case WidgetState.SHOW_CODE:
         return  _buildScaffold(context,_showCode(context) ) ;
@@ -109,10 +102,13 @@ class _SelectModeState extends State<SelectMode> {
   }
 
   Widget _buildScaffold(BuildContext context, Widget body) {
+
     final info = Provider.of<ProviderPages>(context, listen: false);
+    final name = info.isOrganization ? info.organization!.orgaNombre : '';
+
     return Scaffold(
         drawer: setDrawer(context),
-        appBar: setAppBarMain(context, info.organization.orgaNombre, "Emparejar Dispositivo"),
+        appBar: setAppBarMain(context, name, "Emparejar Dispositivo"),
         body: body
     );
   }
@@ -181,7 +177,7 @@ class _SelectModeState extends State<SelectMode> {
                 }
                     : null,
 
-                child: Text(isActive?'Generar Nuevo':'Esperando Conexión',  style: TextStyle(
+                child: Text(isActive?'Crear Codigo':'Esperando Conexión',  style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                 ),),
@@ -224,7 +220,7 @@ class _SelectModeState extends State<SelectMode> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  Navigator.pushNamed(context, 'dashboard');
+                  Navigator.pushNamed(context, '/dashboard');
                 },
                 child: Text('Continuar',  style: TextStyle(
                   color: Colors.white,
@@ -234,7 +230,7 @@ class _SelectModeState extends State<SelectMode> {
 
               SizedBox(height: 20,),
 
-              ElevatedButton(
+             /* ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(width -20, 40),
                   shape:  RoundedRectangleBorder(
@@ -250,7 +246,7 @@ class _SelectModeState extends State<SelectMode> {
                   color: Colors.white,
                   fontSize: 24,
                 ),),
-              ),
+              ),*/
 
               Spacer(),
 

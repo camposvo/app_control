@@ -41,7 +41,7 @@ class _InstrumentState extends State<Instrument> {
       return;
     }
 
-    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
+    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization!.orgaId);
 
     _instruments =  [...orgaInstrument.orgaInstrumentos];
     _filterList =  [...orgaInstrument.orgaInstrumentos];
@@ -50,7 +50,7 @@ class _InstrumentState extends State<Instrument> {
     //Cantidad de Medidores Listos
     _listos = _instruments.where((elemento) {
       for (var item in elemento.instComentarios) {
-        if (item.comeEnviado == 2) {
+        if (item.comeReviId == info.revision!.reviId) {
           return true;
         }
       }
@@ -67,10 +67,13 @@ class _InstrumentState extends State<Instrument> {
 
   @override
   Widget build(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    final name = info.isOrganization ? info.organization!.orgaNombre : '';
+
     return Scaffold(
       drawer: setDrawer(context),
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarMain(context, orgaInstrument.orgaNombre, "Medidores"),
+      appBar: setAppBarMain(context,name, "Medidores"),
       body: showInstrumentList(context)
     );
   }
@@ -108,7 +111,7 @@ class _InstrumentState extends State<Instrument> {
           ),
           Expanded(
             child: (isLoading)
-                ? Center(child: CircularProgressIndicator())
+                ? Center(child: circularProgressMain())
                 : _createListView(context),
           ),
           SizedBox(
@@ -132,6 +135,8 @@ class _InstrumentState extends State<Instrument> {
 
   Widget _createListView(BuildContext context) {
 
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
         height: MediaQuery.of(context).size.height,
@@ -141,11 +146,14 @@ class _InstrumentState extends State<Instrument> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
-              /*Navigator.pushNamed(context, 'variable',
-                  arguments: {'id': _filterList[index].instNombre})
-                  .then((_) async {
+              setState(() {
+                info.instId = _filterList[index].instId;
+              });
 
-              });*/
+              Navigator.pushNamed(context, 'variable')
+                  .then((_) async {
+                await _loadData();
+              });
 
             });
           },
@@ -166,8 +174,8 @@ class _InstrumentState extends State<Instrument> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final nombre = _filterList[index].instNombre;
-    Color stateColor = Colors.white;
-    Color stateFontColor = Colors.black;
+    Color bgColor = Colors.grey;
+    Color fontColor = Colors.white;
 
 
     final variables =  [..._filterList[index].instVariables];
@@ -175,13 +183,13 @@ class _InstrumentState extends State<Instrument> {
     for (var comment in _filterList[index].instComentarios) {
       if(comment.comeReviId == info.revision?.reviId) {
         if(comment.comeEnviado == 1){
-          stateColor = AppColor.GreenReady;
-          stateFontColor = Colors.white;
+          bgColor = AppColor.GreenReady;
+          fontColor = Colors.white;
         }
 
         if(comment.comeEnviado == 2){
-          stateColor = AppColor.editColor;
-          stateFontColor = Colors.white;
+          bgColor = AppColor.editColor;
+          fontColor = Colors.white;
         }
       }
     }
@@ -191,7 +199,7 @@ class _InstrumentState extends State<Instrument> {
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color:  stateColor,
+        color:  bgColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
@@ -206,34 +214,12 @@ class _InstrumentState extends State<Instrument> {
                   SizedBox(
                     width: 10,
                   ),
-                  setCommonText(nombre, stateFontColor, 16.0, FontWeight.w500, 20),
-                  setCommonText(variables.length.toString(), stateFontColor, 16.0, FontWeight.w800, 20),
+                  setCommonText(nombre, fontColor, 16.0, FontWeight.w500, 20),
+                  setCommonText(variables.length.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                 ],
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5.0), // Radio de 10.0
-                  ),
-                  backgroundColor: AppColor.secondaryColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed: () async {
-                  setState(() {
-                    info.instId = _filterList[index].instId;
-                  });
 
-                  Navigator.pushNamed(context, 'variable')
-                      .then((_) async {
-                    await _loadData();
-                  });
-                },
-                child: Text('Ir',  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),),
-              ),
             ],
           ),
         ),

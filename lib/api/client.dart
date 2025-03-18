@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../gql/control_gql.dart';
 import '../helper/util.dart';
 import 'graphqlConfig.dart';
+import 'package:http/http.dart' as http;
 
 
 
@@ -48,7 +49,7 @@ class _Clients {
               'filter': filter,
             },
         ),
-      ).timeout(const Duration(minutes: 2));
+      );
 
       if (result.hasException) {
         print(result.exception.toString());
@@ -86,7 +87,7 @@ class _Clients {
             "orgaId": orgaId
           }
         ),
-      ).timeout(const Duration(minutes: 2));
+      );
 
       if (result.hasException) {
         print(result.exception.toString());
@@ -115,7 +116,12 @@ class _Clients {
     }
   }
 
-  Future<String?> insertComment(ResultRevision data) async {
+  Future<String?> insertComment(String orgaId, List<Comentario> data) async {
+
+    final comment = comentariosToJson(data);
+
+    Util.printInfo("JSON Comment", jsonEncode(comment));
+    Util.printInfo("orgaId ", orgaId);
 
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
@@ -123,30 +129,25 @@ class _Clients {
       QueryResult result = await client.mutate(
         MutationOptions(
             document: gql(gqlControl.gqlSaveComment()),
-            variables: {'orgaId': data.orgaId,
-              'comentarios': data.comentarios
+            variables: {'orgaId': orgaId,
+              'comentarios': comment
                   },
             fetchPolicy: FetchPolicy.networkOnly),
       );
 
       if (result.hasException) {
         print(result.exception.toString());
+        Util.printInfo("Comentario", " ${result.exception.toString()}");
         return null;
       }
       if (result.data != null) {
-
         return 'Operacion Completada Exitosamente';
       }
 
       return null;
     } catch (e) {
-      print(e);
       return null;
     }
-
-
-
-
 
   }
 
@@ -154,9 +155,8 @@ class _Clients {
 
     final test = data.toJson();
 
-    Util.printInfo("prueba ", test.toString());
-    Util.printInfo("prueb id ", data.prueId);
-    Util.printInfo("prueb coment ", data.prueComentario);
+    Util.printInfo("test Comment", jsonEncode(test));
+    Util.printInfo("orgaId ", orgaId);
 
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
@@ -188,6 +188,34 @@ class _Clients {
       return null;
     }
 
+  }
+
+  Future<String?> fetchImage(String urlImage) async {
+    final url = Uri.parse(urlImage);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = "*35^Gt1wwjgh3j47sn3j341@asd";
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token', // Incluye el token en el encabezado
+        },
+      );
+
+      if (response.statusCode == 200) {
+         return response.body;
+      } else {
+        print('Error en la petición: ${response.statusCode}');
+        print('Mensaje de error: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      // Ocurrió un error al realizar la petición
+      print('Error: $e');
+      return null;
+    }
   }
 
 }

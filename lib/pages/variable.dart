@@ -73,11 +73,17 @@ class _VariableState extends State<Variable> {
 
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
+    if(info.revision == null){
+      _widgetState = WidgetState.LOADING;
+      setState(() {});
+      return;
+    }
+
+    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization!.orgaId);
     instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
     for (var item in instrument.instComentarios) {
-      if (item.comeReviId == info.revision?.reviId) {
+      if (item.comeReviId == info.revision!.reviId) {
         if(commentInstrument.contains(item.comeDescripcion)) dropdownValue = item.comeDescripcion;
       }
     }
@@ -94,7 +100,7 @@ class _VariableState extends State<Variable> {
     //Cantidad de Variables Listos
     _listos = variables.where((elemento) {
       for (var item in elemento.puntPrueba) {
-        if (item.prueEnviado == 1) {
+        if (item.prueReviId == info.revision!.reviId ) {
           return true;
         }
       }
@@ -125,7 +131,7 @@ class _VariableState extends State<Variable> {
     );
 
     for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization.orgaId) {
+      if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
           if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
 
@@ -155,6 +161,8 @@ class _VariableState extends State<Variable> {
       }
     }
 
+    info.mainDataUpdate(info.mainData);
+
   }
 
   @override
@@ -162,7 +170,7 @@ class _VariableState extends State<Variable> {
     switch (_widgetState) {
       case WidgetState.LOADING:
         return _buildScaffold(context,Center(
-          child: CircularProgressIndicator(),
+          child:circularProgressMain(),
         ) ) ;
 
       case WidgetState.SHOW_LIST:
@@ -173,19 +181,21 @@ class _VariableState extends State<Variable> {
 
   Widget _buildScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
+    final name = info.isOrganization ? info.organization!.orgaNombre : '';
     return Scaffold(
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarMain(context, info.organization.orgaNombre, instrument.instNombre),
+        appBar: setAppBarMain(context, name, instrument.instNombre),
         body: body
     );
   }
 
   Widget _mainScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
+    final name = info.isOrganization ? info.organization!.orgaNombre : '';
     return Scaffold(
         drawer: setDrawer(context),
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarMain(context, info.organization.orgaNombre, instrument.instNombre),
+        appBar: setAppBarMain(context, name, instrument.instNombre),
         body: body
     );
   }
@@ -266,6 +276,7 @@ class _VariableState extends State<Variable> {
   }
 
   Widget showVariableList(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
@@ -297,47 +308,57 @@ class _VariableState extends State<Variable> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape:  RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                        ),
-                        backgroundColor: AppColor.redColor,
-                        padding: EdgeInsets.all(10.0),
-                      ),
-                      onPressed: () async {
 
-                      },
-                      child: Text('Cancelar',  style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),),
+                    SizedBox(
+                      width: 150,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape:  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                          ),
+                          backgroundColor: AppColor.redColor,
+                          padding: EdgeInsets.all(10.0),
+                        ),
+                        onPressed: () async {
+
+                        },
+                        child: Text('Cancelar',  style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),),
+                      ),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape:  RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+
+                    SizedBox(
+                      width: 150,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape:  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                          ),
+                          backgroundColor: AppColor.themeColor,
+                          padding: EdgeInsets.all(10.0),
                         ),
-                        backgroundColor: AppColor.themeColor,
-                        padding: EdgeInsets.all(10.0),
+                        onPressed: () async {
+
+                          if(dropdownValue == null) {
+                            await showError('Debe seleccionar un Comentario');
+                            return;
+                          }
+
+                          _savePuntoPrueba(context, 2);
+                          info.pendingData = true;
+                          setState(() {});
+                          await showMsg('Medidor Finalizado');
+                          await Future.delayed(Duration(seconds: 2));
+                          Navigator.pop(context);
+
+                        },
+                        child: Text('Finalizar Medidor',  style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),),
                       ),
-                      onPressed: () async {
-
-                        if(dropdownValue == null) {
-                          await showError('Debe seleccionar un Comentario');
-                          return;
-                        }
-
-                        _savePuntoPrueba(context, 2);
-                        await showMsg('Medidor Finalizado');
-                        await Future.delayed(Duration(seconds: 2));
-                        Navigator.pop(context);
-
-                      },
-                      child: Text('Finalizar Medidor',  style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),),
                     ),
                   ],
                 ),
@@ -367,6 +388,7 @@ class _VariableState extends State<Variable> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
+
               /*Navigator.pushNamed(context, 'variable',
                   arguments: {'id': _filterList[index].variNombre})
                   .then((_) async {
@@ -392,21 +414,24 @@ class _VariableState extends State<Variable> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final nombre = _filterList[index].variNombre;
     final abbreviation = _filterList[index].subuAbreviatura;
-    Color stateColor = Colors.white;
-    Color stateFontColor = Colors.black;
+    Color bgColor = Colors.grey;
+    Color fontColor = Colors.white;
+    bool testLoaded = false;
 
 
    for (var item in _filterList[index].puntPrueba) {
+
       if (item.prueReviId == info.revision?.reviId) {
+        testLoaded = true;
 
         if(item.prueEnviado == 1){
-          stateColor = Colors.green;
-          stateFontColor = Colors.white;
+          bgColor = Colors.green;
+          fontColor = Colors.white;
         }
 
         if(item.prueEnviado == 2){
-          stateColor = AppColor.editColor;
-          stateFontColor = Colors.white;
+          bgColor = AppColor.editColor;
+          fontColor = Colors.white;
         }
 
       }
@@ -416,7 +441,7 @@ class _VariableState extends State<Variable> {
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
-        color:  stateColor,
+        color:  bgColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
@@ -425,7 +450,7 @@ class _VariableState extends State<Variable> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
-                width: 220,
+                width: 190,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -433,29 +458,50 @@ class _VariableState extends State<Variable> {
                     SizedBox(
                       width: 10,
                     ),
-                    setCommonText(nombre, stateFontColor, 16.0, FontWeight.w800, 20),
-                    setCommonText(abbreviation, stateFontColor, 16.0, FontWeight.w800, 20),
+                    setCommonText(nombre, fontColor, 16.0, FontWeight.w800, 20),
+                    setCommonText(abbreviation, fontColor, 16.0, FontWeight.w800, 20),
 
 
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  setState(() {
-                    info.puntId = _filterList[index].puntId;
-                    info.varId = _filterList[index].variId;
-                  });
+              Row(
+                children: [
+                  testLoaded? IconButton(
+                    onPressed: () async {
+                      setState(() {
+                        info.puntId = _filterList[index].puntId;
+                        info.varId = _filterList[index].variId;
+                      });
+                      Navigator.pushNamed(context, 'viewPhoto').then((_) async {
+                        Util.printInfo("Load data", "msg");
+                        await _loadData();
+                      });
+                    },
+                    icon: Icon(
+                      Icons.search,
+                      color: fontColor,
+                      size: 24.0,
+                    ),
+                  ): SizedBox.shrink(),
+                  IconButton(
+                    onPressed: () async {
+                      setState(() {
+                        info.puntId = _filterList[index].puntId;
+                        info.varId = _filterList[index].variId;
+                      });
 
-                  Navigator.pushNamed(context, 'takePhoto').then((_) async {
-                    await _loadData();
-                  });
-                },
-                icon: Icon(
-                  Icons.camera_alt,
-                  color: stateFontColor,
-                  size: 24.0,
-                ),
+                      Navigator.pushNamed(context, 'takePhoto').then((_) async {
+                        await _loadData();
+                      });
+                    },
+                    icon: Icon(
+                      Icons.camera_alt,
+                      color: fontColor,
+                      size: 24.0,
+                    ),
+                  ),
+                ],
               ),
 
             ],
@@ -474,14 +520,17 @@ class _VariableState extends State<Variable> {
         filled: true, // Habilita el color de fondo
         fillColor: Colors.white, // Color de fondo
         contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+
       ),
       child: DropdownButton<String>(
         value: dropdownValue,
         items: commentInstrument.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
             value: value,
+            alignment: Alignment.center,
             child: Text(
               value,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -497,9 +546,12 @@ class _VariableState extends State<Variable> {
             }
           });
         },
-        hint: const Text('Selección ...', style: TextStyle(
+        hint: const Text('Selección ...',
+          textAlign: TextAlign.center,
+          style: TextStyle(
           color: Colors.black,
           fontSize: 18,
+
         ),),
       ),
     );

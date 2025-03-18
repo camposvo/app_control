@@ -1,53 +1,90 @@
+import 'dart:convert';
+
+import 'package:control/helper/util.dart';
 import 'package:control/models/organizacion.dart';
 import 'package:control/models/variable.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 import '../models/orgaInstrumento.dart';
 
 class ProviderPages with ChangeNotifier {
+  final _box = Hive.box('boxname'); // Accede al contenedor
+
   List<OrgaInstrumento> _mainData = [];
-  late Organization _organization;
+  Organization? _organization;
   bool _isOrganization = false;
   OrgaRevisione? _revision;
-
 
   String _instId = '';
   String _varId = '';
   String _puntId = '';
-  String _reviId = '';
 
   String _mainTopic = '';
   bool _connected = false;
 
+  bool _pendingData = false;
 
+  // INITIAL DATA
+  ProviderPages() {
+    getIsOrganizationFromHive();
+    getPendingDataFromHive();
+    getMainTopicFromHive();
+    getConnectFromHive();
+
+    final orga = getOrganizationFromHive();
+    if (orga != null) {
+      _organization = orga;
+    }
+
+    final revi = getRevisionFromHive();
+    if (revi != null) {
+      _revision = revi;
+    }
+
+    final data = getOrgaInstrumentosFromHive();
+    if (data != null) {
+      _mainData = data;
+    }
+
+  }
+
+  bool get pendingData => _pendingData;
+  set pendingData(bool value) {
+    _pendingData = value;
+    _box.put('pendingdata', value);
+    notifyListeners();
+  }
 
   bool get isOrganization => _isOrganization;
   set isOrganization(bool value) {
     _isOrganization = value;
+    _box.put('isOrganization', value);
     notifyListeners();
   }
-
-
 
   OrgaRevisione? get revision => _revision;
   set revision(OrgaRevisione? value) {
     _revision = value;
+    final jsonString = jsonEncode(value!.toJson());
+    _box.put('revision', jsonString);
     notifyListeners();
   }
 
-  Organization get organization => _organization;
-  set organization(Organization value) {
+  Organization? get organization => _organization;
+  set organization(Organization? value) {
     _organization = value;
+    final jsonString = jsonEncode(value!.toJson());
+    _box.put('organization', jsonString);
     notifyListeners();
   }
-
 
   List<OrgaInstrumento> get mainData => _mainData;
-  set mainData(List<OrgaInstrumento> value) {
-    _mainData = value;
+  void mainDataUpdate(List<OrgaInstrumento> value) {
+    final jsonString = orgaInstrumentoToJson(value);
+    _box.put('maindata', jsonString);
     notifyListeners();
   }
-
 
   String get instId => _instId;
   set instId(String value) {
@@ -55,23 +92,23 @@ class ProviderPages with ChangeNotifier {
     notifyListeners();
   }
 
-
   String get puntId => _puntId;
   set puntId(String value) {
     _puntId = value;
     notifyListeners();
   }
 
-
   String get mainTopic => _mainTopic;
   set mainTopic(String value) {
     _mainTopic = value;
+    _box.put('mainTopic', value);
     notifyListeners();
   }
 
   bool get connected => _connected;
   set connected(bool value) {
     _connected = value;
+    _box.put('connected', value);
     notifyListeners();
   }
 
@@ -81,12 +118,89 @@ class ProviderPages with ChangeNotifier {
     notifyListeners();
   }
 
+  // LOAD DATA FROM HIVE
+  void getIsOrganizationFromHive() {
+    _isOrganization = _box.get('isOrganization', defaultValue: false);
+  }
 
-  String get reviId => _reviId;
-  set reviId(String value) {
-    _reviId = value;
+  void getPendingDataFromHive() {
+    _pendingData = _box.get('pendingdata', defaultValue: false);
+  }
+
+  void getMainTopicFromHive() {
+    _mainTopic = _box.get('mainTopic', defaultValue: '');
+  }
+
+  void getConnectFromHive() {
+    _connected = _box.get('connected', defaultValue: false);
+  }
+
+  Organization? getOrganizationFromHive() {
+    final jsonString = _box.get('organization');
+    if (jsonString == null) {
+      return null; // Retorna null si no hay datos guardados
+    }
+    try {
+      final decodedJson = jsonDecode(jsonString);
+      return Organization.fromJson(decodedJson);
+    } catch (e) {
+      print('Error al decodificar JSON: $e');
+      return null; // Retorna null si hay un error al decodificar
+    }
+  }
+
+  OrgaRevisione? getRevisionFromHive() {
+    final jsonString = _box.get('revision');
+    if (jsonString == null) {
+      return null; // Retorna null si no hay datos guardados
+    }
+    try {
+      final decodedJson = jsonDecode(jsonString);
+      return OrgaRevisione.fromJson(decodedJson);
+    } catch (e) {
+      print('Error al decodificar JSON: $e');
+      return null; // Retorna null si hay un error al decodificar
+    }
+  }
+
+  List<OrgaInstrumento>? getOrgaInstrumentosFromHive() {
+    final jsonString = _box.get('maindata');
+
+    if (jsonString == null) {
+      return null; // Retorna null si no hay datos guardados
+    }
+    try {
+      return orgaInstrumentoFromJson(jsonString);
+    } catch (e) {
+      print('Error al decodificar JSON: $e');
+      return null; // Retorna null si hay un error al decodificar
+    }
+  }
+
+  // CLEAR ALL DATA
+  Future<void> clearData() async{
+    await _box.clear();
+
+    _mainData.clear();
+    _organization = null;
+    _isOrganization = false;
+    _revision = null;
+    _instId = '';
+    _varId = '';
+    _puntId = '';
+    _mainTopic = '';
+    _connected = false;
+    _pendingData = false;
+
     notifyListeners();
   }
+
+  void  refreshData() async{
+    notifyListeners();
+  }
+
+
+
 
 
 

@@ -5,6 +5,7 @@ import 'package:control/models/tramaDatos.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +19,9 @@ import 'package:logger/logger.dart';
 import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
+
 enum ImageState { RECEIVED, WAITING }
+
 const String infoPrefix = 'MyAPP ';
 
 class TakePhoto extends StatefulWidget {
@@ -57,6 +60,7 @@ class _TakePhotoState extends State<TakePhoto> {
     subuAbreviatura: "",
     imagen: "",
   );
+  bool _ready = false;
 
   XFile? _image;
   WidgetState _widgetState = WidgetState.LOADING;
@@ -88,7 +92,8 @@ class _TakePhotoState extends State<TakePhoto> {
     // Load Data
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization.orgaId);
+    orgaInstrument = info.mainData
+        .firstWhere((item) => item.orgaId == info.organization!.orgaId);
 
     instrument = orgaInstrument.orgaInstrumentos
         .firstWhere((item) => item.instId == info.instId);
@@ -119,7 +124,6 @@ class _TakePhotoState extends State<TakePhoto> {
     _tramaDatos.orgaNombre = orgaInstrument.orgaNombre;
     _tramaDatos.variNombre = variable.variNombre;
     _tramaDatos.subuAbreviatura = variable.subuAbreviatura;
-
 
     _widgetState = WidgetState.LOADED;
     setState(() {});
@@ -155,78 +159,82 @@ class _TakePhotoState extends State<TakePhoto> {
     return 1;
   }
 
-  void _savePuntoPrueba(BuildContext context, int value){
+  void _savePuntoPrueba(BuildContext context, int value) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     bool found = false;
 
     PuntPrueba puntPrueba = new PuntPrueba(
-        prueId: Util.generateUUID(),
-        prueFecha: DateTime.now(),
-        prueFoto1: imageBase64_1,
-        prueFoto2: imageBase64_2,
-        reviNumero: info.revision!.reviNumero,
-        prueEnviado: 2,
-        prueReviId: info.revision!.reviId,
-        reviEntiId: info.revision!.reviEntiId,
-        prueDescripcion: dropdownValue!,
+      prueId: Util.generateUUID(),
+      prueFecha: DateTime.now(),
+      prueFoto1: imageBase64_1,
+      prueFoto2: imageBase64_2,
+      reviNumero: info.revision!.reviNumero,
+      prueEnviado: 2,
+      prueReviId: info.revision!.reviId,
+      reviEntiId: info.revision!.reviEntiId,
+      prueDescripcion: dropdownValue!,
     );
 
-
     for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization.orgaId) {
-
-    for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
-      if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
-        for (var k = 0; k <
-            info.mainData[i].orgaInstrumentos[j].instVariables
-                .length; k++) {
-
-          if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-              .puntId == info.puntId) {
-
-            for (var l = 0; l <
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba.length; l++) {
+      if (info.mainData[i].orgaId == info.organization!.orgaId) {
+        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
+          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
+            for (var k = 0;
+                k < info.mainData[i].orgaInstrumentos[j].instVariables.length;
+                k++) {
               if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                  .puntPrueba[l].prueReviId == info.revision?.reviId) {
+                      .puntId ==
+                  info.puntId) {
+                for (var l = 0;
+                    l <
+                        info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                            .puntPrueba.length;
+                    l++) {
+                  if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                          .puntPrueba[l].prueReviId ==
+                      info.revision?.reviId) {
+                    found = true;
+                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                        .puntPrueba[l].prueId = puntPrueba.prueId;
 
+                    info
+                        .mainData[i]
+                        .orgaInstrumentos[j]
+                        .instVariables[k]
+                        .puntPrueba[l]
+                        .prueDescripcion = puntPrueba.prueDescripcion;
 
-                found=true;
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueId = puntPrueba.prueId;
+                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                        .puntPrueba[l].prueFecha = puntPrueba.prueFecha;
 
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueDescripcion = puntPrueba.prueDescripcion;
+                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                        .puntPrueba[l].prueFoto1 = puntPrueba.prueFoto1;
 
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueFecha = puntPrueba.prueFecha;
+                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                        .puntPrueba[l].prueFoto2 = puntPrueba.prueFoto2;
 
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueFoto1 = puntPrueba.prueFoto1;
+                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                        .puntPrueba[l].prueEnviado = puntPrueba.prueEnviado;
 
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueFoto2 = puntPrueba.prueFoto2;
+                    info.mainDataUpdate(info.mainData);
 
-                info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                    .puntPrueba[l].prueEnviado = puntPrueba.prueEnviado;
+                    return; // Elemento encontrado y modificado
+                  }
+                }
 
-
-                setState(() {});
-
-                return; // Elemento encontrado y modificado
+                if (!found)
+                  info.mainData[i].orgaInstrumentos[j].instVariables[k]
+                      .puntPrueba
+                      .add(puntPrueba);
               }
             }
-
-
-            if(!found) info.mainData[i].orgaInstrumentos[j].instVariables[k].puntPrueba.add(puntPrueba);
-
           }
         }
       }
     }
-          }
-        }
 
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
   }
 
   void _subscribeMaster() {
@@ -252,11 +260,21 @@ class _TakePhotoState extends State<TakePhoto> {
           imageBase64_2 = data.imagen;
           imageState = ImageState.RECEIVED;
           setState(() {});
-          return;
+          break;
 
         case "TAKE_PHOTO":
           _takePicture();
-          return;
+          break;
+
+        case "READY":
+          _ready = true;
+          setState(() {});
+          break;
+
+        case "NO_READY":
+          _ready = false;
+          setState(() {});
+          break;
       }
     });
   }
@@ -264,6 +282,16 @@ class _TakePhotoState extends State<TakePhoto> {
   Future<void> _publishMessage(String topic, TramaDatos message) async {
     final jsonData = jsonEncode(message);
     mqttManager.publish(masterMqtt, jsonData);
+  }
+
+  void sendState(bool ready){
+    _tramaDatos.tipoMensaje = ready ? "READY": "NO_READY";
+    _publishMessageAndRetain(masterMqtt, _tramaDatos );
+  }
+
+  Future<void> _publishMessageAndRetain(String topic, TramaDatos message ) async {
+    final jsonData = jsonEncode(message);
+    mqttManager.publishAndRetain(masterMqtt, jsonData);
   }
 
   Future<String?> _convertImageToBase64(String imagePath) async {
@@ -302,7 +330,7 @@ class _TakePhotoState extends State<TakePhoto> {
     switch (_widgetState) {
       case WidgetState.LOADING:
         return Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(child: circularProgressMain(),),
         );
 
       case WidgetState.LOADED:
@@ -351,45 +379,68 @@ class _TakePhotoState extends State<TakePhoto> {
 
   Widget _previewCamera(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
-      return Center(child: CircularProgressIndicator());
+      return Center(child: circularProgressMain());
     }
 
     final size = MediaQuery.of(context).size;
 
+    sendState(true);
+
     return Scaffold(
-          body: Stack(children: [
-            SizedBox(
-              width: size.width,
-              height: size.height,
-              child: RotatedBox(
-                // Rotamos *dentro* del SizedBox
-                quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
-                child: CameraPreview(_controller!),
-              ),
-            ),
-            Positioned(
-              top: 20,
-              left: 20,
-              child: Container(
-                padding: EdgeInsets.all(8),
-                color: Colors.black.withAlpha(51), // Fondo semitransparente
-                child: Column(
+      body: Stack(children: [
+        SizedBox(
+          width: size.width,
+          height: size.height,
+          child: RotatedBox(
+            // Rotamos *dentro* del SizedBox
+            quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
+            child: CameraPreview(_controller!),
+          ),
+        ),
+        Positioned(
+          top: 30,
+          left: 10,
+          child: Container(
+            padding: EdgeInsets.all(8),
+            color: Colors.black.withAlpha(51), // Fondo semitransparente
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     setHeaderTitle(orgaInstrument.orgaNombre, Colors.white),
                     setHeaderTitle(instrument.instNombre, Colors.white),
                     setHeaderSubTitle(variable.variNombre, Colors.white),
-                    SizedBox(
-                      height: 10,
-                    ),
                   ],
                 ),
-              ),
+              ],
             ),
+          ),
+        ),
+        Positioned(
+          top: 30,
+          right: 20,
+          child: _ready ? Icon(
+            MdiIcons.lanConnect,
+            color: Colors.white,
+            size: 36.0,
+          ): Icon(
+            MdiIcons.lanDisconnect,
+            color: Colors.white,
+            size: 36.0,
+          ),
+        ),
       ]),
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
+          if(!_ready){
+            showMsg("El Otro Dispositivo No esta Preparado");
+            return;
+          }
+
           _widgetState = WidgetState.LOADING;
           setState(() {});
 
@@ -412,7 +463,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Cámara Local',
+            'Foto #1',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -433,7 +484,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Cámara Remota',
+            'Foto #2',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -445,7 +496,7 @@ class _TakePhotoState extends State<TakePhoto> {
               ? SizedBox(
                   height: 500,
                   child: Center(
-                    child: CircularProgressIndicator(),
+                    child: circularProgressMain(),
                   ),
                 )
               : InteractiveViewer(
@@ -459,53 +510,61 @@ class _TakePhotoState extends State<TakePhoto> {
                 ),
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: _commentList(context)
-            ),
+                padding: const EdgeInsets.all(20.0),
+                child: _commentList(context)),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape:  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+              SizedBox(
+                width: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(10.0), // Radio de 10.0
+                    ),
+                    backgroundColor: AppColor.redColor,
+                    padding: EdgeInsets.all(10.0),
                   ),
-                  backgroundColor: AppColor.redColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Cancelar',  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),),
-              ),
-              CircleAvatar(
-                backgroundColor: Colors.green, // Color del círculo (puedes cambiarlo)
-                child:  IconButton(
                   onPressed: () {
-                    if(dropdownValue == null) {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(10.0), // Radio de 10.0
+                    ),
+                    backgroundColor: AppColor.themeColor,
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  onPressed: () {
+                    if (dropdownValue == null) {
                       showError('Debe seleccionar un Comentario');
                       return;
                     }
-
                     _savePuntoPrueba(context, 2);
                     Navigator.pop(context);
                   },
-                  icon: const Icon(Icons.check, color: Colors.white,),
-                ),
-              ),
-
-              CircleAvatar(
-                backgroundColor: AppColor.redColor, // Color del círculo (puedes cambiarlo)
-                child:   IconButton(
-                  onPressed: () {
-                    _savePuntoPrueba(context, 3);
-                  },
-                  icon: const Icon(Icons.close, color: Colors.white,),
+                  child: Text(
+                    'Aceptar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -517,11 +576,12 @@ class _TakePhotoState extends State<TakePhoto> {
       ),
     );
   }
-  
-  Widget  _commentList(BuildContext context){
+
+  Widget _commentList(BuildContext context) {
     return InputDecorator(
       decoration: InputDecoration(
-        border: OutlineInputBorder( // Define el borde
+        border: OutlineInputBorder(
+          // Define el borde
           borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
         ),
         filled: true, // Habilita el color de fondo
@@ -545,22 +605,25 @@ class _TakePhotoState extends State<TakePhoto> {
         onChanged: (String? newValue) {
           setState(() {
             dropdownValue = newValue;
-            if(newValue != null){
+            if (newValue != null) {
               print('Estado seleccionado: $newValue');
             }
           });
         },
-        hint: const Text('Selección ...', style: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-        ),),
+        hint: const Text(
+          'Selección ...',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+          ),
+        ),
       ),
     );
-
   }
 
   @override
   void dispose() {
+    sendState(false);
     _controller?.dispose();
     super.dispose();
   }

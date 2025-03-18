@@ -99,6 +99,23 @@ class Util {
     return uuid.v4(); // Genera un UUID versión 4 (aleatorio)
   }
 
+  static int isUrlOrBase64(String cadena) {
+    if (cadena.startsWith('http://') || cadena.startsWith('https://')) {
+      // Es una URL
+      return 1;
+    }
+
+    try {
+      // Intenta decodificar como Base64
+      base64Decode(cadena);
+      // Si no hay excepción, es Base64 válido
+      return 2;
+    } catch (e) {
+      // No es Base64 válido
+      return -1;
+    }
+  }
+
   static String geenerateCode(int longitud) {
     const caracteres =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

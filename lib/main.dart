@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:hive/hive.dart';
 import 'api/client.dart';
 import 'src/app.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +15,8 @@ void main() async {
   final token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsidXN1YV9pZCI6IkFuZHJvaWQifX0.';
   await api.saveToken(token);
 
-  //await Hive.openBox("boxname");
+  final box = await Hive.openBox('boxname');
+  //await box.clear();
 
   runApp(
     MultiProvider(
