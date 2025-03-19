@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:control/models/tramaDatos.dart';
@@ -18,7 +19,7 @@ import 'dart:developer' as developer;
 import 'package:logger/logger.dart';
 import 'package:control/helper/util.dart';
 
-enum WidgetState { LOADING, LOADED, CAPTURE, ERROR_CAMERA, ERROR_MQTT }
+enum WidgetState { LOADING, LOADED, VIEW_IMAGE, ERROR_CAMERA, ERROR_MQTT }
 
 enum ImageState { RECEIVED, WAITING }
 
@@ -61,8 +62,10 @@ class _TakePhotoState extends State<TakePhoto> {
     imagen: "",
   );
   bool _ready = false;
+  bool _shoot = false;
+  int _contador = 0;
+  final int temporizador = 5;
 
-  XFile? _image;
   WidgetState _widgetState = WidgetState.LOADING;
   ImageState imageState = ImageState.WAITING;
 
@@ -243,10 +246,24 @@ class _TakePhotoState extends State<TakePhoto> {
 
       switch (data.tipoMensaje) {
         case "IMAGE_CAMERA_1":
-          return;
+          break;
         case "TAKE_PHOTO":
-          _takePicture();
-          return;
+          _contador = temporizador;
+          _shoot = true;
+          setState(() {});
+          Timer.periodic(Duration(seconds: 1), (timer) {
+            _contador--;
+            setState(() {});
+            if (_contador == 0) {
+              _shoot = false;
+              setState(() {});
+              timer.cancel();
+              _takePicture();
+            }
+          });
+
+          break;
+
       }
     });
   }
@@ -263,7 +280,20 @@ class _TakePhotoState extends State<TakePhoto> {
           break;
 
         case "TAKE_PHOTO":
-          _takePicture();
+          _contador = temporizador;
+          _shoot = true;
+          setState(() {});
+          Timer.periodic(Duration(seconds: 1), (timer) {
+            _contador--;
+            setState(() {});
+            if (_contador == 0) {
+              _shoot = false;
+              setState(() {});
+              timer.cancel();
+              _takePicture();
+            }
+          });
+
           break;
 
         case "READY":
@@ -306,6 +336,8 @@ class _TakePhotoState extends State<TakePhoto> {
   }
 
   Future<void> _takePicture() async {
+    sendState(false);
+    
     if (_controller != null && _controller!.value.isInitialized) {
       final XFile image = await _controller!.takePicture();
       final base64Image = await _convertImageToBase64(image.path);
@@ -317,10 +349,8 @@ class _TakePhotoState extends State<TakePhoto> {
         _tramaDatos.imagen = imageBase64_1;
         _publishMessage(masterMqtt, _tramaDatos);
 
-        _widgetState = WidgetState.CAPTURE;
-        setState(() {
-          _image = image;
-        });
+        _widgetState = WidgetState.VIEW_IMAGE;
+        setState(() {});
       }
     }
   }
@@ -336,7 +366,7 @@ class _TakePhotoState extends State<TakePhoto> {
       case WidgetState.LOADED:
         return _previewCamera(context);
 
-      case WidgetState.CAPTURE:
+      case WidgetState.VIEW_IMAGE:
         return _buildScaffold(context, _viewImage(context));
 
       case WidgetState.ERROR_CAMERA:
@@ -425,25 +455,33 @@ class _TakePhotoState extends State<TakePhoto> {
           right: 20,
           child: _ready ? Icon(
             MdiIcons.lanConnect,
-            color: Colors.white,
+            color: Colors.green,
             size: 36.0,
           ): Icon(
             MdiIcons.lanDisconnect,
-            color: Colors.white,
+            color: Colors.red,
             size: 36.0,
           ),
         ),
+
+        _shoot? Center(
+          child: Text(
+            '$_contador',
+            style: TextStyle(
+              fontSize: 140, // Ajusta el tamaño del texto según tus necesidades
+              fontWeight: FontWeight.bold,
+              color: Colors.white, // Cambia el color del texto si es necesario
+            ),
+          ),
+        ): SizedBox.shrink(),
+
       ]),
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
           if(!_ready){
-            showMsg("El Otro Dispositivo No esta Preparado");
+            showMsg("  SIN CONEXIÓN  ");
             return;
           }
-
-          _widgetState = WidgetState.LOADING;
-          setState(() {});
-
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
         }),

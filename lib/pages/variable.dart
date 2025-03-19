@@ -191,11 +191,11 @@ class _VariableState extends State<Variable> {
 
   Widget _mainScaffold(BuildContext context, Widget body) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    final name = info.isOrganization ? info.organization!.orgaNombre : '';
+    final name = info.isOrganization ? info.organization!.orgaPrefijo : '';
     return Scaffold(
         drawer: setDrawer(context),
         backgroundColor: AppColor.containerBody,
-        appBar: setAppBarMain(context, name, instrument.instNombre),
+        appBar: setAppBarMain(context, '$name (Sesión: ${info.mainTopic})', instrument.instNombre),
         body: body
     );
   }

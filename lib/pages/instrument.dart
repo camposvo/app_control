@@ -68,12 +68,12 @@ class _InstrumentState extends State<Instrument> {
   @override
   Widget build(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    final name = info.isOrganization ? info.organization!.orgaNombre : '';
+    final name = info.isOrganization ? info.organization!.orgaPrefijo : '';
 
     return Scaffold(
       drawer: setDrawer(context),
       backgroundColor: AppColor.containerBody,
-      appBar: setAppBarMain(context,name, "Medidores"),
+      appBar: setAppBarMain(context,'$name (Sesión: ${info.mainTopic})', 'Medidores'),
       body: showInstrumentList(context)
     );
   }

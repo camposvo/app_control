@@ -53,14 +53,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
     if( index == 1){ // Conectar Dispositivo
       if( isConnected(context)) return AppColor.GreenReady;
-      if(existOrganization(context)) return AppColor.secondaryColor;
+      return AppColor.secondaryColor;
     }
 
     if( index == 2 && existOrganization(context) && isConnected(context))  //Cargar datos Sin sistema
         return AppColor.secondaryColor;
 
 
-    if( index == 3){ // Conectar Dispositivo
+    if( index == 3){ // Enviar Datos
       if(dataPending(context)){
         return AppColor.GreenReady;
       }
@@ -105,6 +105,13 @@ class _DashboardPageState extends State<DashboardPage> {
                 setCommonText(revision, Colors.black, 18.0, FontWeight.w800, 1),
               ],
             ),
+            Row(
+              children: <Widget>[
+                setCommonText(
+                    "Sesión: ", Colors.black, 18.0, FontWeight.w500, 1),
+                setCommonText(info.mainTopic, Colors.black, 18.0, FontWeight.w800, 1),
+              ],
+            ),
             spaceForm(),
             _gridAdmin(context),
             //_setGridViewListing(context)
@@ -141,7 +148,6 @@ class _DashboardPageState extends State<DashboardPage> {
                     });
                     break;
                   case 1:
-                    if (!existOrganization(context)) break;
                     Navigator.pushNamed(context, 'selectMode')
                         .then((_)  {
                       setState(() {});

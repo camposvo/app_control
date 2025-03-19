@@ -118,7 +118,7 @@ class Util {
 
   static String geenerateCode(int longitud) {
     const caracteres =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        'ABCDEFGHJKLMNPQRSTUVWXYZ123456789';
     Random random = Random();
     return String.fromCharCodes(
       List.generate(longitud, (index) => caracteres.codeUnitAt(

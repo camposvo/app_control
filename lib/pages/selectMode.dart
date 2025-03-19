@@ -45,19 +45,19 @@ class _SelectModeState extends State<SelectMode> {
     _widgetState = WidgetState.LOADING;
     setState(() {});
 
-   final resultmQTT = await _initMqtt();
+  /* final resultmQTT = await _initMqtt();
     if(!resultmQTT){
       _widgetState = WidgetState.ERROR_MQTT;
       setState(() {});
       return;
-    }
+    }*/
 
     _widgetState = WidgetState.SHOW_CODE;
     setState(() {});
 
   }
 
-  Future<bool> _initMqtt() async {
+  /*Future<bool> _initMqtt() async {
     try {
       await mqttManager.initialize();
       return true;
@@ -66,7 +66,7 @@ class _SelectModeState extends State<SelectMode> {
       print("Error initializing MQTT: $e");
       return false;
     }
-  }
+  }*/
 
   void _subscribeTopic(String topic){
     final info = Provider.of<ProviderPages>(context, listen: false);
@@ -161,23 +161,16 @@ class _SelectModeState extends State<SelectMode> {
                   backgroundColor: AppColor.themeColor,
                   padding: EdgeInsets.all(10.0),
                 ),
-                onPressed: isActive
-                    ? () async {
-                  isActive = false; // Deshabilita el botón mientras se ejecuta la acción
+                onPressed: ()  {
                   String topic = info.mainTopic;
-                  if (topic != "") {
-                    mqttManager.unsubscribe(topic);
-                  }
                   topic = Util.geenerateCode(5);
-                  _subscribeTopic(topic);
+                  //_subscribeTopic(topic);
                   info.mainTopic = topic;
-                  info.connected = false;
+                  info.connected = true;
                   setState(() {});
 
-                }
-                    : null,
-
-                child: Text(isActive?'Crear Codigo':'Esperando Conexión',  style: TextStyle(
+                },
+                child: Text('Crear Código',  style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                 ),),
@@ -195,14 +188,12 @@ class _SelectModeState extends State<SelectMode> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  if (info.mainTopic != "") {
-                    mqttManager.unsubscribe(info.mainTopic);
-                    info.mainTopic ="";
-                  }
-                  isActive = true;
+
+                  info.mainTopic ="";
+                  info.connected = false;
                   setState(() {});
                 },
-                child: Text('Cancelar',  style: TextStyle(
+                child: Text('Cerrar Sesion',  style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                 ),),
@@ -229,38 +220,6 @@ class _SelectModeState extends State<SelectMode> {
               ),
 
               SizedBox(height: 20,),
-
-             /* ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(width -20, 40),
-                  shape:  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                  ),
-                  backgroundColor: AppColor.redColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed: () async {
-                  mqttManager.publish(info.mainTopic, msgACK);
-                },
-                child: Text('Simular ASK',  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),),
-              ),*/
-
-              Spacer(),
-
-              Center(
-                child: Text(
-                  'Espere a que el Disposivo asociado este listo para continuar con la toma de la Foto',
-                  style: const TextStyle(
-                    fontSize: 14, // Tamaño de letra grande
-                    fontWeight: FontWeight.normal, // Texto en negrita
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
 
             ],
           ),
