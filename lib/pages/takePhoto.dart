@@ -455,12 +455,12 @@ class _TakePhotoState extends State<TakePhoto> {
           right: 20,
           child: _ready ? Icon(
             MdiIcons.lanConnect,
-            color: Colors.green,
-            size: 36.0,
+            color: Colors.white,
+            size: 46.0,
           ): Icon(
             MdiIcons.lanDisconnect,
             color: Colors.red,
-            size: 36.0,
+            size: 46.0,
           ),
         ),
 
