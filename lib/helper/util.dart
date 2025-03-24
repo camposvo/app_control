@@ -7,12 +7,35 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 const String infoPrefix = 'MyAPP ';
 
 class Util {
 
   Util() {}
+
+  static Future<String?> _getDeviceId() async {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    String? deviceId;
+
+    try {
+      if (Platform.isAndroid) {
+        final AndroidDeviceInfo androidDeviceInfo =
+        await deviceInfoPlugin.androidInfo;
+        deviceId = androidDeviceInfo.id;
+      } else if (Platform.isIOS) {
+        final IosDeviceInfo iosDeviceInfo = await deviceInfoPlugin.iosInfo;
+        deviceId = iosDeviceInfo.identifierForVendor;
+      }
+    } catch (e) {
+      print('Error getting device ID: $e');
+    }
+
+    return deviceId;
+
+  }
+
 
   static void printInfo(String title, String msg) {
     var logger = Logger(

@@ -24,7 +24,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    Util.printInfo("refres", "dashboard");
     setState(() {
     });
 

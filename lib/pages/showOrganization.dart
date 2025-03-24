@@ -51,6 +51,8 @@ class _ShowOrganizationState extends State<ShowOrganization> {
   Future<bool> _getOrganizations(BuildContext context) async {
     final result =await api.getOrganization();
 
+    //final result =await api.getOrganizationFromJson();
+
     if(result == null){
         return false;
     }
@@ -91,7 +93,6 @@ class _ShowOrganizationState extends State<ShowOrganization> {
         body: body
     );
   }
-
 
   _onSearch(String search) {
     _filterList = _organizations.where((item) {

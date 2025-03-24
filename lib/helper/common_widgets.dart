@@ -382,6 +382,41 @@ Future<bool> showConfirm(BuildContext context) async {
   ).then((value) => value ?? false); // Maneja el caso en que el diálogo se cierra sin seleccionar una opción
 }
 
+Future<bool> showConfirmAccept(BuildContext context) async {
+  final info = Provider.of<ProviderPages>(context, listen: false);
+
+  return showDialog<bool>( // Cambia el tipo de retorno a Future<bool>
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirmación'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const <Widget>[
+              Text('¿Estás seguro de Descartar las Fotos?'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Retorna falso al cancelar
+            },
+          ),
+          TextButton(
+            child: const Text('Confirmar'),
+            onPressed: () async {
+              Navigator.of(context).pop(true); // Retorna verdadero al confirmar
+            },
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false); // Maneja el caso en que el diálogo se cierra sin seleccionar una opción
+}
+
 Future<void> showDialogMsg(BuildContext context, String mensaje) async {
   return showDialog<void>(
     context: context,
@@ -505,6 +540,31 @@ Future<void> showMsg(String msg) async {
       gravity: ToastGravity.CENTER,
       timeInSecForIosWeb: 2,
       backgroundColor: AppColor.secondaryColor,
+      textColor: Colors.white,
+      fontSize: 16.0
+  );
+}
+
+
+void showWarning(String msg) {
+  Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.orangeAccent,
+      textColor: Colors.white,
+      fontSize: 16.0
+  );
+}
+
+void showMsgCamera(String msg) {
+  Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.black.withAlpha(51),
       textColor: Colors.white,
       fontSize: 16.0
   );

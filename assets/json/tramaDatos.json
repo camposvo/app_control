@@ -1,0 +1,16 @@
+{
+  "tipo_mensaje": "",
+  "orga_id": "",
+  "orga_nombre": "",
+  "inst_id": "",
+  "inst_nombre": "",
+  "vari_id": "",
+  "vari_nombre": "",
+  "subu_abreviatura": "",
+  "imagen": "",
+  "count_down": 0,
+  "camera_ready": false,
+  "connetion_ready": false,
+  "is_approved": false
+
+}

@@ -18,6 +18,10 @@ class TramaDatos {
   String variNombre;
   String subuAbreviatura;
   String imagen;
+  int countDown;
+  bool cameraReady;
+  bool connetionReady;
+  bool isApproved;
 
   TramaDatos({
     required this.tipoMensaje,
@@ -29,6 +33,10 @@ class TramaDatos {
     required this.variNombre,
     required this.subuAbreviatura,
     required this.imagen,
+    required this.countDown,
+    required this.cameraReady,
+    required this.connetionReady,
+    required this.isApproved,
   });
 
   factory TramaDatos.fromJson(Map<String, dynamic> json) => TramaDatos(
@@ -41,6 +49,10 @@ class TramaDatos {
     variNombre: json["vari_nombre"],
     subuAbreviatura: json["subu_abreviatura"],
     imagen: json["imagen"],
+    countDown: json["count_down"],
+    cameraReady: json["camera_ready"],
+    connetionReady: json["connetion_ready"],
+    isApproved: json["is_approved"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -53,5 +65,9 @@ class TramaDatos {
     "vari_nombre": variNombre,
     "subu_abreviatura": subuAbreviatura,
     "imagen": imagen,
+    "count_down": countDown,
+    "camera_ready": cameraReady,
+    "connetion_ready": connetionReady,
+    "is_approved": isApproved,
   };
 }

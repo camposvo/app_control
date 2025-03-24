@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:control/models/resultRevision.dart';
+import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,7 +58,6 @@ class _Clients {
       }
 
       if (result.data != null) {
-        print(result.data );
         String str =
         getPrettyJSONString(result.data?['organizaciones']['data']);
 
@@ -72,6 +72,13 @@ class _Clients {
       print(e);
       return null ;
     }
+  }
+
+
+  Future<String?> getOrganizationFromJson() async {
+
+    final String respuesta = await rootBundle.loadString('assets/json/organization.json');
+    return respuesta;
   }
 
   Future<String?> getOrganInstruments(String orgaId) async {
@@ -97,7 +104,6 @@ class _Clients {
       if (result.data != null) {
         String str =
         getPrettyJSONString(result.data?['loadDataRevisiones']['data']);
-        print(str);
         return str;
       }
 
@@ -114,6 +120,12 @@ class _Clients {
       print(e);
       return null ;
     }
+  }
+
+  Future<String?> getOrganInstrumentsFromJson() async {
+
+    final String respuesta = await rootBundle.loadString('assets/json/orgaInstrumento.json');
+    return respuesta;
   }
 
   Future<String?> insertComment(String orgaId, List<Comentario> data) async {

@@ -1,0 +1,14 @@
+[
+  {
+    "orga_id": "adabf0c0-a158-4b21-b2e2-8dac5ea295e5",
+    "orga_nombre": "Bicevida",
+    "orga_activo": 1,
+    "orga_prefijo": "BVI"
+  },
+  {
+    "orga_id": "055180b1-0195-7000-bd45-7eb9a2ba3466",
+    "orga_nombre": "Edificio de Pruebas",
+    "orga_activo": 1,
+    "orga_prefijo": "PRU"
+  }
+]

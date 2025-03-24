@@ -19,7 +19,7 @@ import 'dart:developer' as developer;
 import 'package:logger/logger.dart';
 import 'package:control/helper/util.dart';
 
-enum WidgetState { LOADING, LOADED, VIEW_IMAGE, ERROR_CAMERA, ERROR_MQTT }
+enum WidgetState { LOADED, VIEW_IMAGE, ERROR_CAMERA, ERROR_MQTT }
 
 enum ImageState { RECEIVED, WAITING }
 
@@ -31,16 +31,29 @@ class TakePhoto extends StatefulWidget {
 }
 
 class _TakePhotoState extends State<TakePhoto> {
-  var logger = Logger();
+
+  bool isLoading = true;
+  bool isFinish = false;
+
+  Timer? _timerConnection;
+
+  late OrgaInstrumentoElement instrument;
+  late OrgaInstrumento orgaInstrument;
+  late InstVariable variable;
 
   static const List<String> commentPunto = [
     'La prueba esta correcta',
     'La prueba esta incorrecta'
   ];
 
-  late List<CameraDescription> _cameras;
+   late List<CameraDescription> _cameras;
   CameraController? _controller;
 
+  WidgetState _widgetState = WidgetState.LOADED;
+  ImageState imageState = ImageState.WAITING;
+  String imageBase64_1 = "";
+  String imageBase64_2 = "";
+  String comment = '';
   String? dropdownValue;
 
   final mqttManager = MqttManager(
@@ -49,38 +62,40 @@ class _TakePhotoState extends State<TakePhoto> {
     username: 'root',
     password: '*R1b3x#99',
   );
-
   final TramaDatos _tramaDatos = new TramaDatos(
-    tipoMensaje: "",
-    orgaId: "",
-    orgaNombre: "",
-    instId: "",
-    instNombre: "",
-    variId: "",
-    variNombre: "",
-    subuAbreviatura: "",
-    imagen: "",
+      tipoMensaje: "",
+      orgaId: "",
+      orgaNombre: "",
+      instId: "",
+      instNombre: "",
+      variId: "",
+      variNombre: "",
+      subuAbreviatura: "",
+      imagen: "",
+      cameraReady: false,
+      connetionReady: false,
+      countDown: 0,
+      isApproved: false,
   );
-  bool _ready = false;
-  bool _shoot = false;
+
   int _contador = 0;
-  final int temporizador = 5;
+  int _countDown = 0;
+  bool _showCounter = false;
 
-  WidgetState _widgetState = WidgetState.LOADING;
-  ImageState imageState = ImageState.WAITING;
-
-  String imageBase64_1 = "";
-  String imageBase64_2 = "";
-  String comment = '';
+  bool _cameraLocalReady = false;
+  bool _cameraRemoteReady = false;
+  bool _connRemoteReady = false;
 
   String errorMqtt = '';
 
-  String masterMqtt = '/TAKE_PHOTO';
-  String slaveMqtt = '/SENDING_PHOTO';
+  //topic for General Message Interchange
+  String masterMqttFinish = '_MASTER_FINISH';
+  String masterMqtt = '_MASTER';
+  String slaveMqtt = '_SLAVE';
 
-  late OrgaInstrumentoElement instrument;
-  late OrgaInstrumento orgaInstrument;
-  late InstVariable variable;
+  //Special topic for Connection Message Interchange
+  String masterConnMqtt = '_MASTER_CONN';
+  String slaveConnMqtt = '_SLAVE_CONN';
 
   @override
   void initState() {
@@ -89,8 +104,6 @@ class _TakePhotoState extends State<TakePhoto> {
   }
 
   Future<void> _loadData() async {
-    _widgetState = WidgetState.LOADING;
-    setState(() {});
 
     // Load Data
     final info = Provider.of<ProviderPages>(context, listen: false);
@@ -106,6 +119,11 @@ class _TakePhotoState extends State<TakePhoto> {
     final mainTopic = info.mainTopic;
     masterMqtt = mainTopic + masterMqtt;
     slaveMqtt = mainTopic + slaveMqtt;
+
+    masterConnMqtt = mainTopic + masterConnMqtt;
+    slaveConnMqtt = mainTopic + slaveConnMqtt;
+
+    masterMqttFinish =  mainTopic + masterMqttFinish;
 
     // Initialize Camera
     final resultCamera = await _initCamera();
@@ -125,10 +143,22 @@ class _TakePhotoState extends State<TakePhoto> {
 
     _tramaDatos.instNombre = instrument.instNombre;
     _tramaDatos.orgaNombre = orgaInstrument.orgaNombre;
+    _tramaDatos.orgaId = info.organization!.orgaId;
+    _tramaDatos.instId =  info.instId;
     _tramaDatos.variNombre = variable.variNombre;
+    _tramaDatos.variId = info.varId;
     _tramaDatos.subuAbreviatura = variable.subuAbreviatura;
+    _tramaDatos.cameraReady = _cameraLocalReady;
+    _tramaDatos.countDown = _countDown;
 
-    _widgetState = WidgetState.LOADED;
+    _tramaDatos.tipoMensaje = "START_CONNECTION";
+    _publishMessage(masterMqtt, _tramaDatos);
+
+    _timerConnection = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      sendStateConnection(true, _cameraLocalReady);
+    });
+
+    isLoading = false;
     setState(() {});
   }
 
@@ -155,6 +185,9 @@ class _TakePhotoState extends State<TakePhoto> {
       await mqttManager.initialize();
       _subscribeMaster();
       _subscribeSlave();
+      _subscribeMasterFinish();
+      //_subscribeSlaveConn();
+      //_subscribeMasterConn();
     } catch (e) {
       print("Error initializing MQTT: $e");
       return 0;
@@ -162,7 +195,7 @@ class _TakePhotoState extends State<TakePhoto> {
     return 1;
   }
 
-  void _savePuntoPrueba(BuildContext context, int value) {
+  void _saveResult(BuildContext context, int value) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     bool found = false;
 
@@ -240,27 +273,57 @@ class _TakePhotoState extends State<TakePhoto> {
     info.mainDataUpdate(info.mainData);
   }
 
+/*  void sendStateConnection(bool value){
+    _tramaDatos.tipoMensaje = "STATE_CONNECTION";
+    _tramaDatos.connetionReady = value;
+
+    Util.printInfo("topio", masterConnMqtt);
+    Util.printInfo("tipo", _tramaDatos.tipoMensaje);
+    Util.printInfo("tipo", _tramaDatos.connetionReady.toString());
+
+    _publishMessageAndRetain(masterConnMqtt, _tramaDatos );
+  }*/
+
+  void sendStateConnection(bool conn, bool cameraState){
+    _tramaDatos.tipoMensaje = "STATE_CONNECTION";
+    _tramaDatos.connetionReady = conn;
+    _tramaDatos.cameraReady = cameraState;
+
+    _publishMessage(masterMqtt, _tramaDatos );
+  }
+
+  void sendCountDown(int countDown){
+    _tramaDatos.tipoMensaje = "TIMER";
+    _tramaDatos.countDown = _countDown;
+    _publishMessage(masterMqtt, _tramaDatos );
+  }
+
+  void sendCameraReady(bool  value){
+    _tramaDatos.tipoMensaje = "CAMERA_READY";
+    _tramaDatos.cameraReady = value;
+    _publishMessage(masterMqtt, _tramaDatos );
+  }
+
+  Future<void> sendFinishPhoto(bool  value) async {
+    Util.printInfo("Publico el Mensaje", "PASO") ;
+
+    final String message = value ? 'APPROVE': 'REJECTED';
+    mqttManager.publish(masterMqttFinish, message);
+  }
+
   void _subscribeMaster() {
     mqttManager.subscribe(masterMqtt, (message) {
       final data = tramaDatosFromJson(message);
+
 
       switch (data.tipoMensaje) {
         case "IMAGE_CAMERA_1":
           break;
         case "TAKE_PHOTO":
-          _contador = temporizador;
-          _shoot = true;
-          setState(() {});
-          Timer.periodic(Duration(seconds: 1), (timer) {
-            _contador--;
-            setState(() {});
-            if (_contador == 0) {
-              _shoot = false;
-              setState(() {});
-              timer.cancel();
-              _takePicture();
-            }
-          });
+          preTimeTakePhoto();
+          break;
+
+        case "FINISH_PHOTO":
 
           break;
 
@@ -272,56 +335,144 @@ class _TakePhotoState extends State<TakePhoto> {
     mqttManager.subscribe(slaveMqtt, (message) {
       final data = tramaDatosFromJson(message);
 
+
       switch (data.tipoMensaje) {
+
+        case "START_CONNECTION":
+          if (mounted) {
+            setState(() {
+              _countDown = data.countDown;
+              _cameraRemoteReady = data.cameraReady;
+              _connRemoteReady = true;
+            });
+          }
+          break;
+
+        case "STATE_CONNECTION":
+          if(_cameraRemoteReady != data.cameraReady || _connRemoteReady != data.connetionReady ){
+
+            if (mounted) {
+              setState(() {
+
+                _cameraRemoteReady = data.cameraReady;
+                _connRemoteReady = data.connetionReady;
+              });
+            }
+          }
+
+          break;
+
+        case "TIMER":
+          if (mounted) {
+            setState(() {
+              _countDown = data.countDown;
+            });
+          }
+          break;
+
+        case "CAMERA_READY":
+          if (mounted) {
+            setState(() {
+              _cameraRemoteReady = data.cameraReady;
+            });
+          }
+          break;
+
         case "IMAGE_CAMERA_2":
-          imageBase64_2 = data.imagen;
-          imageState = ImageState.RECEIVED;
-          setState(() {});
+          if (mounted) {
+            setState(() {
+              imageBase64_2 = data.imagen;
+              imageState = ImageState.RECEIVED;
+            });
+          }
           break;
 
         case "TAKE_PHOTO":
-          _contador = temporizador;
-          _shoot = true;
-          setState(() {});
-          Timer.periodic(Duration(seconds: 1), (timer) {
-            _contador--;
-            setState(() {});
-            if (_contador == 0) {
-              _shoot = false;
-              setState(() {});
-              timer.cancel();
-              _takePicture();
-            }
-          });
+          preTimeTakePhoto();
+          break;
+
+
+
+       
+      }
+    });
+  }
+
+  void _subscribeMasterFinish() {
+    mqttManager.subscribe(masterMqttFinish, (message) {
+
+      Util.printInfo("Entro a Salir", "SALIR");
+
+
+      switch (message) {
+
+        case "APPROVE":
 
           break;
 
-        case "READY":
-          _ready = true;
-          setState(() {});
-          break;
+        case "REJECTED":
 
-        case "NO_READY":
-          _ready = false;
-          setState(() {});
           break;
       }
     });
   }
 
+  void _subscribeSlaveConn() {
+    mqttManager.subscribe(slaveConnMqtt, (message) {
+      final data = tramaDatosFromJson(message);
+
+      switch (data.tipoMensaje) {
+        case 'STATE_CONNECTION' :
+          if (data.connetionReady == _connRemoteReady) {
+            Util.printInfo("mallllllllllll", _connRemoteReady.toString());
+            break;
+          }
+
+          _connRemoteReady = data.connetionReady;
+          setState(() {});
+          Util.printInfo("paso", _connRemoteReady.toString());
+          break;
+
+        default:
+          Util.printInfo("CAYO EN DEFAULT", data.tipoMensaje);
+      }
+
+    });
+  }
+
+  void _subscribeMasterConn() {
+    mqttManager.subscribe(masterConnMqtt, (message) {
+      final data = tramaDatosFromJson(message);
+
+
+      switch (data.tipoMensaje) {
+        case 'STATE_CONNECTION' :
+          if (data.connetionReady == _connRemoteReady) {
+
+            break;
+          }
+
+          _connRemoteReady = data.connetionReady;
+          setState(() {});
+          Util.printInfo("paso", _connRemoteReady.toString());
+          break;
+
+        default:
+          Util.printInfo("CAYO EN DEFAULT", data.tipoMensaje);
+      }
+
+    });
+  }
+
+
   Future<void> _publishMessage(String topic, TramaDatos message) async {
-    final jsonData = jsonEncode(message);
+    final jsonData = tramaDatosToJson(message);
     mqttManager.publish(masterMqtt, jsonData);
   }
 
-  void sendState(bool ready){
-    _tramaDatos.tipoMensaje = ready ? "READY": "NO_READY";
-    _publishMessageAndRetain(masterMqtt, _tramaDatos );
-  }
-
   Future<void> _publishMessageAndRetain(String topic, TramaDatos message ) async {
-    final jsonData = jsonEncode(message);
-    mqttManager.publishAndRetain(masterMqtt, jsonData);
+    final jsonData = tramaDatosToJson(message);
+    mqttManager.publishAndRetain(masterConnMqtt, jsonData);
   }
 
   Future<String?> _convertImageToBase64(String imagePath) async {
@@ -335,9 +486,35 @@ class _TakePhotoState extends State<TakePhoto> {
     }
   }
 
+
+  void preTimeTakePhoto(){
+
+    if(_countDown == 0){
+      _takePicture();
+      return;
+    }
+
+    _contador = _countDown;
+    _showCounter = true;
+    setState(() {});
+    Timer.periodic(Duration(seconds: 1), (timer) {
+
+      if (_contador == 0) {
+        timer.cancel();
+        _showCounter = false;
+        setState(() {});
+        _takePicture();
+      }
+
+      _contador--;
+      setState(() {});
+
+    });
+  }
+
   Future<void> _takePicture() async {
-    sendState(false);
-    
+    _timerConnection?.cancel();
+
     if (_controller != null && _controller!.value.isInitialized) {
       final XFile image = await _controller!.takePicture();
       final base64Image = await _convertImageToBase64(image.path);
@@ -345,23 +522,22 @@ class _TakePhotoState extends State<TakePhoto> {
       if (base64Image != null) {
         imageBase64_1 = base64Image;
 
+        _widgetState = WidgetState.VIEW_IMAGE;
+        setState(() {});
+
         _tramaDatos.tipoMensaje = "IMAGE_CAMERA_1";
         _tramaDatos.imagen = imageBase64_1;
         _publishMessage(masterMqtt, _tramaDatos);
 
-        _widgetState = WidgetState.VIEW_IMAGE;
-        setState(() {});
+
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+
     switch (_widgetState) {
-      case WidgetState.LOADING:
-        return Scaffold(
-          body: Center(child: circularProgressMain(),),
-        );
 
       case WidgetState.LOADED:
         return _previewCamera(context);
@@ -409,12 +585,11 @@ class _TakePhotoState extends State<TakePhoto> {
 
   Widget _previewCamera(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
-      return Center(child: circularProgressMain());
+      return Center(child: circularProgress(Colors.white));
     }
-
     final size = MediaQuery.of(context).size;
-
-    sendState(true);
+    //sendStateConnection(true);
+    double? marginRight = 20;
 
     return Scaffold(
       body: Stack(children: [
@@ -451,37 +626,98 @@ class _TakePhotoState extends State<TakePhoto> {
           ),
         ),
         Positioned(
-          top: 30,
-          right: 20,
-          child: _ready ? Icon(
-            MdiIcons.lanConnect,
-            color: Colors.white,
-            size: 46.0,
-          ): Icon(
-            MdiIcons.lanDisconnect,
-            color: Colors.red,
-            size: 46.0,
-          ),
+          top: 40,
+          right: marginRight,
+          child: Icon(
+            _cameraRemoteReady ? MdiIcons.accountCheck : MdiIcons.accountOff,
+            color: _cameraRemoteReady ? Colors.white : Colors.red ,
+            size: 36.0,
+          )
         ),
-
-        _shoot? Center(
+        Positioned(
+          top: 40,
+          right: marginRight + 40,
+          child: Icon(
+            _connRemoteReady? MdiIcons.lanConnect:MdiIcons.lanDisconnect ,
+            color: _connRemoteReady ? Colors.white : Colors.red ,
+            size: 36.0,
+          )
+        ),
+        _showCounter? Center(
           child: Text(
             '$_contador',
             style: TextStyle(
-              fontSize: 140, // Ajusta el tamaño del texto según tus necesidades
+              fontSize: 140,
               fontWeight: FontWeight.bold,
-              color: Colors.white, // Cambia el color del texto si es necesario
+              color: Colors.white,
             ),
           ),
         ): SizedBox.shrink(),
+        Positioned(
+          bottom: 115,
+          right: marginRight + 110,
+          child: Text(_countDown.toString(),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.normal,
+              color: Colors.white,
+            ),),
+        ),
+        Positioned(
+          bottom: 100,
+          right: marginRight + 70,
+          child: _showTimer(context),
+        ),
+        Positioned(
+            bottom: 107,
+            right: marginRight,
+            child: IconButton(
+                onPressed: () {
+                  _cameraLocalReady = ! _cameraLocalReady;
+                  setState(() {});
+                  if(_cameraLocalReady) showMsgCamera("  CAMARA ACTIVADA !!  ");
+                  else showMsgCamera("CAMARA DESACTIVADA !!");
 
+                  sendCameraReady( _cameraLocalReady);
+                },
+                icon: Icon(
+                  _cameraLocalReady ? MdiIcons.camera : MdiIcons.cameraOff,
+                  color: Colors.white,
+                  size: 36.0,
+                )
+            )
+        ),
+        if(isLoading)
+          Stack( // Usamos otro Stack para superponer el loader sobre ModalBarrier
+            children: [
+              ModalBarrier( // Bloquear la interacción
+                color: Colors.black.withValues(alpha: 0.5),
+                dismissible: false,
+              ),
+              Center(
+                child: CircularProgressIndicator(),
+              ),
+            ],
+          ),
       ]),
+
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-          if(!_ready){
-            showMsg("  SIN CONEXIÓN  ");
+          if(!_connRemoteReady){
+            showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
+
+          if(!_cameraLocalReady){
+            showMsgCamera("  CAMARA LOCAL NO ESTA ACTIVADA!!  ");
+            return;
+          }
+
+          if(!_cameraRemoteReady){
+            showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
+            return;
+          }
+
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
         }),
@@ -529,7 +765,6 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          // Imágenes Base64
           (imageState == ImageState.WAITING)
               ? SizedBox(
                   height: 500,
@@ -565,8 +800,17 @@ class _TakePhotoState extends State<TakePhoto> {
                     backgroundColor: AppColor.redColor,
                     padding: EdgeInsets.all(10.0),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
+                    final result = await showConfirmAccept(context);
+
+                    if (!result){
+                      return;
+                    }
+
+                    sendFinishPhoto(false);
+                    showError("Fotos Descartada");
                     Navigator.pop(context);
+
                   },
                   child: Text(
                     'Cancelar',
@@ -593,8 +837,11 @@ class _TakePhotoState extends State<TakePhoto> {
                       showError('Debe seleccionar un Comentario');
                       return;
                     }
-                    _savePuntoPrueba(context, 2);
+                    _saveResult(context, 2);
+                    sendFinishPhoto(true);
+                    showMsg("Fotos Aceptadas");
                     Navigator.pop(context);
+
                   },
                   child: Text(
                     'Aceptar',
@@ -659,9 +906,55 @@ class _TakePhotoState extends State<TakePhoto> {
     );
   }
 
+  Widget _showTimer(BuildContext context){
+    return Column(
+      children: <Widget>[
+        PopupMenuButton<String>(
+          onSelected: (String opcion) {
+            setState(() {
+              _countDown = int.parse(opcion);
+              sendCountDown(_countDown);
+              setState(() {});
+            });
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: '3',
+              child: Center(child: Text('3')),
+            ),
+            const PopupMenuItem<String>(
+              value: '0',
+              child: Center(
+                child: Text('0',
+                ),
+              ),
+            ),
+          ],
+          offset: Offset(0, -120), // Ajusta el desplazamiento vertical
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          constraints: BoxConstraints(
+            minWidth: 40, // Usa el ancho del botón
+            maxWidth: 40,
+          ),
+          child:  Icon(
+            MdiIcons.cameraTimer,
+            color: Colors.white,
+            size: 36.0,
+          ),
+        ),
+
+        SizedBox(height: 16),
+        //Text('Opción seleccionada: $opcionSeleccionada'),
+      ],
+    );
+  }
+
   @override
   void dispose() {
-    sendState(false);
+    _timerConnection?.cancel();
+    sendStateConnection(false, false);
     _controller?.dispose();
     super.dispose();
   }
