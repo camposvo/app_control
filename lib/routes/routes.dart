@@ -12,6 +12,7 @@ import 'package:control/pages/variable.dart';
 import 'package:flutter/material.dart';
 
 import '../pages/showRevision.dart';
+import '../pages/takePhotoSystem.dart';
 import '../pages/viewPhoto.dart';
 
 
@@ -30,6 +31,8 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'sendData': (BuildContext context) => SendData(),
     'viewPhoto': (BuildContext context) => ViewPhoto(),
     'settingData': (BuildContext context) => SettingData(),
+    'takePhotoSystem': (BuildContext context) => TakePhotoSystem(),
+
 
   };
 }

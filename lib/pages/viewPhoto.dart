@@ -237,7 +237,6 @@ class _ViewPhotoState extends State<ViewPhoto> {
         body: body);
   }
 
-
   Widget _viewImage(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     return SingleChildScrollView(
@@ -259,6 +258,8 @@ class _ViewPhotoState extends State<ViewPhoto> {
           SizedBox(
             height: 20,
           ),
+
+          if (info.moduleSelected == ModuleSelect.NO_SYSTEM)
           Text(
             'Foto #2',
             textAlign: TextAlign.center, // Centra el texto
@@ -267,8 +268,10 @@ class _ViewPhotoState extends State<ViewPhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          // Imágenes Base64
+
+          if (info.moduleSelected == ModuleSelect.NO_SYSTEM)
           _viewImageByType(imagePhoto2, typeImage_2),
+
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -362,6 +365,7 @@ class _ViewPhotoState extends State<ViewPhoto> {
   }
 
   Widget _viewImageUrl(String  urlImage){
+    Util.printInfo("URL IMAGE: ", urlImage);
     return InteractiveViewer(
       minScale: 0.5,
       maxScale: 3.0,
@@ -382,13 +386,11 @@ class _ViewPhotoState extends State<ViewPhoto> {
           );
         },
         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-          return Text('No se pudo cargar la imagen.');
+          return Text('No se pudo cargar la imagen, desde: '+urlImage);
         },
       ),
     );
   }
-
-
 
   Widget _commentList(BuildContext context) {
     return InputDecorator(

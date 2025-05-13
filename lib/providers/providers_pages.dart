@@ -6,6 +6,7 @@ import 'package:control/models/variable.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../helper/constant.dart';
 import '../models/orgaInstrumento.dart';
 
 class ProviderPages with ChangeNotifier {
@@ -22,8 +23,9 @@ class ProviderPages with ChangeNotifier {
 
   String _mainTopic = '';
   bool _connected = false;
-
   bool _pendingData = false;
+
+  ModuleSelect _moduleSelected = ModuleSelect.NOTHING;
 
   // INITIAL DATA
   ProviderPages() {
@@ -31,6 +33,7 @@ class ProviderPages with ChangeNotifier {
     getPendingDataFromHive();
     getMainTopicFromHive();
     getConnectFromHive();
+    getModuleSelectedFromHive();
 
     final orga = getOrganizationFromHive();
     if (orga != null) {
@@ -53,6 +56,13 @@ class ProviderPages with ChangeNotifier {
   set pendingData(bool value) {
     _pendingData = value;
     _box.put('pendingdata', value);
+    notifyListeners();
+  }
+
+  ModuleSelect get moduleSelected => _moduleSelected;
+  set moduleSelected(ModuleSelect value) {
+    _moduleSelected = value;
+    _box.put('moduleSelected', value);
     notifyListeners();
   }
 
@@ -125,6 +135,10 @@ class ProviderPages with ChangeNotifier {
 
   void getPendingDataFromHive() {
     _pendingData = _box.get('pendingdata', defaultValue: false);
+  }
+
+  void getModuleSelectedFromHive() {
+    _moduleSelected = _box.get('moduleSelected', defaultValue: ModuleSelect.NOTHING);
   }
 
   void getMainTopicFromHive() {

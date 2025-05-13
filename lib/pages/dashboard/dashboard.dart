@@ -55,18 +55,21 @@ class _DashboardPageState extends State<DashboardPage> {
       return AppColor.secondaryColor;
     }
 
-    if( index == 2 && existOrganization(context) && isConnected(context))  //Cargar datos Sin sistema
+    if( index == 2 && existOrganization(context) && isConnected(context))  //Sin sistema
         return AppColor.secondaryColor;
 
+    if( index == 3 && existOrganization(context))  //Sin sistema
+      return AppColor.secondaryColor;
 
-    if( index == 3){ // Enviar Datos
+
+    if( index == 4){ // Enviar Datos
       if(dataPending(context)){
         return AppColor.GreenReady;
       }
 
     }
 
-    if( index == 4){ // Conectar Dispositivo
+    if( index == 5){ // Conectar Dispositivo
       return AppColor.secondaryColor;
     }
 
@@ -125,6 +128,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _gridAdmin(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
     return new Container(
       height: MediaQuery.of(context).size.height,
       child: new GridView.count(
@@ -156,6 +161,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   case 2:
                     if (!existOrganization(context)) break;
                     if (!isConnected(context)) break;
+                    info.moduleSelected = ModuleSelect.NO_SYSTEM;
 
                     Navigator.pushNamed(context, 'instrument')
                         .then((_)  {
@@ -163,7 +169,18 @@ class _DashboardPageState extends State<DashboardPage> {
                     });
 
                     break;
+
                   case 3:
+                    if (!existOrganization(context)) break;
+
+                    info.moduleSelected = ModuleSelect.WITH_SYSTEM;
+                    Navigator.pushNamed(context, 'instrument')
+                        .then((_)  {
+                      setState(() {});
+                    });
+
+                    break;
+                  case 4:
                     if (!dataPending(context)) break;
 
                     Navigator.pushNamed(context, 'sendData')
@@ -173,7 +190,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
                     break;
 
-                  case 4:
+                  case 5:
                     Navigator.pushNamed(context, 'settingData')
                         .then((_)  {
                       setState(() {});

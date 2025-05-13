@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 
+enum ModuleSelect { NOTHING, NO_SYSTEM, WITH_SYSTEM }
+
 class AppDashb {
 
   static List listAdmin = [
@@ -30,6 +32,17 @@ class AppDashb {
       "title": "Sin Sistema",
       "icon":  Icon(
         MdiIcons.meterElectricOutline,
+        color: Colors.white,
+        size: 40,
+      ),
+      "isSelect": false,
+      "isEnabled": false,
+    },
+
+    {
+      "title": "Con Sistema",
+      "icon":  Icon(
+        MdiIcons.castConnected,
         color: Colors.white,
         size: 40,
       ),
@@ -94,19 +107,6 @@ class AppConst {
   static var borderRadiusBtn = 20.0;
 }
 
-class AppString {
-}
-
-class AppTitle {
-
-}
-
-class TextFontHeight {
-}
-
-class AppKeys {
-
-}
 
 class AppImage {
   static var appLogo = "assets/login/logo.png";

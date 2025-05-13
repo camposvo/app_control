@@ -76,6 +76,7 @@ class _ShowRevisionState extends State<ShowRevision> {
     _filterList = [...orgaInstrument.orgaRevisiones];
 
     return true;
+    
   }
 
   @override

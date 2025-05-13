@@ -80,7 +80,7 @@ class _InstrumentState extends State<Instrument> {
 
   _onSearch(String search) {
     _filterList = _instruments.where((item) {
-      return item.instNombre.toLowerCase().contains(search);
+      return item.instNombre.toLowerCase().contains(search) || item.instEspaAreaNombre.toLowerCase().contains(search) ;
     }).toList();
 
     setState(() {});
@@ -120,7 +120,7 @@ class _InstrumentState extends State<Instrument> {
           Container(
             color: AppColor.secondaryColor,
             padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
-            child: Row(
+            child:  Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 setCommonText("Listos: "+_listos.toString(), Colors.white, 16.0, FontWeight.w800, 20),
@@ -174,6 +174,8 @@ class _InstrumentState extends State<Instrument> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final nombre = _filterList[index].instNombre;
+
+
     Color bgColor = Colors.grey;
     Color fontColor = Colors.white;
 
@@ -214,7 +216,16 @@ class _InstrumentState extends State<Instrument> {
                   SizedBox(
                     width: 10,
                   ),
+
                   setCommonText(nombre, fontColor, 16.0, FontWeight.w500, 20),
+                  setCommonText(_filterList[index].instEspaAreaNombre, fontColor, 16.0, FontWeight.w500, 20),
+                  Row(
+                    children: [
+                      setCommonText( _filterList[index].instUbicAreaNombre + " " , fontColor, 16.0, FontWeight.w500, 20),
+                      setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
+                    ],
+                  ),
+
                   setCommonText(variables.length.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                 ],

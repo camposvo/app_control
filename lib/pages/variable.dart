@@ -92,10 +92,11 @@ class _VariableState extends State<Variable> {
     _filterList =  [...instrument.instVariables];
 
 
+    _onChangeBoton();
     // Por defecto se muestra solo las Energias
-    _filterList = variables.where((item) {
+   /* _filterList = variables.where((item) {
       return item.variNombre.toLowerCase().contains("energia");
-    }).toList();
+    }).toList();*/
 
     //Cantidad de Variables Listos
     _listos = variables.where((elemento) {
@@ -237,7 +238,7 @@ class _VariableState extends State<Variable> {
     );
   }
 
-  _onChangeBoton() {
+  void _onChangeBoton() {
     switch(_indiceSeleccionado) {
       case 0:
         _filterList = variables.where((item) {
@@ -437,7 +438,6 @@ class _VariableState extends State<Variable> {
       }
     }
 
-
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
@@ -491,9 +491,19 @@ class _VariableState extends State<Variable> {
                         info.varId = _filterList[index].variId;
                       });
 
-                      Navigator.pushNamed(context, 'takePhoto').then((_) async {
-                        await _loadData();
-                      });
+                      if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
+                        Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
+                          await _loadData();
+                        });
+                      }
+
+                      if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
+                        Navigator.pushNamed(context, 'takePhoto').then((_) async {
+                          await _loadData();
+                        });
+                      }
+
+
                     },
                     icon: Icon(
                       Icons.camera_alt,
@@ -509,6 +519,8 @@ class _VariableState extends State<Variable> {
         ),
       ),
     );
+
+
   }
 
   Widget  _commentList(BuildContext context){
