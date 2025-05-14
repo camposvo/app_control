@@ -299,81 +299,7 @@ class _VariableState extends State<Variable> {
           SizedBox(
             height: 10,
           ),
-          Container(
-            color: AppColor.secondaryColor,
-            padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
-            child: Column(
-              children: [
-               _commentList(context),
-                SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-
-                    SizedBox(
-                      width: 150,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape:  RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                          ),
-                          backgroundColor: AppColor.redColor,
-                          padding: EdgeInsets.all(10.0),
-                        ),
-                        onPressed: () async {
-
-                        },
-                        child: Text('Cancelar',  style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),),
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 150,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape:  RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                          ),
-                          backgroundColor: AppColor.themeColor,
-                          padding: EdgeInsets.all(10.0),
-                        ),
-                        onPressed: () async {
-
-                          if(dropdownValue == null) {
-                            await showError('Debe seleccionar un Comentario');
-                            return;
-                          }
-
-                          _savePuntoPrueba(context, 2);
-                          info.pendingData = true;
-                          setState(() {});
-                          await showMsg('Medidor Finalizado');
-                          await Future.delayed(Duration(seconds: 2));
-                          Navigator.pop(context);
-
-                        },
-                        child: Text('Finalizar Medidor',  style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    setCommonText("Listos: "+_listos.toString(), Colors.white, 16.0, FontWeight.w800, 20),
-                    setCommonText("Total: "+_total.toString(), Colors.white, 16.0, FontWeight.w800, 20),
-                  ],
-                ),
-              ],
-            ),
-          )
+          _finishInstrument(context),
         ],
       ),
     );
@@ -461,29 +387,11 @@ class _VariableState extends State<Variable> {
                     setCommonText(nombre, fontColor, 16.0, FontWeight.w800, 20),
                     setCommonText(abbreviation, fontColor, 16.0, FontWeight.w800, 20),
 
-
                   ],
                 ),
               ),
               Row(
                 children: [
-                  testLoaded? IconButton(
-                    onPressed: () async {
-                      setState(() {
-                        info.puntId = _filterList[index].puntId;
-                        info.varId = _filterList[index].variId;
-                      });
-                      Navigator.pushNamed(context, 'viewPhoto').then((_) async {
-                        Util.printInfo("Load data", "msg");
-                        await _loadData();
-                      });
-                    },
-                    icon: Icon(
-                      Icons.search,
-                      color: fontColor,
-                      size: 24.0,
-                    ),
-                  ): SizedBox.shrink(),
                   IconButton(
                     onPressed: () async {
                       setState(() {
@@ -491,22 +399,14 @@ class _VariableState extends State<Variable> {
                         info.varId = _filterList[index].variId;
                       });
 
-                      if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
-                          await _loadData();
-                        });
-                      }
-
-                      if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhoto').then((_) async {
-                          await _loadData();
-                        });
-                      }
+                      Navigator.pushNamed(context, 'showTesting').then((_) async {
+                        await _loadData();
+                      });
 
 
                     },
                     icon: Icon(
-                      Icons.camera_alt,
+                      Icons.list,
                       color: fontColor,
                       size: 24.0,
                     ),
@@ -520,7 +420,85 @@ class _VariableState extends State<Variable> {
       ),
     );
 
+  }
 
+  Widget _finishInstrument(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return  Container(
+      color: AppColor.secondaryColor,
+      padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
+      child: Column(
+        children: [
+          _commentList(context),
+          SizedBox(height: 10,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+
+              SizedBox(
+                width: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape:  RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                    ),
+                    backgroundColor: AppColor.redColor,
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  onPressed: () async {
+
+                  },
+                  child: Text('Cancelar',  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),),
+                ),
+              ),
+
+              SizedBox(
+                width: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape:  RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
+                    ),
+                    backgroundColor: AppColor.themeColor,
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  onPressed: () async {
+
+                    if(dropdownValue == null) {
+                      await showError('Debe seleccionar un Comentario');
+                      return;
+                    }
+
+                    _savePuntoPrueba(context, 2);
+                    info.pendingData = true;
+                    setState(() {});
+                    await showMsg('Medidor Finalizado');
+                    await Future.delayed(Duration(seconds: 2));
+                    Navigator.pop(context);
+
+                  },
+                  child: Text('Finalizar Medidor',  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              setCommonText("Listos: "+_listos.toString(), Colors.white, 16.0, FontWeight.w800, 20),
+              setCommonText("Total: "+_total.toString(), Colors.white, 16.0, FontWeight.w800, 20),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget  _commentList(BuildContext context){

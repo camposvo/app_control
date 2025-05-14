@@ -83,6 +83,8 @@ class _Clients {
 
   Future<String?> getOrganInstruments(String orgaId) async {
 
+    Util.printInfo("ID Orga", orgaId);
+
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient _client = graphQLConfiguration.clientToQuery();
@@ -168,8 +170,6 @@ class _Clients {
 
     final test = data.toJson();
 
-    Util.printInfo("test Comment", jsonEncode(test));
-    Util.printInfo("orgaId ", orgaId);
 
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();

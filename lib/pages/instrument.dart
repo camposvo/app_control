@@ -22,6 +22,9 @@ class _InstrumentState extends State<Instrument> {
   List<OrgaInstrumentoElement> _filterList = [];
   late OrgaInstrumento orgaInstrument;
 
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
+
   int _listos = 0;
   int _total= 0;
 
@@ -173,12 +176,9 @@ class _InstrumentState extends State<Instrument> {
 
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    final nombre = _filterList[index].instNombre;
-
-
+    final instrumentName = _filterList[index].instNombre;
     Color bgColor = Colors.grey;
     Color fontColor = Colors.white;
-
 
     final variables =  [..._filterList[index].instVariables];
 
@@ -196,8 +196,6 @@ class _InstrumentState extends State<Instrument> {
       }
     }
 
-
-
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
@@ -209,32 +207,90 @@ class _InstrumentState extends State<Instrument> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(
-                    width: 10,
+              SizedBox(
+                width: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 10,
+                    ),
+                    setCommonText(instrumentName, fontColor, 16.0, FontWeight.w500, 20),
+                    //setCommonText(_filterList[index].instEspaAreaNombre, fontColor, 16.0, FontWeight.w500, 20),
+                    Row(
+                      children: [
+                        setCommonText( _filterList[index].instUbicAreaNombre + " " , fontColor, 16.0, FontWeight.w500, 20),
+                        setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
+                      ],
+                    ),
+                    setCommonText("Corriente Nominal: ", fontColor, 16.0, FontWeight.w800, 20),
+
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      _showEdit(context, instrumentName);
+                    },
+                    icon: Icon(
+                      Icons.edit,
+                      color: AppColor.redColor,
+                      size: 24.0,
+                    ),
                   ),
-
-                  setCommonText(nombre, fontColor, 16.0, FontWeight.w500, 20),
-                  setCommonText(_filterList[index].instEspaAreaNombre, fontColor, 16.0, FontWeight.w500, 20),
-                  Row(
-                    children: [
-                      setCommonText( _filterList[index].instUbicAreaNombre + " " , fontColor, 16.0, FontWeight.w500, 20),
-                      setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
-                    ],
-                  ),
-
-                  setCommonText(variables.length.toString(), fontColor, 16.0, FontWeight.w800, 20),
-
                 ],
               ),
-
             ],
           ),
         ),
       ),
     );
   }
+
+  void _showEdit(BuildContext context, String instrumentName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(instrumentName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: _controller1,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
+                decoration: InputDecoration(labelText: 'Corriente Nominal'),
+              ),
+
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Aceptar'),
+              onPressed: () {
+                // Aquí puedes procesar los datos de _controller1.text y _controller2.text
+                print('Primer dato: ${_controller1.text}');
+                print('Segundo dato: ${_controller2.text}');
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
 }

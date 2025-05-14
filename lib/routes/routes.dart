@@ -5,6 +5,7 @@ import 'package:control/pages/sendData.dart';
 import 'package:control/pages/settingData.dart';
 import 'package:control/pages/showOrganization.dart';
 import 'package:control/pages/selectMode.dart';
+import 'package:control/pages/showTesting.dart';
 import 'package:control/pages/takePhoto.dart';
 
 import 'package:control/pages/mainMenu.dart';
@@ -32,6 +33,7 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'viewPhoto': (BuildContext context) => ViewPhoto(),
     'settingData': (BuildContext context) => SettingData(),
     'takePhotoSystem': (BuildContext context) => TakePhotoSystem(),
+    'showTesting': (BuildContext context) => ShowTesting(),
 
 
   };

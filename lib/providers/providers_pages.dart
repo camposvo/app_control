@@ -8,11 +8,13 @@ import 'package:hive/hive.dart';
 
 import '../helper/constant.dart';
 import '../models/orgaInstrumento.dart';
+import '../models/resultRevision.dart';
 
 class ProviderPages with ChangeNotifier {
   final _box = Hive.box('boxname'); // Accede al contenedor
 
   List<OrgaInstrumento> _mainData = [];
+  ResultRevision? _resultData;
   Organization? _organization;
   bool _isOrganization = false;
   OrgaRevisione? _revision;
@@ -34,6 +36,7 @@ class ProviderPages with ChangeNotifier {
     getMainTopicFromHive();
     getConnectFromHive();
     getModuleSelectedFromHive();
+    getResultDataFromHive();
 
     final orga = getOrganizationFromHive();
     if (orga != null) {
@@ -93,6 +96,14 @@ class ProviderPages with ChangeNotifier {
   void mainDataUpdate(List<OrgaInstrumento> value) {
     final jsonString = orgaInstrumentoToJson(value);
     _box.put('maindata', jsonString);
+    notifyListeners();
+  }
+
+
+  ResultRevision? get resultData => _resultData;
+  void resultDataUpdate(ResultRevision value) {
+    final jsonString = resultRevisionToJson(value);
+    _box.put('_resultData', jsonString);
     notifyListeners();
   }
 
@@ -185,6 +196,20 @@ class ProviderPages with ChangeNotifier {
     }
     try {
       return orgaInstrumentoFromJson(jsonString);
+    } catch (e) {
+      print('Error al decodificar JSON: $e');
+      return null; // Retorna null si hay un error al decodificar
+    }
+  }
+
+  ResultRevision? getResultDataFromHive() {
+    final jsonString = _box.get('resultData');
+    if (jsonString == null) {
+      return null; // Retorna null si no hay datos guardados
+    }
+    try {
+      final decodedJson = jsonDecode(jsonString);
+      return ResultRevision.fromJson(decodedJson);
     } catch (e) {
       print('Error al decodificar JSON: $e');
       return null; // Retorna null si hay un error al decodificar

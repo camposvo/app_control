@@ -4,6 +4,7 @@ import 'package:control/models/tramaDatos.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +36,9 @@ class _ViewPhotoState extends State<ViewPhoto> {
     'La prueba esta correcta',
     'La prueba esta incorrecta'
   ];
+
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
 
 
   String? dropdownValue;
@@ -256,8 +260,10 @@ class _ViewPhotoState extends State<ViewPhoto> {
           ),
           _viewImageByType(imagePhoto1, typeImage_1),
           SizedBox(
-            height: 20,
+            height: 16,
           ),
+
+
 
           if (info.moduleSelected == ModuleSelect.NO_SYSTEM)
           Text(

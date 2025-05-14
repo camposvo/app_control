@@ -5,6 +5,7 @@ import 'package:control/models/tramaDatos.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -34,6 +35,9 @@ class _TakePhotoState extends State<TakePhoto> {
 
   bool isLoading = true;
   bool isFinish = false;
+
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
 
   Timer? _timerConnection;
 
@@ -703,7 +707,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-          if(!_connRemoteReady){
+         /* if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -716,7 +720,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }
+          }*/
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
@@ -757,6 +761,20 @@ class _TakePhotoState extends State<TakePhoto> {
           SizedBox(
             height: 20,
           ),
+          SizedBox(
+            width: 200,
+            child: TextField(
+              controller: _controller1,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              ],
+              decoration: InputDecoration(labelText: 'Valor Foto #1'),
+            ),
+          ),
+          SizedBox(
+            height: 20,
+          ),
           Text(
             'Foto #2',
             textAlign: TextAlign.center, // Centra el texto
@@ -772,15 +790,30 @@ class _TakePhotoState extends State<TakePhoto> {
                     child: circularProgressMain(),
                   ),
                 )
-              : InteractiveViewer(
-                  minScale: 0.5, // Define el zoom mínimo (opcional)
-                  maxScale: 3.0, // Define el zoom máximo (opcional)
-                  child: Image.memory(
-                    base64Decode(imageBase64_2),
-                    height: 500,
-                    fit: BoxFit.contain, // Importante: Usa BoxFit.contain
+              : Column(
+                children: [
+                  InteractiveViewer(
+                      minScale: 0.5, // Define el zoom mínimo (opcional)
+                      maxScale: 3.0, // Define el zoom máximo (opcional)
+                      child: Image.memory(
+                        base64Decode(imageBase64_2),
+                        height: 500,
+                        fit: BoxFit.contain, // Importante: Usa BoxFit.contain
+                      ),
+                    ),
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: _controller2,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                      ],
+                      decoration: InputDecoration(labelText: 'Valor Foto #2'),
+                    ),
                   ),
-                ),
+                ],
+              ),
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
