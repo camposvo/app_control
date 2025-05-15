@@ -75,6 +75,8 @@ class _SendDataState extends State<SendData> {
                         .puntPrueba[l].prueReviId ==
                     info.revision?.reviId) {
                   Prueba prueba = new Prueba(
+                      prueValor1: 2.0,
+                      prueValor2: 2.9,
                       prueId: Util.generateUUID(),
                       prueComentario: info.mainData[i].orgaInstrumentos[j]
                           .instVariables[k].puntPrueba[l].prueDescripcion,
@@ -90,6 +92,7 @@ class _SendDataState extends State<SendData> {
                           .instVariables[k].puntPrueba[l].prueReviId,
                       reviNumero: info.mainData[i].orgaInstrumentos[j]
                           .instVariables[k].puntPrueba[l].reviNumero);
+
 
                   resultRevision.pruebas.add(prueba);
                 }

@@ -131,13 +131,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       return;
     }
 
-/*    _timeOut = Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      if(setTimeOut < 0){
-
-      }
-       setTimeOut ;
-    });*/
-
 
     isLoading = false;
     setState(() {});
@@ -186,6 +179,8 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       reviNumero: info.revision!.reviNumero,
       prueReviId: info.revision!.reviId,
       prueComentario: dropdownValue!,
+      prueValor1: null,
+      prueValor2: null,
     );
     info.resultData.pruebas.add(test);
     info.resultDataUpdate(info.resultData);
@@ -201,7 +196,12 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       prueReviId: info.revision!.reviId,
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
+      prueActivo: 1,
+      prueValor1: 2.0,
+      prueValor2: 2.0,
     );
+
+
     for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {

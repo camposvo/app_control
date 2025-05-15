@@ -4,28 +4,6 @@
 
 import 'dart:convert';
 
-
-/*{
-"orga_id": "XXXXX",
-"comentarios":[{
-"come_fecha": "2025-02-21T11:20:00"  ,
-"come_id":"",
-"come_revi_id":"" ,
-"come_inst_id":"" ,
-"come_descripcion":""
-}],
-"pruebas":[{
-"prue_id": "",
-"prue_fecha":"2025-02-21T11:20:00",
-"prue_revi_id":"",
-"revi_numero": "",
-"prue_punt_id": "",
-"prue_comentario":"",
-"prue_recurso_1":"",
-"prue_recurso_2":""
-}]
-}*/
-
 ResultRevision resultRevisionFromJson(String str) => ResultRevision.fromJson(json.decode(str));
 
 String resultRevisionToJson(ResultRevision data) => json.encode(data.toJson());
@@ -101,6 +79,8 @@ class Prueba {
   String prueComentario;
   String prueRecurso1;
   String prueRecurso2;
+  dynamic prueValor1;
+  dynamic prueValor2;
 
   Prueba({
     required this.prueId,
@@ -111,6 +91,8 @@ class Prueba {
     required this.prueComentario,
     required this.prueRecurso1,
     required this.prueRecurso2,
+    required this.prueValor1,
+    required this.prueValor2,
   });
 
   factory Prueba.fromJson(Map<String, dynamic> json) => Prueba(
@@ -122,6 +104,8 @@ class Prueba {
     prueComentario: json["prue_comentario"],
     prueRecurso1: json["prue_recurso_1"],
     prueRecurso2: json["prue_recurso_2"],
+    prueValor1: json["prue_valor_1"],
+    prueValor2: json["prue_valor_2"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -133,5 +117,11 @@ class Prueba {
     "prue_comentario": prueComentario,
     "prue_recurso_1": prueRecurso1,
     "prue_recurso_2": prueRecurso2,
+    "prue_valor_1": prueValor1,
+    "prue_valor_2": prueValor2,
   };
 }
+
+
+
+

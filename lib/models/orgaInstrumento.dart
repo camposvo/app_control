@@ -4,9 +4,6 @@
 
 import 'dart:convert';
 
-
-
-
 List<OrgaInstrumento> orgaInstrumentoFromJson(String str) => List<OrgaInstrumento>.from(json.decode(str).map((x) => OrgaInstrumento.fromJson(x)));
 
 String orgaInstrumentoToJson(List<OrgaInstrumento> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
@@ -53,6 +50,7 @@ class OrgaInstrumentoElement {
   String instNombre;
   int instNumero;
   List<InstVariable> instVariables;
+  double instProteccion;
   String instAbreviatura;
   List<InstComentario> instComentarios;
   String instClasificacion;
@@ -67,6 +65,7 @@ class OrgaInstrumentoElement {
     required this.instNombre,
     required this.instNumero,
     required this.instVariables,
+    required this.instProteccion,
     required this.instAbreviatura,
     required this.instComentarios,
     required this.instClasificacion,
@@ -82,6 +81,7 @@ class OrgaInstrumentoElement {
     instNombre: json["inst_nombre"],
     instNumero: json["inst_numero"],
     instVariables: List<InstVariable>.from(json["inst_variables"].map((x) => InstVariable.fromJson(x))),
+    instProteccion: json["inst_proteccion"]?.toDouble(),
     instAbreviatura: json["inst_abreviatura"],
     instComentarios: List<InstComentario>.from(json["inst_comentarios"].map((x) => InstComentario.fromJson(x))),
     instClasificacion: json["inst_clasificacion"],
@@ -97,6 +97,7 @@ class OrgaInstrumentoElement {
     "inst_nombre": instNombre,
     "inst_numero": instNumero,
     "inst_variables": List<dynamic>.from(instVariables.map((x) => x.toJson())),
+    "inst_proteccion": instProteccion,
     "inst_abreviatura": instAbreviatura,
     "inst_comentarios": List<dynamic>.from(instComentarios.map((x) => x.toJson())),
     "inst_clasificacion": instClasificacion,
@@ -200,9 +201,12 @@ class PuntPrueba {
   DateTime prueFecha;
   String prueFoto1;
   String prueFoto2;
+  int prueActivo;
   String reviNumero;
   int prueEnviado;
   String prueReviId;
+  dynamic prueValor1;
+  dynamic prueValor2;
   String reviEntiId;
   String prueDescripcion;
 
@@ -211,9 +215,12 @@ class PuntPrueba {
     required this.prueFecha,
     required this.prueFoto1,
     required this.prueFoto2,
+    required this.prueActivo,
     required this.reviNumero,
     required this.prueEnviado,
     required this.prueReviId,
+    required this.prueValor1,
+    required this.prueValor2,
     required this.reviEntiId,
     required this.prueDescripcion,
   });
@@ -223,9 +230,12 @@ class PuntPrueba {
     prueFecha: DateTime.parse(json["prue_fecha"]),
     prueFoto1: json["prue_foto1"],
     prueFoto2: json["prue_foto2"],
+    prueActivo: json["prue_activo"],
     reviNumero: json["revi_numero"],
     prueEnviado: json["prue_enviado"],
     prueReviId: json["prue_revi_id"],
+    prueValor1: json["prue_valor_1"],
+    prueValor2: json["prue_valor_2"],
     reviEntiId: json["revi_enti_id"],
     prueDescripcion: json["prue_descripcion"],
   );
@@ -235,9 +245,12 @@ class PuntPrueba {
     "prue_fecha": prueFecha.toIso8601String(),
     "prue_foto1": prueFoto1,
     "prue_foto2": prueFoto2,
+    "prue_activo": prueActivo,
     "revi_numero": reviNumero,
     "prue_enviado": prueEnviado,
     "prue_revi_id": prueReviId,
+    "prue_valor_1": prueValor1,
+    "prue_valor_2": prueValor2,
     "revi_enti_id": reviEntiId,
     "prue_descripcion": prueDescripcion,
   };

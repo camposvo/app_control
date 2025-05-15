@@ -197,6 +197,7 @@ class _InstrumentState extends State<Instrument> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final instrumentName = _filterList[index].instNombre;
+    final protection = _filterList[index].instProteccion;
     Color bgColor = Colors.grey;
     Color fontColor = Colors.white;
 
@@ -244,7 +245,7 @@ class _InstrumentState extends State<Instrument> {
                         setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
                       ],
                     ),
-                    setCommonText("Corriente Nominal: ", fontColor, 16.0, FontWeight.w800, 20),
+                    setCommonText("Protección: "+ protection.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                   ],
                 ),
@@ -253,10 +254,6 @@ class _InstrumentState extends State<Instrument> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      /*setState(() {
-                        _isSaving = true;
-                      });*/
-
                       await _showEdit(context, instrumentName);
                     },
                     icon: Icon(
@@ -362,15 +359,7 @@ class _InstrumentState extends State<Instrument> {
                   ),
                 ),
               ),
-              /*TextButton(
-                child: Text('Aceptar'),
-                onPressed: () {
-                  // Aquí puedes procesar los datos de _controller1.text y _controller2.text
-                  print('Primer dato: ${_controller1.text}');
-                  print('Segundo dato: ${_controller2.text}');
-                  Navigator.of(context).pop();
-                },
-              ),*/
+
             ],
           );
           },

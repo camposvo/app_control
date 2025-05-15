@@ -206,7 +206,7 @@ class _TakePhotoState extends State<TakePhoto> {
     bool found = false;
 
 
-    Prueba test = new Prueba(
+   /* Prueba test = new Prueba(
       prueId: Util.generateUUID(),
       pruePuntId: variable.puntId,
       prueFecha: DateTime.now(),
@@ -217,8 +217,7 @@ class _TakePhotoState extends State<TakePhoto> {
       prueComentario: dropdownValue!,
 
     );
-
-    info.resultData.pruebas.add(test);
+    info.resultData.pruebas.add(test);*/
 
     info.resultDataUpdate(info.resultData);
 
@@ -232,6 +231,9 @@ class _TakePhotoState extends State<TakePhoto> {
       prueReviId: info.revision!.reviId,
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
+      prueActivo: 1,
+      prueValor1: 2.0,
+      prueValor2: 2.0,
     );
 
     for (var i = 0; i < info.mainData.length; i++) {

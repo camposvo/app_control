@@ -143,6 +143,9 @@ class _ViewPhotoState extends State<ViewPhoto> {
       prueReviId: info.revision!.reviId,
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
+      prueActivo: 1,
+      prueValor1: 2.0,
+      prueValor2: 2.0,
     );
 
     for (var i = 0; i < info.mainData.length; i++) {
