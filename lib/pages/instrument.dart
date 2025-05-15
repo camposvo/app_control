@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/util.dart';
 import '../models/orgaInstrumento.dart';
 
 import '../providers/providers_pages.dart';
@@ -27,6 +28,8 @@ class _InstrumentState extends State<Instrument> {
 
   int _listos = 0;
   int _total= 0;
+
+  bool _isSaving = false;
 
   bool isLoading = true;
   String orgaId = '';
@@ -233,7 +236,7 @@ class _InstrumentState extends State<Instrument> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      _showEdit(context, instrumentName);
+                      await _showEdit(context, instrumentName);
                     },
                     icon: Icon(
                       Icons.edit,
@@ -250,8 +253,8 @@ class _InstrumentState extends State<Instrument> {
     );
   }
 
-  void _showEdit(BuildContext context, String instrumentName) {
-    showDialog(
+  Future<void>  _showEdit(BuildContext context, String instrumentName) async {
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -271,13 +274,71 @@ class _InstrumentState extends State<Instrument> {
             ],
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('Cancelar'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                backgroundColor: AppColor.themeColor,
+                padding: EdgeInsets.all(10.0),
+              ),
+              onPressed: _isSaving
+                  ? null // Deshabilita el botón si _isLoading es true
+                  : () async {
+                setState(() {
+                  _isSaving = true; // Activa el estado de carga
+                });
+
+                Util.printInfo('Guardando...', _isSaving.toString());
+                await Future.delayed(const Duration(seconds: 4));
+
+                // Aquí iría tu lógica para guardar los datos
+
+                Navigator.of(context).pop(); // Ejemplo: cerrar el modal
+
+                setState(() {
+                  _isSaving = false; // Desactiva el estado de carga
+                });
+                Util.printInfo('Guardando...', _isSaving.toString());
+              },
+              child: _isSaving
+                  ? const SizedBox( // Muestra un CircularProgressIndicator si _isLoading es true
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 2,
+                ),
+              )
+                  : const Text( // Muestra el texto "Guardar" si _isLoading es false
+                'Guardar',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                backgroundColor: AppColor.redColor,
+                padding: EdgeInsets.all(10.0),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  // Puedes ajustar el estilo del texto para que coincida con tu diseño
+                  color: Colors.white,
+                  // fontSize: 16,
+                ),
+              ),
             ),
-            TextButton(
+            /*TextButton(
               child: Text('Aceptar'),
               onPressed: () {
                 // Aquí puedes procesar los datos de _controller1.text y _controller2.text
@@ -285,7 +346,7 @@ class _InstrumentState extends State<Instrument> {
                 print('Segundo dato: ${_controller2.text}');
                 Navigator.of(context).pop();
               },
-            ),
+            ),*/
           ],
         );
       },

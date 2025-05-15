@@ -112,8 +112,8 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
     //masterMqtt = "A55/M45";
 
-    Util.printInfo("VARIABLE", jsonEncode(variable));
-    Util.printInfo("TOPIC", masterMqtt);
+/*    Util.printInfo("VARIABLE", jsonEncode(variable));
+    Util.printInfo("TOPIC", masterMqtt);*/
 
     // Initialize Camera
     final resultCamera = await _initCamera();
@@ -174,7 +174,9 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
   void _saveResult(BuildContext context, int value) {
     final info = Provider.of<ProviderPages>(context, listen: false);
+    bool found = false;
 
+    //Guarda los datos en la variable para Enviarlos
     Prueba test = Prueba(
       prueId: Util.generateUUID(),
       pruePuntId: variable.puntId,
@@ -185,12 +187,11 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       prueReviId: info.revision!.reviId,
       prueComentario: dropdownValue!,
     );
-
     info.resultData.pruebas.add(test);
-
     info.resultDataUpdate(info.resultData);
 
-  /*  PuntPrueba puntPrueba = new PuntPrueba(
+    //Guarda los datos en la estructura de datos principal
+    PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
@@ -201,7 +202,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
     );
-
     for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
@@ -258,7 +258,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
           }
         }
       }
-    }*/
+    }
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
@@ -275,8 +275,8 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
   void _subscribeMaster() {
     mqttManager.subscribe(masterMqtt, (message) {
-      Util.printInfo("MENSAJE", message);
-      Util.printInfo("VARIABLE", variable.variAbreviatura);
+/*      Util.printInfo("MENSAJE", message);
+      Util.printInfo("VARIABLE", variable.variAbreviatura);*/
 
       final index = variable.variAbreviatura;
 
@@ -312,7 +312,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
     });
   }
-
 
   void preTimeTakePhoto(){
     _takePicture();
@@ -502,7 +501,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
           SizedBox(
             height: 20,
           ),
-
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -625,7 +623,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       ),
     );
   }
-
 
   @override
   void dispose() {

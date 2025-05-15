@@ -173,47 +173,7 @@ class _ShowTestingState extends State<ShowTesting> {
           SizedBox(
             height: 8,
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SizedBox(
-                  width: 100,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                        BorderRadius.circular(10.0), // Radio de 10.0
-                      ),
-                      backgroundColor: AppColor.themeColor,
-                      padding: EdgeInsets.all(10.0),
-                    ),
-                    onPressed: () {
-                      if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
-                          await _loadData();
-                        });
-                      }
-                      if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhoto').then((_) async {
-                          await _loadData();
-                        });
-                      }
-                    },
-                    child: Text(
-                      'Nuevo',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
-          ),
+          _btnNewTest(context),
           SizedBox(
             height: 8,
           ),
@@ -355,6 +315,52 @@ class _ShowTestingState extends State<ShowTesting> {
 
   }
 
+  Widget _btnNewTest(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          SizedBox(
+            width: 100,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                backgroundColor: AppColor.themeColor,
+                padding: EdgeInsets.all(10.0),
+              ),
+              onPressed: () {
+                if (info.moduleSelected == ModuleSelect.WITH_SYSTEM) {
+                  Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
+                    await _loadData();
+                  });
+                }
+                if (info.moduleSelected == ModuleSelect.NO_SYSTEM) {
+                  Navigator.pushNamed(context, 'takePhoto').then((_) async {
+                    await _loadData();
+                  });
+                }
+              },
+              icon: Icon(
+                Icons.camera_alt, // Usa el icono de cámara que prefieras
+                color: Colors.white, // Ajusta el color del icono si es necesario
+              ),
+              label: Text(
+                'Nuevo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            )
+          ),
 
+        ],
+      ),
+    );
+  }
 
 } 

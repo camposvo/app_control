@@ -44,19 +44,17 @@ class _TakePhotoState extends State<TakePhoto> {
 
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
-
   Timer? _timerConnection;
 
   late OrgaInstrumentoElement instrument;
   late OrgaInstrumento orgaInstrument;
   late InstVariable variable;
-
   static const List<String> commentPunto = [
     'La prueba esta correcta',
     'La prueba esta incorrecta'
   ];
 
-   late List<CameraDescription> _cameras;
+  late List<CameraDescription> _cameras;
   CameraController? _controller;
 
   WidgetState _widgetState = WidgetState.LOADED;
@@ -91,11 +89,9 @@ class _TakePhotoState extends State<TakePhoto> {
   int _contador = 0;
   int _countDown = 0;
   bool _showCounter = false;
-
   bool _cameraLocalReady = false;
   bool _cameraRemoteReady = false;
   bool _connRemoteReady = false;
-
   String errorMqtt = '';
 
   //topic for General Message Interchange
@@ -226,7 +222,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
     info.resultDataUpdate(info.resultData);
 
- /*   PuntPrueba puntPrueba = new PuntPrueba(
+    PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
@@ -294,7 +290,7 @@ class _TakePhotoState extends State<TakePhoto> {
           }
         }
       }
-    }*/
+    }
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
@@ -729,7 +725,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-          if(!_connRemoteReady){
+     /*     if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -742,7 +738,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }
+          }*/
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
@@ -836,6 +832,7 @@ class _TakePhotoState extends State<TakePhoto> {
                   ),
                 ],
               ),
+          _showCalculate(context),
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -914,6 +911,26 @@ class _TakePhotoState extends State<TakePhoto> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _showCalculate(BuildContext context ){
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Calculo: ',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        Text(" #####.###",  style: const TextStyle(
+          fontWeight: FontWeight.normal,
+          fontSize: 18,
+        ),),
+      ],
     );
   }
 
