@@ -13,6 +13,8 @@ import '../models/orgaInstrumento.dart';
 
 import '../providers/providers_pages.dart';
 
+enum WidgetState { LIST, EDIT }
+
 class Instrument extends StatefulWidget {
   @override
   _InstrumentState createState() => _InstrumentState();
@@ -22,6 +24,8 @@ class _InstrumentState extends State<Instrument> {
   List<OrgaInstrumentoElement> _instruments = [];
   List<OrgaInstrumentoElement> _filterList = [];
   late OrgaInstrumento orgaInstrument;
+
+  WidgetState _widgetState = WidgetState.LIST;
 
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
@@ -73,14 +77,27 @@ class _InstrumentState extends State<Instrument> {
 
   @override
   Widget build(BuildContext context) {
+
+    switch (_widgetState) {
+
+      case WidgetState.LIST:
+        return mainInstrument(context);
+
+      case WidgetState.EDIT:
+        return mainInstrument(context);
+    }
+  }
+
+
+  Widget mainInstrument(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final name = info.isOrganization ? info.organization!.orgaPrefijo : '';
 
     return Scaffold(
-      drawer: setDrawer(context),
-      backgroundColor: AppColor.containerBody,
-      appBar: setAppBarMain(context,'$name (Sesión: ${info.mainTopic})', 'Medidores'),
-      body: showInstrumentList(context)
+        drawer: setDrawer(context),
+        backgroundColor: AppColor.containerBody,
+        appBar: setAppBarMain(context,'$name (Sesión: ${info.mainTopic})', 'Medidores'),
+        body: showInstrumentList(context)
     );
   }
 
@@ -236,6 +253,10 @@ class _InstrumentState extends State<Instrument> {
                 children: [
                   IconButton(
                     onPressed: () async {
+                      /*setState(() {
+                        _isSaving = true;
+                      });*/
+
                       await _showEdit(context, instrumentName);
                     },
                     icon: Icon(
@@ -257,97 +278,103 @@ class _InstrumentState extends State<Instrument> {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(instrumentName),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: _controller1,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                ],
-                decoration: InputDecoration(labelText: 'Corriente Nominal'),
+        return StatefulBuilder(
+          builder: (context, setStateDialog)
+        {
+          return AlertDialog(
+            title: Text(instrumentName),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: _controller1,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                  ],
+                  decoration: InputDecoration(labelText: 'Corriente Nominal'),
+                ),
+
+              ],
+            ),
+            actions: <Widget>[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed: _isSaving
+                    ? null // Deshabilita el botón si _isLoading es true
+                    : () async {
+                  setStateDialog(() {
+                    _isSaving = true; // Activa el estado de carga
+                  });
+
+                  Util.printInfo('Guardando...', _isSaving.toString());
+                  await Future.delayed(const Duration(seconds: 4));
+
+                  // Aquí iría tu lógica para guardar los datos
+
+                  Navigator.of(context).pop(); // Ejemplo: cerrar el modal
+
+                  setStateDialog(() {
+                    _isSaving = false; // Desactiva el estado de carga
+                  });
+                  Util.printInfo('Guardando...', _isSaving.toString());
+                },
+                child: _isSaving
+                    ? const SizedBox( // Muestra un CircularProgressIndicator si _isLoading es true
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    strokeWidth: 2,
+                  ),
+                )
+                    : const Text( // Muestra el texto "Guardar" si _isLoading es false
+                  'Guardar',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
               ),
 
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.redColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    // Puedes ajustar el estilo del texto para que coincida con tu diseño
+                    color: Colors.white,
+                    // fontSize: 16,
+                  ),
+                ),
+              ),
+              /*TextButton(
+                child: Text('Aceptar'),
+                onPressed: () {
+                  // Aquí puedes procesar los datos de _controller1.text y _controller2.text
+                  print('Primer dato: ${_controller1.text}');
+                  print('Segundo dato: ${_controller2.text}');
+                  Navigator.of(context).pop();
+                },
+              ),*/
             ],
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                backgroundColor: AppColor.themeColor,
-                padding: EdgeInsets.all(10.0),
-              ),
-              onPressed: _isSaving
-                  ? null // Deshabilita el botón si _isLoading es true
-                  : () async {
-                setState(() {
-                  _isSaving = true; // Activa el estado de carga
-                });
+          );
+          },
 
-                Util.printInfo('Guardando...', _isSaving.toString());
-                await Future.delayed(const Duration(seconds: 4));
-
-                // Aquí iría tu lógica para guardar los datos
-
-                Navigator.of(context).pop(); // Ejemplo: cerrar el modal
-
-                setState(() {
-                  _isSaving = false; // Desactiva el estado de carga
-                });
-                Util.printInfo('Guardando...', _isSaving.toString());
-              },
-              child: _isSaving
-                  ? const SizedBox( // Muestra un CircularProgressIndicator si _isLoading es true
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  strokeWidth: 2,
-                ),
-              )
-                  : const Text( // Muestra el texto "Guardar" si _isLoading es false
-                'Guardar',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                backgroundColor: AppColor.redColor,
-                padding: EdgeInsets.all(10.0),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(
-                  // Puedes ajustar el estilo del texto para que coincida con tu diseño
-                  color: Colors.white,
-                  // fontSize: 16,
-                ),
-              ),
-            ),
-            /*TextButton(
-              child: Text('Aceptar'),
-              onPressed: () {
-                // Aquí puedes procesar los datos de _controller1.text y _controller2.text
-                print('Primer dato: ${_controller1.text}');
-                print('Segundo dato: ${_controller2.text}');
-                Navigator.of(context).pop();
-              },
-            ),*/
-          ],
         );
       },
     );

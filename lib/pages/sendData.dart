@@ -35,11 +35,11 @@ class _SendDataState extends State<SendData> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
 
-    resultRevision = info.resultData;
-   /* resultRevision = new ResultRevision(
-        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);*/
+    //resultRevision = info.resultData;
+    resultRevision = new ResultRevision(
+        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
 
-    /*for (var i = 0; i < info.mainData.length; i++) {
+    for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
           if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
@@ -98,7 +98,7 @@ class _SendDataState extends State<SendData> {
           }
         }
       }
-    }*/
+    }
 
 
   }

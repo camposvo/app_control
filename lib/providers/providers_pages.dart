@@ -65,7 +65,7 @@ class ProviderPages with ChangeNotifier {
   ModuleSelect get moduleSelected => _moduleSelected;
   set moduleSelected(ModuleSelect value) {
     _moduleSelected = value;
-    _box.put('moduleSelected', value);
+    _box.put('moduleSelected', value.name);
     notifyListeners();
   }
 
@@ -149,7 +149,9 @@ class ProviderPages with ChangeNotifier {
   }
 
   void getModuleSelectedFromHive() {
-    _moduleSelected = _box.get('moduleSelected', defaultValue: ModuleSelect.NOTHING);
+    final name = _box.get('moduleSelected', defaultValue: "NOTHING");
+
+    _moduleSelected = fromName(name);
   }
 
   void getMainTopicFromHive() {
@@ -236,6 +238,19 @@ class ProviderPages with ChangeNotifier {
 
   void  refreshData() async{
     notifyListeners();
+  }
+
+  ModuleSelect fromName(String name){
+    switch (name) {
+      case 'NOTHING' : return ModuleSelect.NOTHING;
+      case 'NO_SYSTEM' : return ModuleSelect.NO_SYSTEM;
+      case 'WITH_SYSTEM' : return ModuleSelect.WITH_SYSTEM;
+
+    };
+
+    return ModuleSelect.NOTHING;
+
+
   }
 
 

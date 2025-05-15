@@ -29,9 +29,12 @@
                 "prue_fecha": "2025-02-21T11:20:00",
                 "prue_foto1": "foto1",
                 "prue_foto2": "foto2",
+                "prue_activo": 1,
                 "revi_numero": "00001",
                 "prue_enviado": 1,
                 "prue_revi_id": "20fab0c1-0195-7000-8407-423c65498002",
+                "prue_valor_1": null,
+                "prue_valor_2": null,
                 "revi_enti_id": "20fa1b49-0195-7000-9aca-479c9187a298",
                 "prue_descripcion": "Ninguno"
               }
@@ -67,43 +70,6 @@
             "come_descripcion": "Es un comentario de hoy, medidor fuera de servicio"
           }
         ],
-        "inst_clasificacion": "Medidor",
-        "inst_espa_area_nombre": "",
-        "inst_espa_piso_nombre": "",
-        "inst_ubic_area_nombre": "",
-        "inst_ubic_piso_nombre": ""
-      },
-      {
-        "inst_id": "16a3bd67-0195-7000-8aac-783ba5633af8",
-        "inst_tipo": "Fisico",
-        "inst_nombre": "MEF-TTB-2",
-        "inst_numero": 2,
-        "inst_variables": [
-          {
-            "punt_id": "174722c4-0195-7000-9962-e7c363c895cc",
-            "vari_id": "12590a8d-0195-7000-bcf8-4c4d786c5a4f",
-            "punt_prueba": [],
-            "subu_nombre": "Kilowatts hora",
-            "vari_nombre": "Energia Importada",
-            "subu_simbolo": "",
-            "vari_subu_id": "1254e9a1-0195-7000-9871-5702bdd314b3",
-            "subu_abreviatura": "kWh",
-            "vari_abreviatura": "Eactiva"
-          },
-          {
-            "punt_id": "174722c4-0195-7000-856a-9e76a82d59ce",
-            "vari_id": "125fd726-0195-7000-b53c-64dd52261189",
-            "punt_prueba": [],
-            "subu_nombre": "Kilowatts",
-            "vari_nombre": "Demanda (dda)",
-            "subu_simbolo": "",
-            "vari_subu_id": "125f2629-0195-7000-b5ee-76b81fb89578",
-            "subu_abreviatura": "kW",
-            "vari_abreviatura": "dda"
-          }
-        ],
-        "inst_abreviatura": "M2",
-        "inst_comentarios": [],
         "inst_clasificacion": "Medidor",
         "inst_espa_area_nombre": "",
         "inst_espa_piso_nombre": "",
