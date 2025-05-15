@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:control/models/resultRevision.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,11 @@ enum ImageState { RECEIVED, WAITING }
 const String infoPrefix = 'MyAPP ';
 
 class TakePhotoSystem extends StatefulWidget {
+  final String? idTest;
+
+  const TakePhotoSystem({super.key, this.idTest});
+
+
   @override
   _TakePhotoSystemState createState() => _TakePhotoSystemState();
 }
@@ -168,9 +174,23 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
   void _saveResult(BuildContext context, int value) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    bool found = false;
 
-    PuntPrueba puntPrueba = new PuntPrueba(
+    Prueba test = Prueba(
+      prueId: Util.generateUUID(),
+      pruePuntId: variable.puntId,
+      prueFecha: DateTime.now(),
+      prueRecurso1: imageBase64_1,
+      prueRecurso2: "",
+      reviNumero: info.revision!.reviNumero,
+      prueReviId: info.revision!.reviId,
+      prueComentario: dropdownValue!,
+    );
+
+    info.resultData.pruebas.add(test);
+
+    info.resultDataUpdate(info.resultData);
+
+  /*  PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
@@ -238,7 +258,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
           }
         }
       }
-    }
+    }*/
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);

@@ -15,6 +15,7 @@ import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
 import '../helper/mqttManager.dart';
 import '../models/orgaInstrumento.dart';
+import '../models/resultRevision.dart';
 import '../providers/providers_pages.dart';
 import 'dart:developer' as developer;
 import 'package:logger/logger.dart';
@@ -27,6 +28,11 @@ enum ImageState { RECEIVED, WAITING }
 const String infoPrefix = 'MyAPP ';
 
 class TakePhoto extends StatefulWidget {
+
+  final String? idTest;
+
+  const TakePhoto({super.key, this.idTest});
+
   @override
   _TakePhotoState createState() => _TakePhotoState();
 }
@@ -203,7 +209,24 @@ class _TakePhotoState extends State<TakePhoto> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     bool found = false;
 
-    PuntPrueba puntPrueba = new PuntPrueba(
+
+    Prueba test = new Prueba(
+      prueId: Util.generateUUID(),
+      pruePuntId: variable.puntId,
+      prueFecha: DateTime.now(),
+      prueRecurso1: imageBase64_1,
+      prueRecurso2: "",
+      reviNumero: info.revision!.reviNumero,
+      prueReviId: info.revision!.reviId,
+      prueComentario: dropdownValue!,
+
+    );
+
+    info.resultData.pruebas.add(test);
+
+    info.resultDataUpdate(info.resultData);
+
+ /*   PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
@@ -271,7 +294,7 @@ class _TakePhotoState extends State<TakePhoto> {
           }
         }
       }
-    }
+    }*/
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
@@ -490,7 +513,6 @@ class _TakePhotoState extends State<TakePhoto> {
     }
   }
 
-
   void preTimeTakePhoto(){
 
     if(_countDown == 0){
@@ -707,7 +729,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-         /* if(!_connRemoteReady){
+          if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -720,7 +742,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }*/
+          }
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);

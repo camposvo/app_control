@@ -119,9 +119,21 @@ class _VariableState extends State<Variable> {
   void _savePuntoPrueba(BuildContext context, int value){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    bool found = false;
+    Comentario comment = new Comentario(
+      comeId: Util.generateUUID(),
+      comeFecha:  DateTime.now(),
+      comeReviId: info.revision!.reviId,
+      comeDescripcion:  dropdownValue!,
+      comeInstId: info.instId,
+    );
 
-    InstComentario comment = new InstComentario(
+    info.resultData.comentarios.add(comment);
+
+    //Util.printInfo("Salvo",  info.resultData.comentarios.length.toString());
+
+    info.resultDataUpdate(info.resultData);
+
+   /* InstComentario comment = new InstComentario(
         comeId: Util.generateUUID(),
         comeFecha:  DateTime.now(),
         comeReviId: info.revision!.reviId,
@@ -130,6 +142,7 @@ class _VariableState extends State<Variable> {
         comeEnviado: 2,
         reviEntiId: info.revision!.reviEntiId,
     );
+
 
     for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
@@ -157,12 +170,16 @@ class _VariableState extends State<Variable> {
 
             if(!found) info.mainData[i].orgaInstrumentos[j].instComentarios.add(comment);
 
+            Util.printInfo("title", "encontrado");
+
           }
         }
       }
     }
+    info.mainDataUpdate(info.mainData);*/
 
-    info.mainDataUpdate(info.mainData);
+
+    //Util.printInfo("title", msg);
 
   }
 

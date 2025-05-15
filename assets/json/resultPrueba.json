@@ -1,0 +1,20 @@
+{
+  "orga_id": "XXXXX",
+  "comentarios":[{
+    "come_fecha": "2025-02-21T11:20:00"  ,
+    "come_id":"",
+    "come_revi_id":"" ,
+    "come_inst_id":"" ,
+    "come_descripcion":""
+  }],
+  "pruebas":[{
+    "prue_id": "",
+    "prue_fecha":"2025-02-21T11:20:00",
+    "prue_revi_id":"",
+    "revi_numero": "",
+    "prue_punt_id": "",
+    "prue_comentario":"",
+    "prue_recurso_1":"",
+    "prue_recurso_2":""
+  }]
+}

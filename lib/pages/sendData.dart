@@ -34,10 +34,12 @@ class _SendDataState extends State<SendData> {
   void _loadData(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    resultRevision = new ResultRevision(
-        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
 
-    for (var i = 0; i < info.mainData.length; i++) {
+    resultRevision = info.resultData;
+   /* resultRevision = new ResultRevision(
+        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);*/
+
+    /*for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
           if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
@@ -96,7 +98,9 @@ class _SendDataState extends State<SendData> {
           }
         }
       }
-    }
+    }*/
+
+
   }
 
   Future<bool> _getOrgaInstrument(String id) async {
@@ -118,6 +122,7 @@ class _SendDataState extends State<SendData> {
   }
 
   Future<bool> _saveComment() async {
+
     final orgaId = resultRevision.orgaId;
 
     final result = await api.insertComment(orgaId, resultRevision.comentarios);

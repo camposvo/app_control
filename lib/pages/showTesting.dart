@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:control/pages/takePhoto.dart';
+import 'package:control/pages/takePhotoSystem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -82,6 +84,8 @@ class _ShowTestingState extends State<ShowTesting> {
     instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
     variable = instrument.instVariables.firstWhere((item) => item.variId == info.varId);
+
+
 
     _puntPruebas =  [...variable.puntPrueba];
     _filterList =  [...variable.puntPrueba];
@@ -260,6 +264,7 @@ class _ShowTestingState extends State<ShowTesting> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final description = _filterList[index].prueDescripcion;
+    final idTest = _filterList[index].prueId;
     final dateTest = Util.formatearFecha(_filterList[index].prueFecha);
     Color bgColor = AppColor.secondaryColor;
     Color fontColor = Colors.white;
@@ -311,9 +316,20 @@ class _ShowTestingState extends State<ShowTesting> {
                   IconButton(
                     onPressed: () async {
                       if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TakePhotoSystem(
+                              idTest: idTest,
+                            ),
+                          ),
+                        ).then((result) async {
                           await _loadData();
                         });
+
+                      /*  Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
+                          await _loadData();
+                        });*/
+
                       }
                       if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
                         Navigator.pushNamed(context, 'takePhoto').then((_) async {

@@ -1,4 +1,5 @@
 import 'package:control/models/organizacion.dart';
+import 'package:control/models/resultRevision.dart';
 import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -50,6 +51,51 @@ class _ShowRevisionState extends State<ShowRevision> {
 
     _widgetState = WidgetState.LOADED;
     setState(() {});
+
+  }
+
+  Future<void> _initSendData() async {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    _widgetState = WidgetState.LOADED;
+    setState(() {});
+
+    info.resultData.orgaId = info.organization!.orgaId;
+    info.resultData.comentarios = [];
+    info.resultData.pruebas = [];
+
+/*    for (var item in orgaInstrument.orgaInstrumentos) {
+      for (var comment in item.instComentarios) {
+        Comentario comentario = new Comentario(
+         comeDescripcion: comment.comeDescripcion,
+         comeFecha: comment.comeFecha,
+         comeId: comment.comeId,
+         comeInstId: item.instId,
+         comeReviId: comment.comeReviId,
+        );
+        info.resultData.comentarios.add(comentario);
+      }
+
+      for (var variable in item.instVariables) {
+        for (var test in variable.puntPrueba) {
+          Prueba prueba = new Prueba(
+            reviNumero: test.reviNumero,
+            prueReviId:test.prueReviId,
+            prueRecurso1: test.prueFoto1,
+            prueRecurso2: test.prueFoto2,
+            pruePuntId: variable.puntId,
+            prueFecha: test.prueFecha,
+            prueComentario: test.prueDescripcion,
+            prueId: test.prueId,
+
+          );
+          info.resultData.pruebas.add(prueba);
+        }
+      }
+
+    }*/
+
+    Util.printInfo("pruebas", api.getPrettyJSONString(info.resultData));
 
   }
 
@@ -160,9 +206,12 @@ class _ShowRevisionState extends State<ShowRevision> {
           itemCount: _filterList.length,
           itemBuilder: (context, index) {
             return InkWell(
-                child: _itemListView(index, context), onTap: () {
+                child: _itemListView(index, context), onTap: () async {
               info.revision = _filterList[index];
               info.isOrganization = true;
+
+             await _initSendData();
+
               info.refreshData();
 
               Navigator.popUntil(context, (route) => route.isFirst);

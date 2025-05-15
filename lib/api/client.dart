@@ -106,7 +106,7 @@ class _Clients {
       if (result.data != null) {
         String str =
         getPrettyJSONString(result.data?['loadDataRevisiones']['data']);
-        Util.printInfo("data", str);
+        //Util.printInfo("data", str);
         return str;
       }
 
@@ -135,10 +135,9 @@ class _Clients {
 
     final comment = comentariosToJson(data);
 
-    Util.printInfo("JSON Comment", jsonEncode(comment));
-    Util.printInfo("orgaId ", orgaId);
+    Util.printInfo("Commentaios", comment.toString());
 
-    try {
+   /* try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
@@ -162,7 +161,9 @@ class _Clients {
       return null;
     } catch (e) {
       return null;
-    }
+    }*/
+
+    return null;
 
   }
 
@@ -170,8 +171,10 @@ class _Clients {
 
     final test = data.toJson();
 
+    Util.printInfo("test", api.getPrettyJSONString(test));
 
-    try {
+
+   /* try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
@@ -199,7 +202,9 @@ class _Clients {
 
       print(e);
       return null;
-    }
+    }*/
+
+    return null;
 
   }
 

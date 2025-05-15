@@ -14,7 +14,7 @@ class ProviderPages with ChangeNotifier {
   final _box = Hive.box('boxname'); // Accede al contenedor
 
   List<OrgaInstrumento> _mainData = [];
-  ResultRevision? _resultData;
+  final ResultRevision _resultData = ResultRevision(orgaId: '', comentarios: [], pruebas: []);
   Organization? _organization;
   bool _isOrganization = false;
   OrgaRevisione? _revision;
@@ -100,7 +100,7 @@ class ProviderPages with ChangeNotifier {
   }
 
 
-  ResultRevision? get resultData => _resultData;
+  ResultRevision get resultData => _resultData;
   void resultDataUpdate(ResultRevision value) {
     final jsonString = resultRevisionToJson(value);
     _box.put('_resultData', jsonString);
