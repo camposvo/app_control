@@ -8,6 +8,17 @@ List<OrgaInstrumento> orgaInstrumentoFromJson(String str) => List<OrgaInstrument
 
 String orgaInstrumentoToJson(List<OrgaInstrumento> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+
+//  ************* NUEVO METODO  ******************************
+int? findIndexByOrgaId(List<OrgaInstrumento> lista, String orgaId) {
+  for (int i = 0; i < lista.length; i++) {
+    if (lista[i].orgaId == orgaId) {
+      return i;
+    }
+  }
+  return null;
+}
+
 class OrgaInstrumento {
   String orgaId;
   String orgaNombre;
@@ -42,6 +53,20 @@ class OrgaInstrumento {
     "orga_revisiones": List<dynamic>.from(orgaRevisiones.map((x) => x.toJson())),
     "orga_instrumentos": List<dynamic>.from(orgaInstrumentos.map((x) => x.toJson())),
   };
+
+  //  ************* NUEVO METODO  ******************************
+  void updateInstProteccion(String instId, double nuevoValorProteccion) {
+    for (var instrumento in orgaInstrumentos) {
+      if (instrumento.instId == instId) {
+        instrumento.instProteccion = nuevoValorProteccion;
+        print('Instrumento con ID $instId actualizado a protección: $nuevoValorProteccion');
+        return; // Si se encuentra y actualiza, podemos salir del método
+      }
+    }
+    print('No se encontró ningún instrumento con el ID: $instId');
+  }
+
+
 }
 
 class OrgaInstrumentoElement {

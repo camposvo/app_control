@@ -217,9 +217,9 @@ class _TakePhotoState extends State<TakePhoto> {
       prueComentario: dropdownValue!,
 
     );
-    info.resultData.pruebas.add(test);*/
+    info.resultData.pruebas.add(test);
 
-    info.resultDataUpdate(info.resultData);
+    info.resultDataUpdate(info.resultData);*/
 
     PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),

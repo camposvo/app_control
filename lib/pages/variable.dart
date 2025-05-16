@@ -121,7 +121,7 @@ class _VariableState extends State<Variable> {
 
     bool found = false;
 
-    Comentario comment = new Comentario(
+   /* Comentario comment = new Comentario(
       comeId: Util.generateUUID(),
       comeFecha:  DateTime.now(),
       comeReviId: info.revision!.reviId,
@@ -130,10 +130,8 @@ class _VariableState extends State<Variable> {
     );
 
     info.resultData.comentarios.add(comment);
+    info.resultDataUpdate(info.resultData);*/
 
-    //Util.printInfo("Salvo",  info.resultData.comentarios.length.toString());
-
-    info.resultDataUpdate(info.resultData);
 
     InstComentario comment1 = InstComentario(
         comeId: Util.generateUUID(),
@@ -177,7 +175,6 @@ class _VariableState extends State<Variable> {
       }
     }
     info.mainDataUpdate(info.mainData);
-
 
     //Util.printInfo("title", msg);
 

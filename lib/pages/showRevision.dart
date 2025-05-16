@@ -60,9 +60,9 @@ class _ShowRevisionState extends State<ShowRevision> {
     _widgetState = WidgetState.LOADED;
     setState(() {});
 
-    info.resultData.orgaId = info.organization!.orgaId;
+ /*   info.resultData.orgaId = info.organization!.orgaId;
     info.resultData.comentarios = [];
-    info.resultData.pruebas = [];
+    info.resultData.pruebas = [];*/
 
 /*    for (var item in orgaInstrument.orgaInstrumentos) {
       for (var comment in item.instComentarios) {
@@ -95,7 +95,7 @@ class _ShowRevisionState extends State<ShowRevision> {
 
     }*/
 
-    Util.printInfo("pruebas", api.getPrettyJSONString(info.resultData));
+    //Util.printInfo("pruebas", api.getPrettyJSONString(info.resultData));
 
   }
 
@@ -122,7 +122,6 @@ class _ShowRevisionState extends State<ShowRevision> {
     _filterList = [...orgaInstrument.orgaRevisiones];
 
     return true;
-    
   }
 
   @override
@@ -209,11 +208,8 @@ class _ShowRevisionState extends State<ShowRevision> {
                 child: _itemListView(index, context), onTap: () async {
               info.revision = _filterList[index];
               info.isOrganization = true;
-
-             await _initSendData();
-
+             //await _initSendData();
               info.refreshData();
-
               Navigator.popUntil(context, (route) => route.isFirst);
 
 

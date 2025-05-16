@@ -208,6 +208,58 @@ class _Clients {
 
   }
 
+  Future<String?> updateIntrument(String instId, String orgaId, double value) async {
+
+    dynamic filter = {
+      "condiciones": {
+        "field": "inst_id",
+        "operador": "EQUAL",
+        "value": instId
+      }
+    };
+
+    dynamic fields = {
+      "inst_proteccion": value
+    };
+
+    Util.printInfo("test", filter.toString());
+    Util.printInfo("test", fields.toString());
+
+
+    try {
+      GraphQLConfig graphQLConfiguration = GraphQLConfig();
+      GraphQLClient client = graphQLConfiguration.clientToQuery();
+      QueryResult result = await client.mutate(
+        MutationOptions(
+            document: gql(gqlControl.gqlUpdateInstrument()),
+            variables: {'orgaId': orgaId,
+              'filter': filter,
+              'fields': fields
+            },
+            fetchPolicy: FetchPolicy.networkOnly),
+      );
+
+      if (result.hasException) {
+        Util.printInfo("prueba : ",result.exception.toString());
+        return null;
+      }
+      if (result.data != null) {
+        Util.printInfo("prueba : ","Guardo");
+        print(result.data);
+
+        return 'Operacion Completada Exitosamente';
+      }
+      return null;
+
+    } catch (e) {
+
+      print(e);
+      return null;
+    }
+
+  }
+
+
   Future<String?> fetchImage(String urlImage) async {
     final url = Uri.parse(urlImage);
 

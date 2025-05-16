@@ -40,6 +40,21 @@ class _gqlControl {
         """;
   }
 
+
+  String gqlUpdateInstrument() {
+    return r"""
+   mutation UpdateInstrumento($orgaId: String!, $filter: filter, $fields: fieldInstrumento) {
+          updateInstrumento(orga_id: $orgaId, filter: $filter, fields: $fields) {
+            ... on instrumentos {
+              data {
+                inst_id
+              }
+            }
+          }
+        }
+        """;
+  }
+
   String gqlSaveTest() {
     return r"""
      mutation GuardarDataPruebasRevisiones($orgaId: String!, $prueba: JSONObject) {

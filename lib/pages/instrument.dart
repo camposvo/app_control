@@ -6,6 +6,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:provider/provider.dart';
 
+import '../api/client.dart';
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
 import '../helper/util.dart';
@@ -27,8 +28,8 @@ class _InstrumentState extends State<Instrument> {
 
   WidgetState _widgetState = WidgetState.LIST;
 
-  TextEditingController _controller1 = TextEditingController();
-  TextEditingController _controller2 = TextEditingController();
+
+
 
   int _listos = 0;
   int _total= 0;
@@ -254,7 +255,8 @@ class _InstrumentState extends State<Instrument> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await _showEdit(context, instrumentName);
+                      await _showEdit(context, _filterList[index]);
+
                     },
                     icon: Icon(
                       Icons.edit,
@@ -271,7 +273,12 @@ class _InstrumentState extends State<Instrument> {
     );
   }
 
-  Future<void>  _showEdit(BuildContext context, String instrumentName) async {
+  Future<void>  _showEdit(BuildContext context, OrgaInstrumentoElement selectedInstrument) async {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final orgaId = info.organization!.orgaId;
+
+    TextEditingController _controller1 = TextEditingController(text: selectedInstrument.instProteccion.toString());
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -279,7 +286,7 @@ class _InstrumentState extends State<Instrument> {
           builder: (context, setStateDialog)
         {
           return AlertDialog(
-            title: Text(instrumentName),
+            title: Text(selectedInstrument.instNombre),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -306,20 +313,33 @@ class _InstrumentState extends State<Instrument> {
                 onPressed: _isSaving
                     ? null // Deshabilita el botón si _isLoading es true
                     : () async {
+
+                    String inputText = _controller1.text;
+                    double? parsedValue = double.tryParse(inputText);
+
+                    if (parsedValue == null) {
+                      showError("Entrada no valida");
+                    return;
+
+                    }
+
                   setStateDialog(() {
                     _isSaving = true; // Activa el estado de carga
                   });
 
-                  Util.printInfo('Guardando...', _isSaving.toString());
-                  await Future.delayed(const Duration(seconds: 4));
+                    Util.printInfo('dato...', parsedValue.toString());
 
-                  // Aquí iría tu lógica para guardar los datos
 
-                  Navigator.of(context).pop(); // Ejemplo: cerrar el modal
+                  saveInstrument(context, orgaId,selectedInstrument.instId, parsedValue);
+
+                  Navigator.of(context).pop();
+
+
 
                   setStateDialog(() {
-                    _isSaving = false; // Desactiva el estado de carga
+                    _isSaving = false;
                   });
+
                   Util.printInfo('Guardando...', _isSaving.toString());
                 },
                 child: _isSaving
@@ -367,6 +387,37 @@ class _InstrumentState extends State<Instrument> {
         );
       },
     );
+  }
+
+  Future<void> saveInstrument(BuildContext context, String orgaId, String instId, double newProtection ) async {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final index =  findIndexByOrgaId(info.mainData, orgaId);
+    if(index == null) {
+      showError("Error Actualizando");
+      //error
+      return;
+    }
+
+
+    Util.printInfo('instId...', instId);
+    Util.printInfo('orgaId...', orgaId);
+    Util.printInfo('newProtection...', newProtection.toString());
+
+    final result = await api.updateIntrument(instId, orgaId, newProtection);
+
+
+    if(result == null){
+
+      showError("Error Actualizando");
+      return;
+    }
+
+
+
+    info.mainData[index].updateInstProteccion(instId, newProtection);
+    _loadData();
+
   }
 
 

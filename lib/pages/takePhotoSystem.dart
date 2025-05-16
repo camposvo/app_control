@@ -170,7 +170,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
     bool found = false;
 
     //Guarda los datos en la variable para Enviarlos
-    Prueba test = Prueba(
+   /* Prueba test = Prueba(
       prueId: Util.generateUUID(),
       pruePuntId: variable.puntId,
       prueFecha: DateTime.now(),
@@ -183,7 +183,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       prueValor2: null,
     );
     info.resultData.pruebas.add(test);
-    info.resultDataUpdate(info.resultData);
+    info.resultDataUpdate(info.resultData);*/
 
     //Guarda los datos en la estructura de datos principal
     PuntPrueba puntPrueba = new PuntPrueba(
