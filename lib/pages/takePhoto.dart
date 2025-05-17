@@ -29,9 +29,9 @@ const String infoPrefix = 'MyAPP ';
 
 class TakePhoto extends StatefulWidget {
 
-  final String? idTest;
+  final String? prueId;
 
-  const TakePhoto({super.key, this.idTest});
+  const TakePhoto({super.key, this.prueId});
 
   @override
   _TakePhotoState createState() => _TakePhotoState();
@@ -44,6 +44,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
+  double prueValor1 = 0, prueValor2 =0;
   Timer? _timerConnection;
 
   late OrgaInstrumentoElement instrument;
@@ -102,10 +103,14 @@ class _TakePhotoState extends State<TakePhoto> {
   //Special topic for Connection Message Interchange
   String masterConnMqtt = '_MASTER_CONN';
   String slaveConnMqtt = '_SLAVE_CONN';
+  String? prueId = null;
+
+
 
   @override
   void initState() {
     super.initState();
+    prueId = widget.prueId;
     _loadData();
   }
 
@@ -201,25 +206,8 @@ class _TakePhotoState extends State<TakePhoto> {
     return 1;
   }
 
-  void _saveResult(BuildContext context, int value) {
+  void _addPuntPrueba(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    bool found = false;
-
-
-   /* Prueba test = new Prueba(
-      prueId: Util.generateUUID(),
-      pruePuntId: variable.puntId,
-      prueFecha: DateTime.now(),
-      prueRecurso1: imageBase64_1,
-      prueRecurso2: "",
-      reviNumero: info.revision!.reviNumero,
-      prueReviId: info.revision!.reviId,
-      prueComentario: dropdownValue!,
-
-    );
-    info.resultData.pruebas.add(test);
-
-    info.resultDataUpdate(info.resultData);*/
 
     PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
@@ -232,82 +220,64 @@ class _TakePhotoState extends State<TakePhoto> {
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
       prueActivo: 1,
-      prueValor1: 2.0,
-      prueValor2: 2.0,
+      prueValor1: prueValor1,
+      prueValor2: prueValor2,
     );
 
-    for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization!.orgaId) {
-        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
-          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
-            for (var k = 0;
-                k < info.mainData[i].orgaInstrumentos[j].instVariables.length;
-                k++) {
-              if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                      .puntId ==
-                  info.puntId) {
-                for (var l = 0;
-                    l <
-                        info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                            .puntPrueba.length;
-                    l++) {
-                  if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                          .puntPrueba[l].prueReviId ==
-                      info.revision?.reviId) {
-                    found = true;
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueId = puntPrueba.prueId;
 
-                    info
-                        .mainData[i]
-                        .orgaInstrumentos[j]
-                        .instVariables[k]
-                        .puntPrueba[l]
-                        .prueDescripcion = puntPrueba.prueDescripcion;
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return;
+    }
 
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFecha = puntPrueba.prueFecha;
+    final result = info.mainData[index].addPuntPrueba(info.puntId, puntPrueba);
 
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFoto1 = puntPrueba.prueFoto1;
-
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFoto2 = puntPrueba.prueFoto2;
-
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueEnviado = puntPrueba.prueEnviado;
-
-                    info.mainDataUpdate(info.mainData);
-
-                    return; // Elemento encontrado y modificado
-                  }
-                }
-
-                if (!found)
-                  info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                      .puntPrueba
-                      .add(puntPrueba);
-              }
-            }
-          }
-        }
-      }
+    if(!result){
+      print('No se encontró ninguna variable con el puntId en la organización');
+       return;
     }
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
   }
 
-/*  void sendStateConnection(bool value){
-    _tramaDatos.tipoMensaje = "STATE_CONNECTION";
-    _tramaDatos.connetionReady = value;
+  void _updatePuntPrueba(BuildContext context, String prueId) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
 
-    Util.printInfo("topio", masterConnMqtt);
-    Util.printInfo("tipo", _tramaDatos.tipoMensaje);
-    Util.printInfo("tipo", _tramaDatos.connetionReady.toString());
+    PuntPrueba puntPrueba = new PuntPrueba(
+      prueId: prueId,
+      prueFecha: DateTime.now(),
+      prueFoto1: imageBase64_1,
+      prueFoto2: imageBase64_2,
+      reviNumero: info.revision!.reviNumero,
+      prueEnviado: 2,
+      prueReviId: info.revision!.reviId,
+      reviEntiId: info.revision!.reviEntiId,
+      prueDescripcion: dropdownValue!,
+      prueActivo: 1,
+      prueValor1: prueValor1,
+      prueValor2: prueValor2,
+    );
 
-    _publishMessageAndRetain(masterConnMqtt, _tramaDatos );
-  }*/
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+
+    if(index == null){
+      //fallo el update
+      return;
+    }
+
+    final result = info.mainData[index].updatePuntPrueba(prueId, puntPrueba);
+
+    if(!result){
+      //Fallo update
+      return;
+    }
+
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
+  }
 
   void sendStateConnection(bool conn, bool cameraState){
     _tramaDatos.tipoMensaje = "STATE_CONNECTION";
@@ -803,7 +773,7 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          (imageState == ImageState.WAITING)
+          (imageState == ImageState.RECEIVED)
               ? SizedBox(
                   height: 500,
                   child: Center(
@@ -816,7 +786,7 @@ class _TakePhotoState extends State<TakePhoto> {
                       minScale: 0.5, // Define el zoom mínimo (opcional)
                       maxScale: 3.0, // Define el zoom máximo (opcional)
                       child: Image.memory(
-                        base64Decode(imageBase64_2),
+                        base64Decode(imageBase64_1),
                         height: 500,
                         fit: BoxFit.contain, // Importante: Usa BoxFit.contain
                       ),
@@ -834,7 +804,11 @@ class _TakePhotoState extends State<TakePhoto> {
                   ),
                 ],
               ),
+          SizedBox(
+            height: 20,
+          ),
           _showCalculate(context),
+
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -843,69 +817,8 @@ class _TakePhotoState extends State<TakePhoto> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              SizedBox(
-                width: 150,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.redColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-                    final result = await showConfirmAccept(context);
-
-                    if (!result){
-                      return;
-                    }
-
-                    sendFinishPhoto(false);
-                    showError("Fotos Descartada");
-                    Navigator.pop(context);
-
-                  },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 150,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.themeColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () {
-                    if (dropdownValue == null) {
-                      showError('Debe seleccionar un Comentario');
-                      return;
-                    }
-                    _saveResult(context, 2);
-                    sendFinishPhoto(true);
-                    showMsg("Fotos Aceptadas");
-                    Navigator.pop(context);
-
-                  },
-                  child: Text(
-                    'Aceptar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
+              _btnCancelTest(context),
+              _btnAcceptTest(context),
             ],
           ),
           SizedBox(
@@ -1022,6 +935,108 @@ class _TakePhotoState extends State<TakePhoto> {
         SizedBox(height: 16),
         //Text('Opción seleccionada: $opcionSeleccionada'),
       ],
+    );
+  }
+
+  Widget _btnCancelTest(BuildContext context){
+    return  SizedBox(
+      width: 150,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(10.0), // Radio de 10.0
+          ),
+          backgroundColor: AppColor.redColor,
+          padding: EdgeInsets.all(10.0),
+        ),
+        onPressed: () async {
+
+          final result = await showConfirmAccept(context);
+
+          if (!result){
+            return;
+          }
+
+          sendFinishPhoto(false);
+          showError("Fotos Descartada");
+          Navigator.pop(context);
+
+        },
+        child: Text(
+          'Cancelar',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _btnAcceptTest(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return  SizedBox(
+      width: 150,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(10.0), // Radio de 10.0
+          ),
+          backgroundColor: AppColor.themeColor,
+          padding: EdgeInsets.all(10.0),
+        ),
+        onPressed: () {
+
+          String inputText = _controller1.text;
+          double? parsedValue = double.tryParse(inputText);
+
+          if (parsedValue == null) {
+            showError("Entrada no valida en Foto 1");
+            return;
+          }
+
+          prueValor1 = parsedValue;
+          inputText = _controller2.text;
+          parsedValue = double.tryParse(inputText);
+
+          if (parsedValue == null) {
+            showError("Entrada no valida en Foto 2");
+            return;
+
+          }
+
+          prueValor2 = parsedValue;
+          if (dropdownValue == null) {
+            showError('Debe seleccionar un Comentario');
+            return;
+          }
+
+
+
+          if(prueId == null){
+            _addPuntPrueba(context);
+          }
+
+          if(prueId != null){
+            _updatePuntPrueba(context, prueId!);
+          }
+
+          sendFinishPhoto(true);
+          showMsg("Fotos Aceptadas");
+          Navigator.pop(context);
+
+        },
+        child: Text(
+          'Aceptar',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ),
     );
   }
 

@@ -30,9 +30,9 @@ enum ImageState { RECEIVED, WAITING }
 const String infoPrefix = 'MyAPP ';
 
 class TakePhotoSystem extends StatefulWidget {
-  final String? idTest;
+  final String? prueId;
 
-  const TakePhotoSystem({super.key, this.idTest});
+  const TakePhotoSystem({super.key, this.prueId});
 
 
   @override

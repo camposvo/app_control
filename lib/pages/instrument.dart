@@ -279,6 +279,7 @@ class _InstrumentState extends State<Instrument> {
     final orgaId = info.organization!.orgaId;
 
     TextEditingController _controller1 = TextEditingController(text: selectedInstrument.instProteccion.toString());
+
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -399,11 +400,6 @@ class _InstrumentState extends State<Instrument> {
       return;
     }
 
-
-    Util.printInfo('instId...', instId);
-    Util.printInfo('orgaId...', orgaId);
-    Util.printInfo('newProtection...', newProtection.toString());
-
     final result = await api.updateIntrument(instId, orgaId, newProtection);
 
 
@@ -412,8 +408,6 @@ class _InstrumentState extends State<Instrument> {
       showError("Error Actualizando");
       return;
     }
-
-
 
     info.mainData[index].updateInstProteccion(instId, newProtection);
     _loadData();

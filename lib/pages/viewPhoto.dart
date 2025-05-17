@@ -25,6 +25,10 @@ enum WidgetState { LOADING, LOADED, ERROR }
 const String infoPrefix = 'MyAPP ';
 
 class ViewPhoto extends StatefulWidget {
+  final String? prueId;
+
+  const ViewPhoto({super.key, this.prueId});
+
   @override
   _ViewPhotoState createState() => _ViewPhotoState();
 }
@@ -57,13 +61,15 @@ class _ViewPhotoState extends State<ViewPhoto> {
   late OrgaInstrumentoElement instrument;
   late OrgaInstrumento orgaInstrument;
   late InstVariable variable;
-  late PuntPrueba puntoPrueba;
+  String prueId = '';
 
 
 
   @override
   void initState() {
     super.initState();
+    prueId = widget.prueId!;
+
     _loadData();
   }
 
@@ -74,7 +80,6 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
     try {
 
-
       orgaInstrument = info.mainData
           .firstWhere((item) => item.orgaId == info.organization!.orgaId);
 
@@ -83,8 +88,18 @@ class _ViewPhotoState extends State<ViewPhoto> {
       variable = instrument.instVariables
           .firstWhere((item) => item.variId == info.varId);
 
-      puntoPrueba = variable.puntPrueba.firstWhere((item) => item.prueReviId ==
-          info.revision!.reviId);
+
+      final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+      if(index == null){
+        //fallo el update
+        return;
+      }
+
+      final puntoPrueba = info.mainData[index].getPuntPruebaById(prueId);
+
+      if(puntoPrueba == null){
+        return;
+      }
 
       // 1: Is URL or 2: Is Base64 -1: Null
       typeImage_1 = Util.isUrlOrBase64(puntoPrueba.prueFoto1);
@@ -144,8 +159,8 @@ class _ViewPhotoState extends State<ViewPhoto> {
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
       prueActivo: 1,
-      prueValor1: 2.0,
-      prueValor2: 2.0,
+      prueValor1: 0,
+      prueValor2: 0,
     );
 
     for (var i = 0; i < info.mainData.length; i++) {

@@ -8,7 +8,6 @@ List<OrgaInstrumento> orgaInstrumentoFromJson(String str) => List<OrgaInstrument
 
 String orgaInstrumentoToJson(List<OrgaInstrumento> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-
 //  ************* NUEVO METODO  ******************************
 int? findIndexByOrgaId(List<OrgaInstrumento> lista, String orgaId) {
   for (int i = 0; i < lista.length; i++) {
@@ -54,7 +53,37 @@ class OrgaInstrumento {
     "orga_instrumentos": List<dynamic>.from(orgaInstrumentos.map((x) => x.toJson())),
   };
 
-  //  ************* NUEVO METODO  ******************************
+  //  ************* NUEVO METODO PARA OBTENER PuntPrueba por prueId ******************************
+  PuntPrueba? getPuntPruebaById(String prueId) {
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        for (var prueba in variable.puntPrueba) {
+          if (prueba.prueId == prueId) {
+            return prueba;
+          }
+        }
+      }
+    }
+    print('No se encontró ningún PuntPrueba con el ID: $prueId en la organización: $orgaId.');
+    return null; // Devuelve null si no se encuentra el PuntPrueba
+  }
+
+  //  ************* NUEVO METODO PARA AGREGAR PuntPrueba ******************************
+  bool addPuntPrueba(String puntId, PuntPrueba nuevoPuntPrueba) {
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        if (variable.puntId == puntId) {
+          variable.puntPrueba.add(nuevoPuntPrueba);
+          print('Nuevo PuntPrueba agregado a la variable con puntId: $puntId del instrumento ${instrumento.instId}.');
+          return true; // Indica que se encontró la variable y se agregó el PuntPrueba
+        }
+      }
+    }
+    print('No se encontró ninguna variable con el puntId: $puntId en la organización: $orgaId.');
+    return false; // Indica que no se encontró la variable
+  }
+
+  //  ************* NUEVO METODO PARA ACTUALIZAR proteccio ******************************
   void updateInstProteccion(String instId, double nuevoValorProteccion) {
     for (var instrumento in orgaInstrumentos) {
       if (instrumento.instId == instId) {
@@ -64,6 +93,23 @@ class OrgaInstrumento {
       }
     }
     print('No se encontró ningún instrumento con el ID: $instId');
+  }
+
+  //  ************* NUEVO METODO PARA ACTUALIZAR PuntPrueba ******************************
+  bool updatePuntPrueba(String prueId, PuntPrueba nuevoPuntPrueba) {
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        for (int i = 0; i < variable.puntPrueba.length; i++) {
+          if (variable.puntPrueba[i].prueId == prueId) {
+            variable.puntPrueba[i] = nuevoPuntPrueba;
+            print('PuntPrueba con ID $prueId del instrumento ${instrumento.instId} actualizado.');
+            return true; // Indica que se encontró y actualizó el PuntPrueba
+          }
+        }
+      }
+    }
+    print('No se encontró ningún PuntPrueba con el ID: $prueId en la organización: $orgaId.');
+    return false; // Indica que no se encontró el PuntPrueba
   }
 
 

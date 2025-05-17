@@ -3,12 +3,14 @@ import 'dart:convert';
 
 import 'package:control/pages/takePhoto.dart';
 import 'package:control/pages/takePhotoSystem.dart';
+import 'package:control/pages/viewPhoto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:provider/provider.dart';
 
+import '../api/client.dart';
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
 import '../helper/util.dart';
@@ -90,7 +92,8 @@ class _ShowTestingState extends State<ShowTesting> {
     _puntPruebas =  [...variable.puntPrueba];
     _filterList =  [...variable.puntPrueba];
 
-    Util.printInfo("Total Pruebas", _puntPruebas.length.toString());
+    Util.printInfo("Total Pruebas", variable.variNombre);
+    Util.printInfo("Total Pruebas", variable.puntPrueba.length.toString());
 
     _widgetState = WidgetState.SHOW_LIST;
     setState(() {});
@@ -173,7 +176,7 @@ class _ShowTestingState extends State<ShowTesting> {
           SizedBox(
             height: 8,
           ),
-          _btnNewTest(context),
+          _btnAddPrueba(context),
           SizedBox(
             height: 8,
           ),
@@ -224,12 +227,11 @@ class _ShowTestingState extends State<ShowTesting> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final description = _filterList[index].prueDescripcion;
-    final idTest = _filterList[index].prueId;
+    final prueId = _filterList[index].prueId;
     final dateTest = Util.formatearFecha(_filterList[index].prueFecha);
     Color bgColor = AppColor.secondaryColor;
     Color fontColor = Colors.white;
     bool testLoaded = false;
-
 
     return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
@@ -259,51 +261,8 @@ class _ShowTestingState extends State<ShowTesting> {
               ),
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () async {
-                      Navigator.pushNamed(context, 'viewPhoto').then((_) async {
-                        await _loadData();
-                      });
-
-                    },
-                    icon: Icon(
-                      Icons.search,
-                      color: fontColor,
-                      size: 24.0,
-                    ),
-                  ),
-
-                  IconButton(
-                    onPressed: () async {
-                      if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => TakePhotoSystem(
-                              idTest: idTest,
-                            ),
-                          ),
-                        ).then((result) async {
-                          await _loadData();
-                        });
-
-                      /*  Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
-                          await _loadData();
-                        });*/
-
-                      }
-                      if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
-                        Navigator.pushNamed(context, 'takePhoto').then((_) async {
-                          await _loadData();
-                        });
-                      }
-
-                    },
-                    icon: Icon(
-                      Icons.camera_alt,
-                      color: fontColor,
-                      size: 24.0,
-                    ),
-                  ),
+                  _btnViewPhoto(context, fontColor, prueId),
+                  _btnUpdatePrueba(context, fontColor, prueId),
                 ],
               ),
 
@@ -315,7 +274,28 @@ class _ShowTestingState extends State<ShowTesting> {
 
   }
 
-  Widget _btnNewTest(BuildContext context){
+  Widget _btnViewPhoto(BuildContext context, Color fontColor,String prueId){
+
+    return     IconButton(
+      onPressed: () async {
+
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ViewPhoto(
+              prueId: prueId),
+        )).then((_) async{
+          await _loadData();
+        });    
+        
+      },
+      icon: Icon(
+        Icons.search,
+        color: fontColor,
+        size: 24.0,
+      ),
+    );
+  }
+
+  Widget _btnAddPrueba(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -333,13 +313,22 @@ class _ShowTestingState extends State<ShowTesting> {
                 padding: EdgeInsets.all(10.0),
               ),
               onPressed: () {
-                if (info.moduleSelected == ModuleSelect.WITH_SYSTEM) {
-                  Navigator.pushNamed(context, 'takePhotoSystem').then((_) async {
+
+                if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => TakePhotoSystem(
+                        prueId: null),
+                  )).then((_) async{
                     await _loadData();
                   });
+
                 }
-                if (info.moduleSelected == ModuleSelect.NO_SYSTEM) {
-                  Navigator.pushNamed(context, 'takePhoto').then((_) async {
+
+                if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => TakePhoto(
+                        prueId: null),
+                  )).then((_) async {
                     await _loadData();
                   });
                 }
@@ -359,6 +348,41 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
 
         ],
+      ),
+    );
+  }
+
+  Widget _btnUpdatePrueba(BuildContext context, Color fontColor,  String prueId){
+
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return  IconButton(
+      onPressed: () async {
+
+        if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => TakePhotoSystem(
+                prueId: prueId),
+          )).then((_) async{
+            await _loadData();
+          });
+
+        }
+
+        if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => TakePhoto(
+                prueId: prueId),
+          )).then((_) async {
+            await _loadData();
+          });
+        }
+
+
+      },
+      icon: Icon(
+        Icons.camera_alt,
+        color: fontColor,
+        size: 24.0,
       ),
     );
   }
