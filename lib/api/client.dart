@@ -74,7 +74,6 @@ class _Clients {
     }
   }
 
-
   Future<String?> getOrganizationFromJson() async {
 
     final String respuesta = await rootBundle.loadString('assets/json/organization.json');
@@ -137,7 +136,7 @@ class _Clients {
 
     Util.printInfo("Commentaios", comment.toString());
 
-   /* try {
+    try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
@@ -161,20 +160,18 @@ class _Clients {
       return null;
     } catch (e) {
       return null;
-    }*/
+    }
 
     return null;
 
   }
 
-  Future<String?> insertTest(String orgaId, Prueba data) async {
+  Future<String?> insertPruebas(String orgaId, Prueba data) async {
 
     final test = data.toJson();
 
-    Util.printInfo("test", api.getPrettyJSONString(test));
 
-
-   /* try {
+    try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
@@ -202,7 +199,7 @@ class _Clients {
 
       print(e);
       return null;
-    }*/
+    }
 
     return null;
 

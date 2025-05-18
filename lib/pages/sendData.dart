@@ -34,12 +34,25 @@ class _SendDataState extends State<SendData> {
   void _loadData(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-
     //resultRevision = info.resultData;
     resultRevision = new ResultRevision(
         orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
 
-    for (var i = 0; i < info.mainData.length; i++) {
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return;
+    }
+
+    resultRevision.comentarios = info.mainData[index].getComentariosByReviId(info.revision!.reviId);
+    Util.printInfo("title",info.revision!.reviId);
+    Util.printInfo("index",index.toString());
+    resultRevision.pruebas = info.mainData[index].getPruebasByReviId(info.revision!.reviId);
+
+    Util.printInfo("index",resultRevision.pruebas.length.toString());
+
+
+  /*  for (var i = 0; i < info.mainData.length; i++) {
       if (info.mainData[i].orgaId == info.organization!.orgaId) {
         for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
           if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
@@ -49,8 +62,10 @@ class _SendDataState extends State<SendData> {
               if (info.mainData[i].orgaInstrumentos[j].instComentarios[k]
                       .comeReviId ==
                   info.revision?.reviId) {
+
                 Comentario comment = new Comentario(
-                    comeId: Util.generateUUID(),
+                    comeId: info.mainData[i].orgaInstrumentos[j]
+                        .instComentarios[k].comeId,
                     comeFecha: info.mainData[i].orgaInstrumentos[j]
                         .instComentarios[k].comeFecha,
                     comeReviId: info.mainData[i].orgaInstrumentos[j]
@@ -74,10 +89,13 @@ class _SendDataState extends State<SendData> {
                 if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
                         .puntPrueba[l].prueReviId ==
                     info.revision?.reviId) {
-                  Prueba prueba = new Prueba(
-                      prueValor1: 2.0,
-                      prueValor2: 2.9,
-                      prueId: Util.generateUUID(),
+                  Prueba prueba =  Prueba(
+                      prueValor1: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueValor1,
+                      prueValor2: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueValor2,
+                      prueId: info.mainData[i].orgaInstrumentos[j]
+                          .instVariables[k].puntPrueba[l].prueId,
                       prueComentario: info.mainData[i].orgaInstrumentos[j]
                           .instVariables[k].puntPrueba[l].prueDescripcion,
                       prueFecha: info.mainData[i].orgaInstrumentos[j]
@@ -101,7 +119,7 @@ class _SendDataState extends State<SendData> {
           }
         }
       }
-    }
+    }*/
 
 
   }
@@ -141,12 +159,13 @@ class _SendDataState extends State<SendData> {
     final orgaId = resultRevision.orgaId;
 
     for (var test in resultRevision.pruebas) {
-      var result = await api.insertTest(orgaId, test);
+      var result = await api.insertPruebas(orgaId, test);
 
-      if (result == null) {
+      /*if (result == null) {
         showMsg("Error al insertar la Prueba con orgaId: ${orgaId}");
         return false; // Retorna false inmediatamente si alguna inserción falla
-      }
+      }*/
+
     }
 
     return true;

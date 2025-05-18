@@ -262,7 +262,6 @@ class _TakePhotoState extends State<TakePhoto> {
     );
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
-
     if(index == null){
       //fallo el update
       return;

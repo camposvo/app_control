@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:control/models/resultRevision.dart';
+
 List<OrgaInstrumento> orgaInstrumentoFromJson(String str) => List<OrgaInstrumento>.from(json.decode(str).map((x) => OrgaInstrumento.fromJson(x)));
 
 String orgaInstrumentoToJson(List<OrgaInstrumento> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
@@ -129,8 +131,58 @@ class OrgaInstrumento {
     return false; // Indica que no se encontró el PuntPrueba
   }
 
+  //  ************* NUEVO METODO PARA OBTENER Lista de InstComentario por comeReviId ******************************
+  List<Comentario> getComentariosByReviId(String comeReviId) {
+    List<Comentario> comentariosEncontrados = [];
+
+    for (var instrumento in orgaInstrumentos) {
+      for (var comentario in instrumento.instComentarios) {
+        if (comentario.comeReviId == comeReviId) {
+
+          Comentario comment = Comentario(comeFecha: comentario.comeFecha,
+              comeId: comentario.comeId,
+              comeReviId: comentario.comeReviId,
+              comeInstId: instrumento.instId,
+              comeDescripcion: comentario.comeDescripcion);
+
+          comentariosEncontrados.add(comment);
+        }
+      }
+    }
+
+    return comentariosEncontrados;
+  }
 
 
+  //  ************* NUEVO METODO PARA OBTENER Lista de PuntPrueba por prueReviId ******************************
+  List<Prueba> getPruebasByReviId(String prueReviId) {
+    List<Prueba> pruebasEncontradas = [];
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        for (var prueba in variable.puntPrueba) {
+          if (prueba.prueReviId == prueReviId) {
+
+            Prueba temp = Prueba(
+              prueId: prueba.prueId,
+              prueReviId : prueba.prueReviId,
+              pruePuntId: variable.puntId,
+              prueComentario: prueba.prueDescripcion,
+              prueFecha: prueba.prueFecha,
+              prueRecurso2: prueba.prueFoto2,
+              prueRecurso1: prueba.prueFoto1,
+              reviNumero: prueba.reviNumero,
+              prueValor1: prueba.prueValor1,
+              prueValor2: prueba.prueValor2,
+            );
+
+            pruebasEncontradas.add(temp);
+          }
+        }
+      }
+    }
+
+    return pruebasEncontradas;
+  }
 
 
 }

@@ -250,7 +250,10 @@ class _ShowTestingState extends State<ShowTesting> {
     final description = _filterList[index].prueDescripcion;
     final prueEnviado = _filterList[index].prueEnviado;
     final prueId = _filterList[index].prueId;
-    final dateTest = Util.formatearFecha(_filterList[index].prueFecha);
+    final valor1 = _filterList[index].prueValor1;
+    final valor2 = _filterList[index].prueValor2;
+
+    final dateTest = Util.formatDateTime(_filterList[index].prueFecha);
     Color bgColor = AppColor.secondaryColor;
     Color fontColor = Colors.white;
     bool testLoaded = false;
@@ -284,6 +287,8 @@ class _ShowTestingState extends State<ShowTesting> {
                         ),
                         setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
                         setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor 1: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor 2: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                       ],
                     ),
