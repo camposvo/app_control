@@ -112,6 +112,26 @@ class OrgaInstrumento {
     return false; // Indica que no se encontró el PuntPrueba
   }
 
+  //  ************* NUEVO METODO PARA ELIMINAR PuntPrueba ******************************
+  bool deletePuntPrueba(String prueId) {
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        for (int i = 0; i < variable.puntPrueba.length; i++) {
+          if (variable.puntPrueba[i].prueId == prueId) {
+            variable.puntPrueba[i].prueActivo = 0;
+            print('PuntPrueba con ID $prueId del instrumento ${instrumento.instId} actualizado.');
+            return true; // Indica que se encontró y actualizó el PuntPrueba
+          }
+        }
+      }
+    }
+    print('No se encontró ningún PuntPrueba con el ID: $prueId en la organización: $orgaId.');
+    return false; // Indica que no se encontró el PuntPrueba
+  }
+
+
+
+
 
 }
 

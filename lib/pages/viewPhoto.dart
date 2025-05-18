@@ -215,7 +215,6 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
   }
 
-
   @override
   Widget build(BuildContext context) {
     switch (_widgetState) {

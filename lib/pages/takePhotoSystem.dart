@@ -88,10 +88,13 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
   //topic for General Message Interchange
   String masterMqtt = '';
 
+  String? prueId = null;
+
 
   @override
   void initState() {
     super.initState();
+    prueId = widget.prueId;
     _loadData();
   }
 

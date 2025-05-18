@@ -104,6 +104,7 @@ class _TakePhotoState extends State<TakePhoto> {
   String masterConnMqtt = '_MASTER_CONN';
   String slaveConnMqtt = '_SLAVE_CONN';
   String? prueId = null;
+  int? prueEnviado = 0;
 
 
 
@@ -213,7 +214,7 @@ class _TakePhotoState extends State<TakePhoto> {
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
-      prueFoto2: imageBase64_2,
+      prueFoto2: imageBase64_1,
       reviNumero: info.revision!.reviNumero,
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
@@ -246,10 +247,10 @@ class _TakePhotoState extends State<TakePhoto> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     PuntPrueba puntPrueba = new PuntPrueba(
-      prueId: prueId,
+      prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
-      prueFoto2: imageBase64_2,
+      prueFoto2: imageBase64_1,
       reviNumero: info.revision!.reviNumero,
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
@@ -1014,13 +1015,14 @@ class _TakePhotoState extends State<TakePhoto> {
             return;
           }
 
+          //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
 
 
-          if(prueId == null){
+          if(prueId == null) {
             _addPuntPrueba(context);
           }
 
-          if(prueId != null){
+          if(prueId != null ){
             _updatePuntPrueba(context, prueId!);
           }
 

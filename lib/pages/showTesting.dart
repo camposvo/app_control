@@ -100,6 +100,27 @@ class _ShowTestingState extends State<ShowTesting> {
 
   }
 
+  bool _deletePuntPrueba(BuildContext context, String prueId) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return false;
+    }
+
+    final result = info.mainData[index].deletePuntPrueba(prueId);
+    if(!result){
+      print('No se encontró ninguna variable con el puntId en la organización');
+      return false;
+    }
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (_widgetState) {
@@ -227,42 +248,56 @@ class _ShowTestingState extends State<ShowTesting> {
   Widget _itemListView(int index, BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
     final description = _filterList[index].prueDescripcion;
+    final prueEnviado = _filterList[index].prueEnviado;
     final prueId = _filterList[index].prueId;
     final dateTest = Util.formatearFecha(_filterList[index].prueFecha);
     Color bgColor = AppColor.secondaryColor;
     Color fontColor = Colors.white;
     bool testLoaded = false;
+    int prueActivo = _filterList[index].prueActivo;
 
-    return new Container(
+    if(prueActivo == 0){
+      bgColor = AppColor.redColor;
+    }
+
+    return  Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
         color:  bgColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
-        child: new Padding(
-          padding: new EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Padding(
+          padding: EdgeInsets.all(8),
+          child: Column(
             children: [
-              SizedBox(
-                width: 190,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 10,
-                    ),
-                    setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
-                    setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(
+                          width: 10,
+                        ),
+                        setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
 
-                  ],
-                ),
+                      ],
+                    ),
+                  ),
+
+
+                ],
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   _btnViewPhoto(context, fontColor, prueId),
-                  _btnUpdatePrueba(context, fontColor, prueId),
+                  if(prueActivo == 1)_btnUpdatePrueba(context, fontColor, prueId),
+                  if(prueActivo == 1)_btnDeletePrueba(context, fontColor,prueId),
                 ],
               ),
 
@@ -271,7 +306,6 @@ class _ShowTestingState extends State<ShowTesting> {
         ),
       ),
     );
-
   }
 
   Widget _btnViewPhoto(BuildContext context, Color fontColor,String prueId){
@@ -356,12 +390,14 @@ class _ShowTestingState extends State<ShowTesting> {
 
     final info = Provider.of<ProviderPages>(context, listen: false);
     return  IconButton(
+      padding: EdgeInsets.zero,
       onPressed: () async {
 
         if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
           Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => TakePhotoSystem(
-                prueId: prueId),
+                prueId: prueId,
+            ),
           )).then((_) async{
             await _loadData();
           });
@@ -371,7 +407,8 @@ class _ShowTestingState extends State<ShowTesting> {
         if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
           Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => TakePhoto(
-                prueId: prueId),
+                prueId: prueId,
+            ),
           )).then((_) async {
             await _loadData();
           });
@@ -381,6 +418,31 @@ class _ShowTestingState extends State<ShowTesting> {
       },
       icon: Icon(
         Icons.camera_alt,
+        color: fontColor,
+        size: 24.0,
+      ),
+    );
+  }
+
+  Widget _btnDeletePrueba(BuildContext context, Color fontColor,  String prueId){
+
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    return  IconButton(
+      padding: EdgeInsets.zero,
+      onPressed: () async {
+        final result = _deletePuntPrueba(context, prueId);
+
+        if(result){
+          showMsg("Registro Borrado Existosamente");
+          _loadData();
+          return;
+        }
+
+        showError("Error al Borrar el Registro");
+
+      },
+      icon: Icon(
+        Icons.delete,
         color: fontColor,
         size: 24.0,
       ),
