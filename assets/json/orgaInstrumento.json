@@ -23,6 +23,7 @@
           {
             "punt_id": "174722ae-0195-7000-9f58-254f62638e48",
             "vari_id": "12590a8d-0195-7000-bcf8-4c4d786c5a4f",
+            "vari_tipo": "instantanea",
             "punt_prueba": [
               {
                 "prue_id": "28df352b-0195-7000-9b57-6b7d2ffc0958",
@@ -45,17 +46,6 @@
             "vari_subu_id": "1254e9a1-0195-7000-9871-5702bdd314b3",
             "subu_abreviatura": "kWh",
             "vari_abreviatura": "Eactiva"
-          },
-          {
-            "punt_id": "174722b1-0195-7000-8172-692881f21caa",
-            "vari_id": "125fd726-0195-7000-b53c-64dd52261189",
-            "punt_prueba": [],
-            "subu_nombre": "Kilowatts",
-            "vari_nombre": "Demanda (dda)",
-            "subu_simbolo": "",
-            "vari_subu_id": "125f2629-0195-7000-b5ee-76b81fb89578",
-            "subu_abreviatura": "kW",
-            "vari_abreviatura": "dda"
           }
         ],
         "inst_proteccion": 2.5,

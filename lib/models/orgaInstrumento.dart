@@ -294,6 +294,7 @@ class InstComentario {
 class InstVariable {
   String puntId;
   String variId;
+  String variTipo;
   List<PuntPrueba> puntPrueba;
   String subuNombre;
   String variNombre;
@@ -305,6 +306,7 @@ class InstVariable {
   InstVariable({
     required this.puntId,
     required this.variId,
+    required this.variTipo,
     required this.puntPrueba,
     required this.subuNombre,
     required this.variNombre,
@@ -317,6 +319,7 @@ class InstVariable {
   factory InstVariable.fromJson(Map<String, dynamic> json) => InstVariable(
     puntId: json["punt_id"],
     variId: json["vari_id"],
+    variTipo: json["vari_tipo"],
     puntPrueba: List<PuntPrueba>.from(json["punt_prueba"].map((x) => PuntPrueba.fromJson(x))),
     subuNombre: json["subu_nombre"],
     variNombre: json["vari_nombre"],
@@ -329,6 +332,7 @@ class InstVariable {
   Map<String, dynamic> toJson() => {
     "punt_id": puntId,
     "vari_id": variId,
+    "vari_tipo": variTipo,
     "punt_prueba": List<dynamic>.from(puntPrueba.map((x) => x.toJson())),
     "subu_nombre": subuNombre,
     "vari_nombre": variNombre,
@@ -337,6 +341,12 @@ class InstVariable {
     "subu_abreviatura": subuAbreviatura,
     "vari_abreviatura": variAbreviatura,
   };
+
+  //  ************* NUEVO METODO PARA CONTAR PRUEBAS ACTIVAS ******************************
+  int countActivePruebas() {
+    return puntPrueba.where((prueba) => prueba.prueActivo == 1).length;
+  }
+
 }
 
 class PuntPrueba {

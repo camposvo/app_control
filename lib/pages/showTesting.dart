@@ -52,7 +52,9 @@ class _ShowTestingState extends State<ShowTesting> {
   late OrgaInstrumentoElement instrument;
   late InstVariable variable ;
   late OrgaInstrumento orgaInstrument;
-  int _indiceSeleccionado = 0; // Índice del botón activo
+
+
+  bool enabledAddBtn = false;
 
   WidgetState _widgetState = WidgetState.LOADING;
 
@@ -88,17 +90,28 @@ class _ShowTestingState extends State<ShowTesting> {
     variable = instrument.instVariables.firstWhere((item) => item.variId == info.varId);
 
 
-
     _puntPruebas =  [...variable.puntPrueba];
     _filterList =  [...variable.puntPrueba];
 
-    Util.printInfo("Total Pruebas", variable.variNombre);
-    Util.printInfo("Total Pruebas", variable.puntPrueba.length.toString());
+    enabledAddBtn = getStateAddBtn();
 
     _widgetState = WidgetState.SHOW_LIST;
     setState(() {});
 
   }
+
+  bool getStateAddBtn(){
+    if(variable.variTipo == 'instantanea' && variable.countActivePruebas() == 0){
+      return true;
+    }
+
+    if(variable.variTipo == 'acumulada' && variable.countActivePruebas() < 2){
+      return true;
+    }
+
+    return false;
+  }
+
 
   bool _deletePuntPrueba(BuildContext context, String prueId) {
     final info = Provider.of<ProviderPages>(context, listen: false);
@@ -336,6 +349,8 @@ class _ShowTestingState extends State<ShowTesting> {
 
   Widget _btnAddPrueba(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
+
+
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
       child: Row(
@@ -351,7 +366,7 @@ class _ShowTestingState extends State<ShowTesting> {
                 backgroundColor: AppColor.themeColor,
                 padding: EdgeInsets.all(10.0),
               ),
-              onPressed: () {
+              onPressed: enabledAddBtn ? () {
 
                 if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
                   Navigator.of(context).push(MaterialPageRoute(
@@ -371,7 +386,8 @@ class _ShowTestingState extends State<ShowTesting> {
                     await _loadData();
                   });
                 }
-              },
+
+              }: null,
               icon: Icon(
                 Icons.camera_alt, // Usa el icono de cámara que prefieras
                 color: Colors.white, // Ajusta el color del icono si es necesario
