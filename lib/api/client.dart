@@ -162,14 +162,13 @@ class _Clients {
       return null;
     }
 
-    return null;
-
   }
 
   Future<String?> insertPruebas(String orgaId, Prueba data) async {
 
     final test = data.toJson();
 
+    Util.printInfo("Peticion", test.toString());
 
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
@@ -200,8 +199,6 @@ class _Clients {
       print(e);
       return null;
     }
-
-    return null;
 
   }
 

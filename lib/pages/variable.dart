@@ -20,6 +20,8 @@ import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, SHOW_LIST }
 
+enum ModeState { ADD, EDIT }
+
 class Variable extends StatefulWidget {
   const Variable({super.key});
 
@@ -46,9 +48,11 @@ class _VariableState extends State<Variable> {
   List<InstVariable> _filterList = [];
   late OrgaInstrumentoElement instrument;
   late OrgaInstrumento orgaInstrument;
+  late InstComentario instComentario;
   int _indiceSeleccionado = 0; // Índice del botón activo
 
   WidgetState _widgetState = WidgetState.LOADING;
+  ModeState _modeState = ModeState.ADD;
 
   String orgaId = '';
   int _listos = 0;
@@ -68,6 +72,8 @@ class _VariableState extends State<Variable> {
   }
 
   Future<void> _loadData() async {
+
+    // PREMISA NO DEBE HABER MAS DE UN COMENTARIO POR NUMERO DE REVISION PARA UN MEDIDOR
     _widgetState = WidgetState.LOADING;
     setState(() {});
 
@@ -82,10 +88,12 @@ class _VariableState extends State<Variable> {
     orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization!.orgaId);
     instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
-    for (var item in instrument.instComentarios) {
-      if (item.comeReviId == info.revision!.reviId) {
-        if(commentInstrument.contains(item.comeDescripcion)) dropdownValue = item.comeDescripcion;
-      }
+    final result = instrument.getFirstComentarioByReviId(info.revision!.reviId);
+
+    if(result != null){
+      instComentario = result;
+      dropdownValue = result.comeDescripcion;
+      _modeState = ModeState.EDIT;
     }
 
     variables =  [...instrument.instVariables];
@@ -93,10 +101,6 @@ class _VariableState extends State<Variable> {
 
 
     _onChangeBoton();
-    // Por defecto se muestra solo las Energias
-   /* _filterList = variables.where((item) {
-      return item.variNombre.toLowerCase().contains("energia");
-    }).toList();*/
 
     //Cantidad de Variables Listos
     _listos = variables.where((elemento) {
@@ -116,22 +120,10 @@ class _VariableState extends State<Variable> {
 
   }
 
-  void _savePuntoPrueba(BuildContext context, int value){
+  void _addCommentByInstrument(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    bool found = false;
-
-   /* Comentario comment = new Comentario(
-      comeId: Util.generateUUID(),
-      comeFecha:  DateTime.now(),
-      comeReviId: info.revision!.reviId,
-      comeDescripcion:  dropdownValue!,
-      comeInstId: info.instId,
-    );
-
-    info.resultData.comentarios.add(comment);
-    info.resultDataUpdate(info.resultData);*/
-
+    Util.printInfo("PASO ", "ADICIONAR");
 
     InstComentario comment1 = InstComentario(
         comeId: Util.generateUUID(),
@@ -143,41 +135,29 @@ class _VariableState extends State<Variable> {
         reviEntiId: info.revision!.reviEntiId,
     );
 
+    instrument.addComentario(comment1);
 
-    for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization!.orgaId) {
-        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
-          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
-
-            for (var k = 0; k <
-                info.mainData[i].orgaInstrumentos[j].instComentarios
-                    .length; k++) {
-              if (info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                  .comeReviId == info.revision?.reviId) {
-                found=true;
-                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                    .comeId = Util.generateUUID();
-                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                    .comeEnviado = value;
-                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                    .comeDescripcion = dropdownValue!;
-                info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                    .comeFecha = DateTime.now();
-
-              }
-            }
-
-            if(!found) info.mainData[i].orgaInstrumentos[j].instComentarios.add(comment1);
-        /*    Util.printInfo("title", "encontrado");*/
-
-          }
-        }
-      }
-    }
     info.mainDataUpdate(info.mainData);
+  }
 
-    //Util.printInfo("title", msg);
+  void _updateComment(BuildContext context, String comeId ){
+    final info = Provider.of<ProviderPages>(context, listen: false);
 
+    Util.printInfo("PASO ", "ACTUALIZO");
+
+    InstComentario comment1 = InstComentario(
+      comeId: Util.generateUUID(),
+      comeFecha:  DateTime.now(),
+      comeReviId: info.revision!.reviId,
+      comeDescripcion:  dropdownValue!,
+      reviNumero:  info.revision!.reviNumero,
+      comeEnviado: 2,
+      reviEntiId: info.revision!.reviEntiId,
+    );
+
+    instrument.updateComentario(comeId, comment1);
+
+    info.mainDataUpdate(info.mainData);
   }
 
   @override
@@ -320,6 +300,7 @@ class _VariableState extends State<Variable> {
   }
 
   Widget _createListView(BuildContext context) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
         height: MediaQuery.of(context).size.height,
@@ -328,15 +309,19 @@ class _VariableState extends State<Variable> {
           itemCount: _filterList.length,
           itemBuilder: (context, index) {
             return InkWell(
-                child: _itemListView(index, context), onTap: () {
+                child: _itemListView(index, context), onTap: () async {
+              setState(() {
+                info.puntId = _filterList[index].puntId;
+                info.varId = _filterList[index].variId;
+              });
 
-              /*Navigator.pushNamed(context, 'variable',
-                  arguments: {'id': _filterList[index].variNombre})
-                  .then((_) async {
+              Navigator.pushNamed(context, 'showTesting').then((_) async {
+                await _loadData();
+              });
 
-              });*/
 
-            });
+            },
+            );
           },
         )
             : Center(
@@ -404,7 +389,7 @@ class _VariableState extends State<Variable> {
                   ],
                 ),
               ),
-              Row(
+             /* Row(
                 children: [
                   IconButton(
                     onPressed: () async {
@@ -426,7 +411,7 @@ class _VariableState extends State<Variable> {
                     ),
                   ),
                 ],
-              ),
+              ),*/
 
             ],
           ),
@@ -486,7 +471,9 @@ class _VariableState extends State<Variable> {
                       return;
                     }
 
-                    _savePuntoPrueba(context, 2);
+                    if(_modeState == ModeState.ADD) _addCommentByInstrument(context);
+                    if(_modeState == ModeState.EDIT) _updateComment(context, instComentario.comeId);
+
                     info.pendingData = true;
                     setState(() {});
                     await showMsg('Medidor Finalizado');

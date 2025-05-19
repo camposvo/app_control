@@ -55,6 +55,7 @@ class _ShowTestingState extends State<ShowTesting> {
 
 
   bool enabledAddBtn = false;
+  bool cumulativeIsComplete = false;
 
   WidgetState _widgetState = WidgetState.LOADING;
 
@@ -89,9 +90,11 @@ class _ShowTestingState extends State<ShowTesting> {
 
     variable = instrument.instVariables.firstWhere((item) => item.variId == info.varId);
 
+    _puntPruebas = variable.getPruebasByReviId(info.revision!.reviId);
+    _puntPruebas.sort((a, b) => a.prueActivo.compareTo(b.prueActivo));
 
-    _puntPruebas =  [...variable.puntPrueba];
-    _filterList =  [...variable.puntPrueba];
+    _filterList = variable.getPruebasByReviId(info.revision!.reviId);
+    _filterList.sort((a, b) => b.prueActivo.compareTo(a.prueActivo));
 
     enabledAddBtn = getStateAddBtn();
 
@@ -105,11 +108,42 @@ class _ShowTestingState extends State<ShowTesting> {
       return true;
     }
 
-    if(variable.variTipo == 'acumulada' && variable.countActivePruebas() < 2){
+    if(variable.variTipo == 'acumulativa' && variable.countActivePruebas() < 2){
       return true;
     }
 
     return false;
+  }
+
+  String getErrorCumulative(){
+
+    final puntPruebaActivo = _puntPruebas.where((prueba) => prueba.prueActivo == 1).toList();
+
+    if(puntPruebaActivo.length != 2) {
+      return 'Deben existir dos pruebas para el Calculo';
+    }
+
+    //Se ordena la lista desde el mas antiguo hasta el mas reciente
+    puntPruebaActivo.sort((a, b) => a.prueFecha.compareTo(b.prueFecha));
+
+    final valor1a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor1);
+    final valor2a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor2);
+    final valor1b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor1);
+    final valor2b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor2);
+
+    if(valor1a == null || valor2a == null  || valor1b == null || valor2b == null ){
+      return 'Existe un valor Invalido en el Calculo';
+    }
+
+    final valor1Result = valor1b - valor1a;
+    final valor2Result = valor2b - valor2a;
+
+    if(valor2Result == 0){
+      return 'Error al Dividor por 0';
+    }
+
+    final error = (valor1Result-valor2Result)/valor2Result;
+    return error.toStringAsFixed(3);
   }
 
 
@@ -208,8 +242,10 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
           setCommonText(variable.variNombre, Colors.black, 18.0, FontWeight.w400, 20),
           SizedBox(
-            height: 8,
+            height: 0,
           ),
+          setCommonText( '(${variable.variTipo})' , Colors.black, 18.0, FontWeight.w400, 20),
+
           _btnAddPrueba(context),
           SizedBox(
             height: 8,
@@ -220,6 +256,8 @@ class _ShowTestingState extends State<ShowTesting> {
           SizedBox(
             height: 10,
           ),
+          if(variable.variTipo == 'acumulativa' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
+            showErrorCumulative(context),
 
         ],
       ),
@@ -236,12 +274,6 @@ class _ShowTestingState extends State<ShowTesting> {
           itemBuilder: (context, index) {
             return InkWell(
                 child: _itemListView(index, context), onTap: () {
-
-              /*Navigator.pushNamed(context, 'variable',
-                  arguments: {'id': _filterList[index].variNombre})
-                  .then((_) async {
-
-              });*/
 
             });
           },
@@ -267,7 +299,7 @@ class _ShowTestingState extends State<ShowTesting> {
     final valor2 = _filterList[index].prueValor2;
 
     final dateTest = Util.formatDateTime(_filterList[index].prueFecha);
-    Color bgColor = AppColor.secondaryColor;
+    Color bgColor = Colors.grey;
     Color fontColor = Colors.white;
     bool testLoaded = false;
     int prueActivo = _filterList[index].prueActivo;
@@ -300,14 +332,19 @@ class _ShowTestingState extends State<ShowTesting> {
                         ),
                         setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
                         setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
+
+                        if(info.moduleSelected == ModuleSelect.NO_SYSTEM)
                         setCommonText("Valor 1: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
+
+                        if(info.moduleSelected == ModuleSelect.NO_SYSTEM)
                         setCommonText("Valor 2: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
+
+                        if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
+                          getErrorInstant(context, fontColor, valor1, valor2),
 
                       ],
                     ),
                   ),
-
-
                 ],
               ),
               Row(
@@ -349,7 +386,6 @@ class _ShowTestingState extends State<ShowTesting> {
 
   Widget _btnAddPrueba(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
-
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
@@ -451,6 +487,13 @@ class _ShowTestingState extends State<ShowTesting> {
     return  IconButton(
       padding: EdgeInsets.zero,
       onPressed: () async {
+
+        final confirm = await showConfirmDelete(context);
+
+        if(!confirm ){
+          return;
+        }
+
         final result = _deletePuntPrueba(context, prueId);
 
         if(result){
@@ -468,6 +511,104 @@ class _ShowTestingState extends State<ShowTesting> {
         size: 24.0,
       ),
     );
+  }
+
+  Widget getErrorInstant(BuildContext context, Color fontColor, dynamic valor1, dynamic valor2){
+
+    final resultVal1 = Util.parseDynamicToDouble(valor1);
+    if(resultVal1 == null){
+      return showErrorInstant(context, "Valor 1 NaN");
+
+    }
+
+    final resultVal2 = Util.parseDynamicToDouble(valor2);
+    if(resultVal2 == null){
+      return showErrorInstant(context, "Valor 2 NaN");
+    }
+
+    if(resultVal2 == 0){
+      return showErrorInstant(context, "Falla por División por 0");
+    }
+
+    final error = (resultVal1-resultVal2)/resultVal2;
+    final errorResult = error.toStringAsFixed(3);
+    return showErrorInstant(context, errorResult);
+
+  }
+
+  Widget showErrorInstant(BuildContext context, String valor){
+
+    return Container(
+      padding:  EdgeInsets.all(8.0),
+      margin: EdgeInsets.only(top: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Error: ',
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.normal,
+              color: Colors.black87, // Un color para el título
+            ),
+          ),
+          // Espacio entre el título y el segundo texto
+          Text(
+            valor,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+              color: Colors.black54, // Un color más suave para el cuerpo del texto
+            ),
+          ),
+        ],
+      ),
+    );
+
+  }
+
+  Widget showErrorCumulative(BuildContext context){
+
+    final resultError =  getErrorCumulative();
+
+    return Container(
+      padding:  EdgeInsets.all(20.0),
+      margin: EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Error Acumulada',
+            style: TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87, // Un color para el título
+            ),
+          ),
+          SizedBox(height: 8.0), // Espacio entre el título y el segundo texto
+          Text(
+            resultError,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 24.0,
+              color: Colors.black54, // Un color más suave para el cuerpo del texto
+            ),
+          ),
+        ],
+      ),
+    );
+
   }
 
 } 

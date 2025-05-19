@@ -364,14 +364,95 @@ Future<bool> showConfirm(BuildContext context) async {
           ),
         ),
         actions: <Widget>[
-          TextButton(
-            child: const Text('Cancelar'),
+          ElevatedButton( // Usamos ElevatedButton para el botón de cancelar
+            child: const Text('Cancelar',style: TextStyle(
+              color: Colors.white, // Color del texto
+              // Puedes agregar más propiedades de TextStyle aquí
+            )),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.redColor,
+              padding: EdgeInsets.all(10.0),
+            ),
             onPressed: () {
               Navigator.of(context).pop(false); // Retorna falso al cancelar
             },
           ),
-          TextButton(
-            child: const Text('Confirmar'),
+          const SizedBox(width: 8.0), // Opcional: Espacio entre los botones
+          ElevatedButton( // Usamos ElevatedButton para el botón de confirmar
+            child: const Text('Confirmar', style: TextStyle(
+              color: Colors.white, // Color del texto
+              // Puedes agregar más propiedades de TextStyle aquí
+            ),),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.themeColor,
+              padding: EdgeInsets.all(10.0),
+            ),
+            onPressed: () async {
+              Navigator.of(context).pop(true); // Retorna verdadero al confirmar
+            },
+          ),
+        ],
+      );
+    },
+  ).then((value) => value ?? false); // Maneja el caso en que el diálogo se cierra sin seleccionar una opción
+}
+
+Future<bool> showConfirmDelete(BuildContext context) async {
+  final info = Provider.of<ProviderPages>(context, listen: false);
+
+  return showDialog<bool>( // Cambia el tipo de retorno a Future<bool>
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirmación'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: const <Widget>[
+              Text('¿Estás seguro de borrar el Registro?'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton( // Usamos ElevatedButton para el botón de cancelar
+            child: const Text('Cancelar',style: TextStyle(
+              color: Colors.white, // Color del texto
+              // Puedes agregar más propiedades de TextStyle aquí
+            )),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.redColor,
+              padding: EdgeInsets.all(10.0),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(false); // Retorna falso al cancelar
+            },
+          ),
+          const SizedBox(width: 8.0), // Opcional: Espacio entre los botones
+          ElevatedButton( // Usamos ElevatedButton para el botón de confirmar
+            child: const Text('Confirmar', style: TextStyle(
+              color: Colors.white, // Color del texto
+              // Puedes agregar más propiedades de TextStyle aquí
+            ),),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.themeColor,
+              padding: EdgeInsets.all(10.0),
+            ),
             onPressed: () async {
               Navigator.of(context).pop(true); // Retorna verdadero al confirmar
             },

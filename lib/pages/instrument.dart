@@ -28,9 +28,6 @@ class _InstrumentState extends State<Instrument> {
 
   WidgetState _widgetState = WidgetState.LIST;
 
-
-
-
   int _listos = 0;
   int _total= 0;
 
@@ -204,7 +201,10 @@ class _InstrumentState extends State<Instrument> {
 
     final variables =  [..._filterList[index].instVariables];
 
+    //Util.printInfo("comentarios count  ", _filterList[index].instComentarios.length.toString() );
+
     for (var comment in _filterList[index].instComentarios) {
+      //Util.printInfo("comentarios ", comment.comeEnviado.toString() );
       if(comment.comeReviId == info.revision?.reviId) {
         if(comment.comeEnviado == 1){
           bgColor = AppColor.GreenReady;

@@ -137,7 +137,7 @@ class OrgaInstrumento {
 
     for (var instrumento in orgaInstrumentos) {
       for (var comentario in instrumento.instComentarios) {
-        if (comentario.comeReviId == comeReviId) {
+        if (comentario.comeReviId == comeReviId && comentario.comeEnviado == 2) {
 
           Comentario comment = Comentario(comeFecha: comentario.comeFecha,
               comeId: comentario.comeId,
@@ -160,7 +160,7 @@ class OrgaInstrumento {
     for (var instrumento in orgaInstrumentos) {
       for (var variable in instrumento.instVariables) {
         for (var prueba in variable.puntPrueba) {
-          if (prueba.prueReviId == prueReviId) {
+          if (prueba.prueReviId == prueReviId &&  prueba.prueEnviado == 2 ) {
 
             Prueba temp = Prueba(
               prueId: prueba.prueId,
@@ -173,6 +173,7 @@ class OrgaInstrumento {
               reviNumero: prueba.reviNumero,
               prueValor1: prueba.prueValor1,
               prueValor2: prueba.prueValor2,
+              prueActivo: prueba.prueActivo
             );
 
             pruebasEncontradas.add(temp);
@@ -249,6 +250,37 @@ class OrgaInstrumentoElement {
     "inst_ubic_area_nombre": instUbicAreaNombre,
     "inst_ubic_piso_nombre": instUbicPisoNombre,
   };
+
+  //  ************* NUEVO METODO PARA OBTENER EL PRIMER InstComentario POR comeReviId ******************************
+  InstComentario? getFirstComentarioByReviId(String comeReviId) {
+    for (var comentario in instComentarios) {
+      if (comentario.comeReviId == comeReviId) {
+        return comentario;
+      }
+    }
+    return null;
+  }
+
+  //  ************* NUEVO METODO PARA AGREGAR UN InstComentario ******************************
+  void addComentario(InstComentario nuevoComentario) {
+    instComentarios.add(nuevoComentario);
+    print('Nuevo comentario agregado al instrumento con ID: $instId');
+  }
+
+  //  ************* NUEVO METODO PARA ACTUALIZAR UN InstComentario ******************************
+  bool updateComentario(String comeId, InstComentario comentarioActualizado) {
+    for (int i = 0; i < instComentarios.length; i++) {
+      if (instComentarios[i].comeId == comeId) {
+        instComentarios[i] = comentarioActualizado;
+        print('Comentario con ID $comeId del instrumento $instId actualizado.');
+        return true; // Indica que se encontró y actualizó el comentario
+      }
+    }
+    print('No se encontró ningún comentario con el ID: $comeId en el instrumento: $instId');
+    return false; // Indica que no se encontró el comentario
+  }
+
+
 }
 
 class InstComentario {
@@ -346,6 +378,13 @@ class InstVariable {
   int countActivePruebas() {
     return puntPrueba.where((prueba) => prueba.prueActivo == 1).length;
   }
+
+  //  ************* NUEVO METODO PARA OBTENER TODAS LAS PRUEBAS POR prueReviId ******************************
+  List<PuntPrueba> getPruebasByReviId(String prueReviId) {
+    return puntPrueba.where((prueba) => prueba.prueReviId == prueReviId).toList();
+  }
+
+
 
 }
 

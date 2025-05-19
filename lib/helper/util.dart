@@ -8,6 +8,8 @@ import 'dart:math';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
 
 const String infoPrefix = 'MyAPP ';
 
@@ -147,6 +149,43 @@ class Util {
       List.generate(longitud, (index) => caracteres.codeUnitAt(
           random.nextInt(caracteres.length))),
     );
+  }
+
+  static double? parseDynamicToDouble(dynamic value) {
+    if (value == null) {
+      return null; // O puedes lanzar una excepción o devolver un valor por defecto
+    }
+
+    if (value is double) {
+      return value;
+    }
+
+    if (value is int) {
+      return value.toDouble(); // Los enteros también son válidos para operaciones con double
+    }
+
+    if (value is String) {
+      try {
+        final parsedValue = double.parse(value);
+        if (parsedValue.isNaN || parsedValue.isInfinite) {
+          return null; // No es un double válido (NaN o infinito)
+        }
+        return parsedValue;
+      } catch (e) {
+        return null; // La cadena no se pudo parsear a double
+      }
+    }
+
+    return null; // No es un tipo que podamos convertir a double de forma segura
+  }
+
+  static tz.TZDateTime convertUtcASantiago(DateTime utcDate) {
+    tzdata.initializeTimeZones();
+
+    tz.Location santiago = tz.getLocation('America/Santiago');
+    tz.TZDateTime santiagoDate = tz.TZDateTime.from(utcDate, santiago);
+
+    return santiagoDate;
   }
 
 

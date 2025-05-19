@@ -58,8 +58,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
   int maxTimeOut = 20;
 
 
-
-
   static const List<String> commentPunto = [
     'La prueba esta correcta',
     'La prueba esta incorrecta'
@@ -113,11 +111,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
     masterMqtt = info.organization!.orgaPrefijo +'/'+ instrument.instAbreviatura;
 
-    //masterMqtt = "A55/M45";
-
-/*    Util.printInfo("VARIABLE", jsonEncode(variable));
-    Util.printInfo("TOPIC", masterMqtt);*/
-
     // Initialize Camera
     final resultCamera = await _initCamera();
     if (resultCamera == 0) {
@@ -168,27 +161,9 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
     return 1;
   }
 
-  void _saveResult(BuildContext context, int value) {
+  void _addPuntPrueba(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
-    bool found = false;
 
-    //Guarda los datos en la variable para Enviarlos
-   /* Prueba test = Prueba(
-      prueId: Util.generateUUID(),
-      pruePuntId: variable.puntId,
-      prueFecha: DateTime.now(),
-      prueRecurso1: imageBase64_1,
-      prueRecurso2: "",
-      reviNumero: info.revision!.reviNumero,
-      prueReviId: info.revision!.reviId,
-      prueComentario: dropdownValue!,
-      prueValor1: null,
-      prueValor2: null,
-    );
-    info.resultData.pruebas.add(test);
-    info.resultDataUpdate(info.resultData);*/
-
-    //Guarda los datos en la estructura de datos principal
     PuntPrueba puntPrueba = new PuntPrueba(
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
@@ -200,86 +175,68 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: dropdownValue!,
       prueActivo: 1,
-      prueValor1: 2.0,
-      prueValor2: 2.0,
+      prueValor1: 0,
+      prueValor2: 0,
     );
 
 
-    for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization!.orgaId) {
-        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
-          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
-            for (var k = 0;
-                k < info.mainData[i].orgaInstrumentos[j].instVariables.length;
-                k++) {
-              if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                      .puntId ==
-                  info.puntId) {
-                for (var l = 0;
-                    l <
-                        info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                            .puntPrueba.length;
-                    l++) {
-                  if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                          .puntPrueba[l].prueReviId ==
-                      info.revision?.reviId) {
-                    found = true;
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueId = puntPrueba.prueId;
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return;
+    }
 
-                    info
-                        .mainData[i]
-                        .orgaInstrumentos[j]
-                        .instVariables[k]
-                        .puntPrueba[l]
-                        .prueDescripcion = puntPrueba.prueDescripcion;
+    final result = info.mainData[index].addPuntPrueba(info.puntId, puntPrueba);
 
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFecha = puntPrueba.prueFecha;
-
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFoto1 = puntPrueba.prueFoto1;
-
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueFoto2 = puntPrueba.prueFoto2;
-
-                    info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueEnviado = puntPrueba.prueEnviado;
-
-                    info.mainDataUpdate(info.mainData);
-
-                    return; // Elemento encontrado y modificado
-                  }
-                }
-
-                if (!found)
-                  info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                      .puntPrueba
-                      .add(puntPrueba);
-              }
-            }
-          }
-        }
-      }
+    if(!result){
+      print('No se encontró ninguna variable con el puntId en la organización');
+      return;
     }
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
   }
 
-  tz.TZDateTime convertUtcASantiago(DateTime utcDate) {
-    tzdata.initializeTimeZones();
+  void _updatePuntPrueba(BuildContext context, String prueId) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
 
-    tz.Location santiago = tz.getLocation('America/Santiago');
-    tz.TZDateTime santiagoDate = tz.TZDateTime.from(utcDate, santiago);
+    PuntPrueba puntPrueba = new PuntPrueba(
+      prueId: Util.generateUUID(),
+      prueFecha: DateTime.now(),
+      prueFoto1: imageBase64_1,
+      prueFoto2: "",
+      reviNumero: info.revision!.reviNumero,
+      prueEnviado: 2,
+      prueReviId: info.revision!.reviId,
+      reviEntiId: info.revision!.reviEntiId,
+      prueDescripcion: dropdownValue!,
+      prueActivo: 1,
+      prueValor1: 0,
+      prueValor2: 0,
+    );
 
-    return santiagoDate;
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return;
+    }
+
+    final result = info.mainData[index].updatePuntPrueba(prueId, puntPrueba);
+
+    if(!result){
+      //Fallo update
+      return;
+    }
+
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
   }
+
 
   void _subscribeMaster() {
     mqttManager.subscribe(masterMqtt, (message) {
-/*      Util.printInfo("MENSAJE", message);
-      Util.printInfo("VARIABLE", variable.variAbreviatura);*/
+
 
       final index = variable.variAbreviatura;
 
@@ -289,7 +246,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       valueMqtt = jsonData[index]["value"].toDouble();
       dateMqtt = DateTime.parse(jsonData[index]["fecha"]);
 
-      final santiagoDate = convertUtcASantiago(dateMqtt);
+      final santiagoDate = Util.convertUtcASantiago(dateMqtt);
 
       formattedValue = valueMqtt.toString();
       formattedDate = formatter.format(santiagoDate);
@@ -559,8 +516,17 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
                       showError('Debe seleccionar un Comentario');
                       return;
                     }
-                    _saveResult(context, 2);
-                    showMsg("Fotos Aceptadas");
+
+                    if(prueId == null) {
+                      _addPuntPrueba(context);
+                    }
+
+                    if(prueId != null ){
+                      _updatePuntPrueba(context, prueId!);
+                    }
+
+
+                    showMsg("Foto Aceptada");
                     Navigator.pop(context);
 
                   },

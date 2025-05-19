@@ -81,6 +81,10 @@ class _SettingDataState extends State<SettingData> {
                           ),
                           onPressed: () async {
                             final result = await showConfirm(context);
+
+                            if(!result){
+                              return;
+                            }
                            
                             if (result){
                               _message = "Borrando Data ...";
@@ -89,11 +93,11 @@ class _SettingDataState extends State<SettingData> {
                               
                               await info.clearData();
                              }
+
+
                             _isLoading = false;
                             setState(() {});
-                            showDialogMsg(context, "Datos Borrados");
-
-
+                            showMsg("Datos Borrados Exitosamente");
 
                           },
                           child: Text(

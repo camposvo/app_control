@@ -284,6 +284,8 @@ class _ViewPhotoState extends State<ViewPhoto> {
           SizedBox(
             height: 16,
           ),
+
+          if (info.moduleSelected == ModuleSelect.NO_SYSTEM)
           _value1Text(context),
 
           SizedBox(

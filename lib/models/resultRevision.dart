@@ -81,6 +81,7 @@ class Prueba {
   String prueRecurso2;
   dynamic prueValor1;
   dynamic prueValor2;
+  int prueActivo;
 
   Prueba({
     required this.prueId,
@@ -93,6 +94,7 @@ class Prueba {
     required this.prueRecurso2,
     required this.prueValor1,
     required this.prueValor2,
+    required this.prueActivo,
   });
 
   factory Prueba.fromJson(Map<String, dynamic> json) => Prueba(
@@ -106,6 +108,7 @@ class Prueba {
     prueRecurso2: json["prue_recurso_2"],
     prueValor1: json["prue_valor_1"],
     prueValor2: json["prue_valor_2"],
+    prueActivo: json["prue_activo"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -119,9 +122,9 @@ class Prueba {
     "prue_recurso_2": prueRecurso2,
     "prue_valor_1": prueValor1,
     "prue_valor_2": prueValor2,
+    "prue_activo": prueActivo,
   };
 }
-
 
 
 

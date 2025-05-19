@@ -34,8 +34,7 @@ class _SendDataState extends State<SendData> {
   void _loadData(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    //resultRevision = info.resultData;
-    resultRevision = new ResultRevision(
+    resultRevision = ResultRevision(
         orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
@@ -45,82 +44,8 @@ class _SendDataState extends State<SendData> {
     }
 
     resultRevision.comentarios = info.mainData[index].getComentariosByReviId(info.revision!.reviId);
-    Util.printInfo("title",info.revision!.reviId);
-    Util.printInfo("index",index.toString());
+
     resultRevision.pruebas = info.mainData[index].getPruebasByReviId(info.revision!.reviId);
-
-    Util.printInfo("index",resultRevision.pruebas.length.toString());
-
-
-  /*  for (var i = 0; i < info.mainData.length; i++) {
-      if (info.mainData[i].orgaId == info.organization!.orgaId) {
-        for (var j = 0; j < info.mainData[i].orgaInstrumentos.length; j++) {
-          if (info.mainData[i].orgaInstrumentos[j].instId == info.instId) {
-            for (var k = 0;
-                k < info.mainData[i].orgaInstrumentos[j].instComentarios.length;
-                k++) {
-              if (info.mainData[i].orgaInstrumentos[j].instComentarios[k]
-                      .comeReviId ==
-                  info.revision?.reviId) {
-
-                Comentario comment = new Comentario(
-                    comeId: info.mainData[i].orgaInstrumentos[j]
-                        .instComentarios[k].comeId,
-                    comeFecha: info.mainData[i].orgaInstrumentos[j]
-                        .instComentarios[k].comeFecha,
-                    comeReviId: info.mainData[i].orgaInstrumentos[j]
-                        .instComentarios[k].comeReviId,
-                    comeInstId: info.mainData[i].orgaInstrumentos[j].instId,
-                    comeDescripcion: info.mainData[i].orgaInstrumentos[j]
-                        .instComentarios[k].comeDescripcion);
-
-                resultRevision.comentarios.add(comment);
-              }
-            }
-
-            for (var k = 0;
-                k < info.mainData[i].orgaInstrumentos[j].instVariables.length;
-                k++) {
-              for (var l = 0;
-                  l <
-                      info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                          .puntPrueba.length;
-                  l++) {
-                if (info.mainData[i].orgaInstrumentos[j].instVariables[k]
-                        .puntPrueba[l].prueReviId ==
-                    info.revision?.reviId) {
-                  Prueba prueba =  Prueba(
-                      prueValor1: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueValor1,
-                      prueValor2: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueValor2,
-                      prueId: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueId,
-                      prueComentario: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueDescripcion,
-                      prueFecha: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueFecha,
-                      pruePuntId: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntId,
-                      prueRecurso1: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueFoto1,
-                      prueRecurso2: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueFoto2,
-                      prueReviId: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].prueReviId,
-                      reviNumero: info.mainData[i].orgaInstrumentos[j]
-                          .instVariables[k].puntPrueba[l].reviNumero);
-
-
-                  resultRevision.pruebas.add(prueba);
-                }
-              }
-            }
-          }
-        }
-      }
-    }*/
-
 
   }
 
@@ -158,13 +83,25 @@ class _SendDataState extends State<SendData> {
   Future<bool> _saveTest() async {
     final orgaId = resultRevision.orgaId;
 
+    int i = 1;
+
+    Util.printInfo("Pruebas", resultRevision.pruebas.length.toString());
+
+
     for (var test in resultRevision.pruebas) {
       var result = await api.insertPruebas(orgaId, test);
 
-      /*if (result == null) {
-        showMsg("Error al insertar la Prueba con orgaId: ${orgaId}");
+      _message = 'Enviando $i de ${resultRevision.pruebas.length}';
+      setState(() {});
+
+      Util.printInfo("Inaert", _message);
+
+      i++;
+
+      if (result == null) {
+        showMsg("Error al insertar la Prueba ID: ${test.prueId}");
         return false; // Retorna false inmediatamente si alguna inserción falla
-      }*/
+      }
 
     }
 
@@ -215,7 +152,7 @@ class _SendDataState extends State<SendData> {
                           ),
                           onPressed: () async {
                             if (!info.pendingData) {
-                              showMsg("No ya Data para Enviar");
+                              showMsg("No hay Data para Enviar");
                               return;
                             }
                             _isLoading = true;

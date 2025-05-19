@@ -214,7 +214,7 @@ class _TakePhotoState extends State<TakePhoto> {
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
-      prueFoto2: imageBase64_1,
+      prueFoto2: imageBase64_2,
       reviNumero: info.revision!.reviNumero,
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
@@ -250,7 +250,7 @@ class _TakePhotoState extends State<TakePhoto> {
       prueId: Util.generateUUID(),
       prueFecha: DateTime.now(),
       prueFoto1: imageBase64_1,
-      prueFoto2: imageBase64_1,
+      prueFoto2: imageBase64_2,
       reviNumero: info.revision!.reviNumero,
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
@@ -411,54 +411,6 @@ class _TakePhotoState extends State<TakePhoto> {
       }
     });
   }
-
-  void _subscribeSlaveConn() {
-    mqttManager.subscribe(slaveConnMqtt, (message) {
-      final data = tramaDatosFromJson(message);
-
-      switch (data.tipoMensaje) {
-        case 'STATE_CONNECTION' :
-          if (data.connetionReady == _connRemoteReady) {
-            Util.printInfo("mallllllllllll", _connRemoteReady.toString());
-            break;
-          }
-
-          _connRemoteReady = data.connetionReady;
-          setState(() {});
-          Util.printInfo("paso", _connRemoteReady.toString());
-          break;
-
-        default:
-          Util.printInfo("CAYO EN DEFAULT", data.tipoMensaje);
-      }
-
-    });
-  }
-
-  void _subscribeMasterConn() {
-    mqttManager.subscribe(masterConnMqtt, (message) {
-      final data = tramaDatosFromJson(message);
-
-
-      switch (data.tipoMensaje) {
-        case 'STATE_CONNECTION' :
-          if (data.connetionReady == _connRemoteReady) {
-
-            break;
-          }
-
-          _connRemoteReady = data.connetionReady;
-          setState(() {});
-          Util.printInfo("paso", _connRemoteReady.toString());
-          break;
-
-        default:
-          Util.printInfo("CAYO EN DEFAULT", data.tipoMensaje);
-      }
-
-    });
-  }
-
 
   Future<void> _publishMessage(String topic, TramaDatos message) async {
     final jsonData = tramaDatosToJson(message);
@@ -697,7 +649,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-     /*     if(!_connRemoteReady){
+         if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -710,7 +662,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }*/
+          }
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
@@ -731,7 +683,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Foto #1',
+            'Foto Nro. 1',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -759,21 +711,33 @@ class _TakePhotoState extends State<TakePhoto> {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
               ],
-              decoration: InputDecoration(labelText: 'Valor Foto #1'),
+              decoration: InputDecoration(
+                labelText: 'Valor Foto Nro. 1',
+                border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+                borderSide: BorderSide(
+                color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
+                width: 1.0, // El grosor que deseas para el borde deshabilitado
+              ),
+            ),
+              ),
             ),
           ),
           SizedBox(
             height: 20,
           ),
+          _btnInterchangePhoto(context),
+          SizedBox(
+            height: 20,
+          ),
           Text(
-            'Foto #2',
+            'Foto Nro. 2',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          (imageState == ImageState.RECEIVED)
+          (imageState == ImageState.WAITING)
               ? SizedBox(
                   height: 500,
                   child: Center(
@@ -786,11 +750,14 @@ class _TakePhotoState extends State<TakePhoto> {
                       minScale: 0.5, // Define el zoom mínimo (opcional)
                       maxScale: 3.0, // Define el zoom máximo (opcional)
                       child: Image.memory(
-                        base64Decode(imageBase64_1),
+                        base64Decode(imageBase64_2),
                         height: 500,
                         fit: BoxFit.contain, // Importante: Usa BoxFit.contain
                       ),
                     ),
+                  SizedBox(
+                    height: 20,
+                  ),
                   SizedBox(
                     width: 200,
                     child: TextField(
@@ -799,7 +766,15 @@ class _TakePhotoState extends State<TakePhoto> {
                       inputFormatters: <TextInputFormatter>[
                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                       ],
-                      decoration: InputDecoration(labelText: 'Valor Foto #2'),
+                      decoration: InputDecoration(
+                        labelText: 'Valor Foto Nro. 2',
+                        border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+                          borderSide: BorderSide(
+                            color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
+                            width: 1.0, // El grosor que deseas para el borde deshabilitado
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -807,8 +782,6 @@ class _TakePhotoState extends State<TakePhoto> {
           SizedBox(
             height: 20,
           ),
-          _showCalculate(context),
-
           Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -826,26 +799,6 @@ class _TakePhotoState extends State<TakePhoto> {
           )
         ],
       ),
-    );
-  }
-
-  Widget _showCalculate(BuildContext context ){
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Calculo: ',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        Text(" #####.###",  style: const TextStyle(
-          fontWeight: FontWeight.normal,
-          fontSize: 18,
-        ),),
-      ],
     );
   }
 
@@ -1037,6 +990,61 @@ class _TakePhotoState extends State<TakePhoto> {
             fontSize: 14,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _btnInterchangePhoto(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return  SizedBox(
+      width: 150,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(10.0), // Radio de 10.0
+          ),
+          backgroundColor: AppColor.themeColor,
+          padding: EdgeInsets.all(10.0),
+        ),
+        onPressed: () {
+          final temp = _controller1.text;
+          _controller1.text = _controller2.text;
+          _controller2.text = temp;
+
+          final temp2 = imageBase64_1;
+          imageBase64_1 = imageBase64_2;
+          imageBase64_2 = temp2;
+
+          setState(() {});
+          showMsg("Fotos Intercambiadas");
+
+        },
+        child: Row(
+        mainAxisSize: MainAxisSize.min, // Ajusta el Row al tamaño de sus hijos
+        children: <Widget>[
+          Icon(
+            Icons.keyboard_double_arrow_up, // El icono que quieras al inicio
+            color: Colors.white,
+            size: 20.0,
+          ),
+          SizedBox(width: 8.0), // Espacio entre el icono y el texto
+          Text(
+            'Intercambiar',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+            ),
+          ),
+          SizedBox(width: 8.0), // Espacio entre el texto y el icono
+          Icon(
+            Icons.keyboard_double_arrow_down, // El icono que quieras al final (puedes usar otro diferente)
+            color: Colors.white,
+            size: 20.0,
+          ),
+        ],
+      ),
       ),
     );
   }
