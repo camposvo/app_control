@@ -183,7 +183,7 @@ class _Clients {
       );
 
       if (result.hasException) {
-        Util.printInfo("prueba : ",result.exception.toString());
+        Util.printInfo("prueba ERRORR QUERY : ",result.exception.toString());
         return null;
       }
       if (result.data != null) {
@@ -195,7 +195,7 @@ class _Clients {
       return null;
 
     } catch (e) {
-
+      Util.printInfo("EXCEPTIO ERRORR QUERY : ",e.toString());
       print(e);
       return null;
     }

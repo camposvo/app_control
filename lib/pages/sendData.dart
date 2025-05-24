@@ -99,11 +99,14 @@ class _SendDataState extends State<SendData> {
       i++;
 
       if (result == null) {
+        Util.printInfo("ERROR ", "ERORR");
         showMsg("Error al insertar la Prueba ID: ${test.prueId}");
         return false; // Retorna false inmediatamente si alguna inserción falla
       }
 
     }
+
+    Util.printInfo("Salio 2", resultRevision.pruebas.length.toString());
 
     return true;
   }
