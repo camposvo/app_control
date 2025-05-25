@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:control/models/orgaInstrumento.dart';
 import 'package:control/models/resultRevision.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -130,27 +131,27 @@ class _Clients {
     return respuesta;
   }
 
-  Future<String?> insertComment(String orgaId, List<Comentario> data) async {
+  Future<String?> insertFinalizados(String orgaId, List<InstFinalizado> data) async {
 
-    final comment = comentariosToJson(data);
+    final finished = finalizadosToJson(data);
 
-    Util.printInfo("Commentaios", comment.toString());
+    Util.printInfo("Finalizados", finished.toString());
 
-    try {
+   try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
         MutationOptions(
             document: gql(gqlControl.gqlSaveComment()),
             variables: {'orgaId': orgaId,
-              'comentarios': comment
+              'finalizados': finished
                   },
             fetchPolicy: FetchPolicy.networkOnly),
       );
 
       if (result.hasException) {
         print(result.exception.toString());
-        Util.printInfo("Comentario", " ${result.exception.toString()}");
+        Util.printInfo("Finalizados", " ${result.exception.toString()}");
         return null;
       }
       if (result.data != null) {
@@ -162,6 +163,8 @@ class _Clients {
       return null;
     }
 
+    return null;
+
   }
 
   Future<String?> insertPruebas(String orgaId, Prueba data) async {
@@ -170,7 +173,7 @@ class _Clients {
 
     Util.printInfo("Peticion", test.toString());
 
-    try {
+   try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
@@ -199,6 +202,8 @@ class _Clients {
       print(e);
       return null;
     }
+
+    return null;
 
   }
 
@@ -252,7 +257,6 @@ class _Clients {
     }
 
   }
-
 
   Future<String?> fetchImage(String urlImage) async {
     final url = Uri.parse(urlImage);

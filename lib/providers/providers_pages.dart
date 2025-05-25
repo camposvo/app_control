@@ -14,7 +14,7 @@ class ProviderPages with ChangeNotifier {
   final _box = Hive.box('boxname'); // Accede al contenedor
 
   List<OrgaInstrumento> _mainData = [];
-  final ResultRevision _resultData = ResultRevision(orgaId: '', comentarios: [], pruebas: []);
+  final ResultRevision _resultData = ResultRevision(orgaId: '', comentarios: [], pruebas: [], instFinalizados: []);
   Organization? _organization;
   bool _isOrganization = false;
   OrgaRevisione? _revision;

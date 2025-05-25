@@ -50,15 +50,13 @@
         ],
         "inst_proteccion": 2.5,
         "inst_abreviatura": "M1",
-        "inst_comentarios": [
+        "inst_finalizados": [
           {
-            "come_id": "28d54fdd-0195-7000-a3a5-23f8540c804b",
-            "come_fecha": "2025-02-21T11:00:00",
+            "inst_id": "164c8331-0195-7000-8065-89c3bba9bf3b",
+            "revi_id": "20fab0c1-0195-7000-8407-423c65498002",
             "revi_numero": "00001",
-            "come_enviado": 1,
-            "come_revi_id": "20fab0c1-0195-7000-8407-423c65498002",
             "revi_enti_id": "20fa1b49-0195-7000-9aca-479c9187a298",
-            "come_descripcion": "Es un comentario de hoy, medidor fuera de servicio"
+            "inre_finalizado": 1
           }
         ],
         "inst_clasificacion": "Medidor",

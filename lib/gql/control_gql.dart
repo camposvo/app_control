@@ -34,9 +34,9 @@ class _gqlControl {
 
   String gqlSaveComment() {
     return r"""
-      mutation GuardarDataComentariosRevisiones($orgaId: String!, $comentarios: JSONObject) {
-          guardarDataComentariosRevisiones(orga_id: $orgaId, comentarios: $comentarios)
-        }
+     mutation GuardarDataInstrumentosFinalizados($orgaId: String!, $finalizados: JSONObject) {
+        guardarDataInstrumentosFinalizados(orga_id: $orgaId, finalizados: $finalizados)
+      }
         """;
   }
 

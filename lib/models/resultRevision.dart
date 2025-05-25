@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'orgaInstrumento.dart';
+
 ResultRevision resultRevisionFromJson(String str) => ResultRevision.fromJson(json.decode(str));
 
 String resultRevisionToJson(ResultRevision data) => json.encode(data.toJson());
@@ -14,28 +16,38 @@ List<Map<String, dynamic>> comentariosToJson(List<Comentario> comentarios) {
   //return json.encode(jsonList);
 }
 
+List<Map<String, dynamic>> finalizadosToJson(List<InstFinalizado> instFinalizados) {
+  List<Map<String, dynamic>> jsonList = instFinalizados.map((instFinalizado) =>  instFinalizado.toJson()).toList();
+  return jsonList;
+}
+
 class ResultRevision {
   String orgaId;
   List<Comentario> comentarios;
+  List<InstFinalizado> instFinalizados;
   List<Prueba> pruebas;
 
   ResultRevision({
     required this.orgaId,
     required this.comentarios,
+    required this.instFinalizados,
     required this.pruebas,
   });
 
   factory ResultRevision.fromJson(Map<String, dynamic> json) => ResultRevision(
     orgaId: json["orga_id"],
     comentarios: List<Comentario>.from(json["comentarios"].map((x) => Comentario.fromJson(x))),
+    instFinalizados: List<InstFinalizado>.from(json["inst_finalizados"].map((x) => InstFinalizado.fromJson(x))),
     pruebas: List<Prueba>.from(json["pruebas"].map((x) => Prueba.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "orga_id": orgaId,
     "comentarios": List<dynamic>.from(comentarios.map((x) => x.toJson())),
+    "inst_finalizados": List<dynamic>.from(instFinalizados.map((x) => x.toJson())),
     "pruebas": List<dynamic>.from(pruebas.map((x) => x.toJson())),
   };
+
 }
 
 class Comentario {
@@ -69,6 +81,7 @@ class Comentario {
     "come_descripcion": comeDescripcion,
   };
 }
+
 
 class Prueba {
   String prueId;

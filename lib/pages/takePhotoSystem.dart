@@ -279,7 +279,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
 
   Future<void> _takePicture() async {
 
-
     if (_controller != null && _controller!.value.isInitialized) {
 
 

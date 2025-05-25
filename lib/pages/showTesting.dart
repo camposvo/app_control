@@ -24,6 +24,13 @@ import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, SHOW_LIST }
 
+class ResultError {
+  final String message;
+  final double? numericValue;
+
+  ResultError(this.message, this.numericValue);
+}
+
 class ShowTesting extends StatefulWidget {
   const ShowTesting({super.key});
 
@@ -114,9 +121,6 @@ class _ShowTestingState extends State<ShowTesting> {
 
     return false;
   }
-
-
-
 
   bool _deletePuntPrueba(BuildContext context, String prueId) {
     final info = Provider.of<ProviderPages>(context, listen: false);
@@ -271,13 +275,17 @@ class _ShowTestingState extends State<ShowTesting> {
     final valor2 = _filterList[index].prueValor2;
 
     final dateTest = Util.formatDateTime(_filterList[index].prueFecha);
-    Color bgColor = Colors.grey;
-    Color fontColor = Colors.white;
+    Color bgColor = Colors.white;
+    Color fontColor = Colors.black;
     bool testLoaded = false;
     int prueActivo = _filterList[index].prueActivo;
+    String msg='';
+
+    final resultError = getErrorInstant(valor1, valor2);
 
     if(prueActivo == 0){
-      bgColor = AppColor.redColor;
+      bgColor = Colors.grey;
+      fontColor = Colors.white;
     }
 
     return  Container(
@@ -313,7 +321,7 @@ class _ShowTestingState extends State<ShowTesting> {
 
                         //if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.WITH_SYSTEM)
                         if(variable.variTipo == 'instantanea')
-                          getErrorInstant(context, fontColor, valor1, valor2),
+                          showErrorInstant(context, resultError)
 
                       ],
                     ),
@@ -486,35 +494,52 @@ class _ShowTestingState extends State<ShowTesting> {
     );
   }
 
-  Widget getErrorInstant(BuildContext context, Color fontColor, dynamic valor1, dynamic valor2){
+  ResultError getErrorInstant(dynamic valor1, dynamic valor2){
+
+    double? numericValue;
+    String message ='';
 
     final resultVal1 = Util.parseDynamicToDouble(valor1);
     if(resultVal1 == null){
-      return showErrorInstant(context, "Valor 1 NaN");
 
+      message = 'Valor 1 NaN';
+      numericValue = null;
+      return   ResultError(message, numericValue);
     }
 
     final resultVal2 = Util.parseDynamicToDouble(valor2);
     if(resultVal2 == null){
-      return showErrorInstant(context, "Valor 2 NaN");
+
+      message = 'Valor 2 NaN';
+      numericValue = null;
+      return   ResultError(message, numericValue);
+
     }
 
     if(resultVal2 == 0){
-      return showErrorInstant(context, "Falla por División por 0");
-    }
+      message = 'Falla por División por 0';
+      numericValue = null;
+      return   ResultError(message, numericValue);
+   }
 
     final error = (((resultVal1-resultVal2)/resultVal2)*100).abs();
-    final errorResult = error.toStringAsFixed(3);
-    return showErrorInstant(context, errorResult);
+
+    message = 'ok';
+    numericValue = error;
+    return   ResultError(message, numericValue);
 
   }
 
-  String getErrorCumulative(){
+  ResultError getErrorCumulative(){
+    double? numericValue;
+    String message ='';
 
     final puntPruebaActivo = _puntPruebas.where((prueba) => prueba.prueActivo == 1).toList();
 
     if(puntPruebaActivo.length != 2) {
-      return 'Deben existir dos pruebas para el Calculo';
+      message = 'Deben existir dos pruebas para el Calculo';
+      numericValue = null;
+      return   ResultError(message, numericValue);
     }
 
     //Se ordena la lista desde el mas antiguo hasta el mas reciente
@@ -526,27 +551,57 @@ class _ShowTestingState extends State<ShowTesting> {
     final valor2b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor2);
 
     if(valor1a == null || valor2a == null  || valor1b == null || valor2b == null ){
-      return 'Existe un valor Invalido en el Calculo';
+
+      message = 'Existe un valor Invalido en el Calculo';
+      numericValue = null;
+      return   ResultError(message, numericValue);
     }
 
     final valor1Result = valor1b - valor1a;
     final valor2Result = valor2b - valor2a;
 
     if(valor2Result == 0){
-      return 'Error al Dividor por 0';
+
+      message = 'Error al Dividor por 0';
+      numericValue = null;
+      return   ResultError(message, numericValue);
     }
 
-    final error = (((valor1Result-valor2Result)/valor2Result)*100).abs();
-    return error.toStringAsFixed(3);
+
+    message = 'OK';
+    numericValue = (((valor1Result-valor2Result)/valor2Result)*100).abs();
+    return   ResultError(message, numericValue);
+
   }
 
-  Widget showErrorInstant(BuildContext context, String valor){
+  Widget showErrorInstant(BuildContext context, ResultError resultError){
+    Color bgColor = Colors.grey;
+    Color fontColor = Colors.white;
+    String msg='';
+
+
+    if(resultError.numericValue == null){
+      bgColor = Colors.grey;
+      msg = resultError.message;
+
+    }else{
+      if(resultError.numericValue! >= 5.0){
+        bgColor = Colors.red;
+        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
+      }
+
+      if(resultError.numericValue! < 5.0){
+        bgColor = Colors.green;
+        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
+      }
+
+    }
 
     return Container(
       padding:  EdgeInsets.all(8.0),
       margin: EdgeInsets.only(top: 8.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Row(
@@ -559,16 +614,16 @@ class _ShowTestingState extends State<ShowTesting> {
             style: TextStyle(
               fontSize: 20.0,
               fontWeight: FontWeight.normal,
-              color: Colors.black87, // Un color para el título
+              color: fontColor, // Un color para el título
             ),
           ),
           // Espacio entre el título y el segundo texto
           Text(
-            '$valor%',
+            msg,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
-              color: Colors.black54, // Un color más suave para el cuerpo del texto
+              color: fontColor, // Un color más suave para el cuerpo del texto
             ),
           ),
         ],
@@ -578,14 +633,35 @@ class _ShowTestingState extends State<ShowTesting> {
   }
 
   Widget showErrorCumulative(BuildContext context){
+    Color bgColor = Colors.white;
+    Color fontColor = Colors.black;
 
-    final resultError =  getErrorCumulative();
+    String msg = '';
+
+    final result =  getErrorCumulative();
+
+    if(result.numericValue == null){
+      msg = result.message;
+      bgColor = Colors.white;
+    }else{
+
+      if(result.numericValue! > 5.0){
+        bgColor = Colors.red;
+        msg = '${result.numericValue!.toStringAsFixed(3)}%';
+      }
+
+      if(result.numericValue! <= 5.0){
+        bgColor = Colors.green;
+        msg = '${result.numericValue!.toStringAsFixed(3)}%';
+      }
+
+    }
 
     return Container(
       padding:  EdgeInsets.all(20.0),
-      margin: EdgeInsets.all(8.0),
+      margin: EdgeInsets.only(left: 18.0, right: 18.0, bottom: 18.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Column(
@@ -602,10 +678,11 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
           SizedBox(height: 8.0), // Espacio entre el título y el segundo texto
           Text(
-            '$resultError%',
+            msg,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 24.0,
+              fontSize: 20.0,
               color: Colors.black54, // Un color más suave para el cuerpo del texto
             ),
           ),

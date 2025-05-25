@@ -20,7 +20,9 @@ import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, SHOW_LIST }
 
-enum ModeState { ACTIVE, FINISH }
+enum ModeState { ACTIVATED, FINALIZED }
+
+enum Operation { ADD, UPDATE }
 
 class Variable extends StatefulWidget {
   const Variable({super.key});
@@ -48,15 +50,17 @@ class _VariableState extends State<Variable> {
   List<InstVariable> _filterList = [];
   late OrgaInstrumentoElement instrument;
   late OrgaInstrumento orgaInstrument;
-  late InstComentario instComentario;
   int _indiceSeleccionado = 0; // Índice del botón activo
 
   WidgetState _widgetState = WidgetState.LOADING;
-  ModeState _modeState = ModeState.ACTIVE;
+  ModeState _modeState = ModeState.ACTIVATED;
+  Operation _operation = Operation.ADD;
 
   String orgaId = '';
   int _listos = 0;
   int _total= 0;
+  int? _stateInstrument;
+
 
   String btnTxt = '';
 
@@ -90,16 +94,9 @@ class _VariableState extends State<Variable> {
     orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization!.orgaId);
     instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
-    btnTxt = 'Finalizar Medidor';
-    _modeState = ModeState.FINISH;
+    _stateInstrument = instrument.getInreFinalizadoByReviId(info.revision!.reviId);
 
-   /* final result = instrument.getFirstComentarioByReviId(info.revision!.reviId);
-
-    if(result != null){
-      instComentario = result;
-      dropdownValue = result.comeDescripcion;
-      _modeState = ModeState.EDIT;
-    }*/
+     updateState(context);
 
     variables =  [...instrument.instVariables];
     _filterList =  [...instrument.instVariables];
@@ -125,42 +122,48 @@ class _VariableState extends State<Variable> {
 
   }
 
-  void _setFinish(BuildContext context){
+ void updateState(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
+    if(_stateInstrument == null){
+      _operation = Operation.ADD;
+      btnTxt = 'Finalizar Medidor';
+      _modeState = ModeState.ACTIVATED;
+    }
 
-   /* InstComentario comment1 = InstComentario(
-        comeId: Util.generateUUID(),
-        comeFecha:  DateTime.now(),
-        comeReviId: info.revision!.reviId,
-        comeDescripcion:  dropdownValue!,
-        reviNumero:  info.revision!.reviNumero,
-        comeEnviado: 2,
-        reviEntiId: info.revision!.reviEntiId,
-    );
+    if(_stateInstrument != null){
+      _operation = Operation.UPDATE;
+      
+      if(_stateInstrument == 0){
+        btnTxt = 'Finalizar Medidor';
+        _modeState = ModeState.ACTIVATED;
+      }
 
-    instrument.addComentario(comment1);*/
+      if(_stateInstrument == 1){
+        btnTxt = 'Activar Medidor';
+        _modeState = ModeState.FINALIZED;
+      }
 
-    info.mainDataUpdate(info.mainData);
+    }
   }
 
-  void _setActive(BuildContext context){
+  void _setStateInstrument(BuildContext context, int valor){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-
-   /* InstComentario comment1 = InstComentario(
-      comeId: Util.generateUUID(),
-      comeFecha:  DateTime.now(),
-      comeReviId: info.revision!.reviId,
-      comeDescripcion:  dropdownValue!,
-      reviNumero:  info.revision!.reviNumero,
-      comeEnviado: 2,
-      reviEntiId: info.revision!.reviEntiId,
+    InstFinalizado instFinalizado = InstFinalizado(
+        instId: instrument.instId,
+        reviId: info.revision!.reviId,
+        reviNumero: info.revision!.reviNumero,
+        reviEntiId: info.revision!.reviEntiId,
+        inreFinalizado: valor,
+        inreEnviado: 2,
     );
 
-    instrument.updateComentario(comeId, comment1);*/
+
+    instrument.updateOrCreateInstFinalizado(info.revision!.reviId, instFinalizado);
 
     info.mainDataUpdate(info.mainData);
+    _stateInstrument = valor;
   }
 
   @override
@@ -429,24 +432,22 @@ class _VariableState extends State<Variable> {
 
 
 
-                    if(_modeState == ModeState.ACTIVE) {
+                    if(_stateInstrument == 0 || _stateInstrument == null) {
+                      _setStateInstrument(context, 1);
 
-                      _setFinish(context);
                       await showMsg('Medidor Finalizado');
                       btnTxt = 'Activar Medidor';
-                      _modeState = ModeState.FINISH;
 
                       info.pendingData = true;
                       setState(() {});
                       return;
                     }
 
-                    if(_modeState == ModeState.FINISH) {
+                    if(_stateInstrument == 1 ) {
+                      _setStateInstrument(context, 0);
 
-                        _setActive(context);
                         await showMsg('Medidor Activado');
                         btnTxt = 'Finalizar Medidor';
-                        _modeState = ModeState.ACTIVE;
 
                         info.pendingData = true;
                         setState(() {});

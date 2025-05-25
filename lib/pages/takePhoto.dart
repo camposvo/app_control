@@ -712,7 +712,7 @@ class _TakePhotoState extends State<TakePhoto> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
               ],
               decoration: InputDecoration(
-                labelText: 'Valor Foto Nro. 1',
+                labelText: 'Valor Foto Patrón',
                 border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
                 borderSide: BorderSide(
                 color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
@@ -767,7 +767,7 @@ class _TakePhotoState extends State<TakePhoto> {
                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                       ],
                       decoration: InputDecoration(
-                        labelText: 'Valor Foto Nro. 2',
+                        labelText: 'Valor Foto Medidor',
                         border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
                           borderSide: BorderSide(
                             color: AppColor.themeColor, // El color que deseas para el borde deshabilitado

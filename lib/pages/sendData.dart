@@ -24,6 +24,8 @@ class _SendDataState extends State<SendData> {
 
   bool _isLoading = false;
   String _message = "";
+  bool sendFinished = false;
+  bool sendTest = false;
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _SendDataState extends State<SendData> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     resultRevision = ResultRevision(
-        orgaId: info.organization!.orgaId, comentarios: [], pruebas: []);
+        orgaId: info.organization!.orgaId, comentarios: [], pruebas: [],instFinalizados: []);
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
     if(index == null){
@@ -43,9 +45,16 @@ class _SendDataState extends State<SendData> {
       return;
     }
 
-    resultRevision.comentarios = info.mainData[index].getComentariosByReviId(info.revision!.reviId);
-
     resultRevision.pruebas = info.mainData[index].getPruebasByReviId(info.revision!.reviId);
+    sendTest = resultRevision.pruebas.isNotEmpty ? true : false;
+
+    Util.printInfo("pruebas", resultRevision.instFinalizados.length.toString());
+
+    resultRevision.instFinalizados = info.mainData[index].getInstFinalizadosEnviados(info.revision!.reviId);
+
+    sendFinished = resultRevision.instFinalizados.isNotEmpty ? true : false;
+
+    Util.printInfo("Finalizados", resultRevision.instFinalizados.length.toString());
 
   }
 
@@ -67,13 +76,13 @@ class _SendDataState extends State<SendData> {
     return true;
   }
 
-  Future<bool> _saveComment() async {
+  Future<bool> _saveFinished() async {
 
     final orgaId = resultRevision.orgaId;
 
-    final result = await api.insertComment(orgaId, resultRevision.comentarios);
+    final result = await api.insertFinalizados(orgaId, resultRevision.instFinalizados);
     if (result == null) {
-      showMsg("Error");
+      showMsg("Error en Envio");
       return false;
     }
 
@@ -162,13 +171,27 @@ class _SendDataState extends State<SendData> {
                             setState(() {});
                             _loadData(context);
 
-                            _message = " Enviando Comentarios ...";
-                            setState(() {});
-                            await _saveComment();
 
-                            _message = " Enviando Pruebas ...";
-                            setState(() {});
-                            await _saveTest();
+                             if(sendFinished) {
+                               _message = " Enviando Medidores Finalizados ...";
+                               setState(() {});
+                               final resultFinished = await _saveFinished();
+
+                               if (!resultFinished) {
+                                 return;
+                               }
+                             }
+
+
+                            if(sendTest) {
+                              _message = " Enviando Pruebas ...";
+                              setState(() {});
+                              final resultTest = await _saveTest();
+
+                              if (!resultTest) {
+                                return;
+                              }
+                            }
 
                             _message = " Actualizando Data  Local ...";
                             setState(() {});

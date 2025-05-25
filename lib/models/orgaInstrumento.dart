@@ -132,7 +132,7 @@ class OrgaInstrumento {
   }
 
   //  ************* NUEVO METODO PARA OBTENER Lista de InstComentario por comeReviId ******************************
-  List<Comentario> getComentariosByReviId(String comeReviId) {
+/*  List<Comentario> getComentariosByReviId(String comeReviId) {
     List<Comentario> comentariosEncontrados = [];
 
     for (var instrumento in orgaInstrumentos) {
@@ -151,8 +151,7 @@ class OrgaInstrumento {
     }
 
     return comentariosEncontrados;
-  }
-
+  }*/
 
   //  ************* NUEVO METODO PARA OBTENER Lista de PuntPrueba por prueReviId ******************************
   List<Prueba> getPruebasByReviId(String prueReviId) {
@@ -161,7 +160,6 @@ class OrgaInstrumento {
       for (var variable in instrumento.instVariables) {
         for (var prueba in variable.puntPrueba) {
           if (prueba.prueReviId == prueReviId &&  prueba.prueEnviado == 2 ) {
-
             Prueba temp = Prueba(
               prueId: prueba.prueId,
               prueReviId : prueba.prueReviId,
@@ -175,7 +173,6 @@ class OrgaInstrumento {
               prueValor2: prueba.prueValor2,
               prueActivo: prueba.prueActivo
             );
-
             pruebasEncontradas.add(temp);
           }
         }
@@ -183,6 +180,21 @@ class OrgaInstrumento {
     }
 
     return pruebasEncontradas;
+  }
+
+//  ************* NUEVO METODO PARA OBTENER Lista de PuntPrueba por prueReviId ******************************
+  List<InstFinalizado> getInstFinalizadosEnviados(String reviId) {
+    List<InstFinalizado> finalizadosEnviados = [];
+
+    for (var instrumento in orgaInstrumentos) {
+      for (var instFinalizado in instrumento.instFinalizados) {
+        if (instFinalizado.inreEnviado == 2 && instFinalizado.reviId == reviId) {
+          finalizadosEnviados.add(instFinalizado);
+        }
+      }
+    }
+
+    return finalizadosEnviados;
   }
 
 
@@ -196,7 +208,7 @@ class OrgaInstrumentoElement {
   List<InstVariable> instVariables;
   double instProteccion;
   String instAbreviatura;
-  List<InstComentario> instComentarios;
+  List<InstFinalizado> instFinalizados;
   String instClasificacion;
   String instEspaAreaNombre;
   String instEspaPisoNombre;
@@ -211,7 +223,7 @@ class OrgaInstrumentoElement {
     required this.instVariables,
     required this.instProteccion,
     required this.instAbreviatura,
-    required this.instComentarios,
+    required this.instFinalizados,
     required this.instClasificacion,
     required this.instEspaAreaNombre,
     required this.instEspaPisoNombre,
@@ -219,108 +231,109 @@ class OrgaInstrumentoElement {
     required this.instUbicPisoNombre,
   });
 
-  factory OrgaInstrumentoElement.fromJson(Map<String, dynamic> json) => OrgaInstrumentoElement(
-    instId: json["inst_id"],
-    instTipo: json["inst_tipo"],
-    instNombre: json["inst_nombre"],
-    instNumero: json["inst_numero"],
-    instVariables: List<InstVariable>.from(json["inst_variables"].map((x) => InstVariable.fromJson(x))),
-    instProteccion: json["inst_proteccion"]?.toDouble(),
-    instAbreviatura: json["inst_abreviatura"],
-    instComentarios: List<InstComentario>.from(json["inst_comentarios"].map((x) => InstComentario.fromJson(x))),
-    instClasificacion: json["inst_clasificacion"],
-    instEspaAreaNombre: json["inst_espa_area_nombre"],
-    instEspaPisoNombre: json["inst_espa_piso_nombre"],
-    instUbicAreaNombre: json["inst_ubic_area_nombre"],
-    instUbicPisoNombre: json["inst_ubic_piso_nombre"],
-  );
+  factory OrgaInstrumentoElement.fromJson(Map<String, dynamic> json) =>
+      OrgaInstrumentoElement(
+        instId: json["inst_id"],
+        instTipo: json["inst_tipo"],
+        instNombre: json["inst_nombre"],
+        instNumero: json["inst_numero"],
+        instVariables: List<InstVariable>.from(
+            json["inst_variables"].map((x) => InstVariable.fromJson(x))),
+        instProteccion: json["inst_proteccion"]?.toDouble(),
+        instAbreviatura: json["inst_abreviatura"],
+        instFinalizados: List<InstFinalizado>.from(
+            json["inst_finalizados"].map((x) => InstFinalizado.fromJson(x))),
+        instClasificacion: json["inst_clasificacion"],
+        instEspaAreaNombre: json["inst_espa_area_nombre"],
+        instEspaPisoNombre: json["inst_espa_piso_nombre"],
+        instUbicAreaNombre: json["inst_ubic_area_nombre"],
+        instUbicPisoNombre: json["inst_ubic_piso_nombre"],
+      );
 
-  Map<String, dynamic> toJson() => {
-    "inst_id": instId,
-    "inst_tipo": instTipo,
-    "inst_nombre": instNombre,
-    "inst_numero": instNumero,
-    "inst_variables": List<dynamic>.from(instVariables.map((x) => x.toJson())),
-    "inst_proteccion": instProteccion,
-    "inst_abreviatura": instAbreviatura,
-    "inst_comentarios": List<dynamic>.from(instComentarios.map((x) => x.toJson())),
-    "inst_clasificacion": instClasificacion,
-    "inst_espa_area_nombre": instEspaAreaNombre,
-    "inst_espa_piso_nombre": instEspaPisoNombre,
-    "inst_ubic_area_nombre": instUbicAreaNombre,
-    "inst_ubic_piso_nombre": instUbicPisoNombre,
-  };
+  Map<String, dynamic> toJson() =>
+      {
+        "inst_id": instId,
+        "inst_tipo": instTipo,
+        "inst_nombre": instNombre,
+        "inst_numero": instNumero,
+        "inst_variables": List<dynamic>.from(
+            instVariables.map((x) => x.toJson())),
+        "inst_proteccion": instProteccion,
+        "inst_abreviatura": instAbreviatura,
+        "inst_finalizados": List<dynamic>.from(
+            instFinalizados.map((x) => x.toJson())),
+        "inst_clasificacion": instClasificacion,
+        "inst_espa_area_nombre": instEspaAreaNombre,
+        "inst_espa_piso_nombre": instEspaPisoNombre,
+        "inst_ubic_area_nombre": instUbicAreaNombre,
+        "inst_ubic_piso_nombre": instUbicPisoNombre,
+      };
 
-  //  ************* NUEVO METODO PARA OBTENER EL PRIMER InstComentario POR comeReviId ******************************
-  InstComentario? getFirstComentarioByReviId(String comeReviId) {
-    for (var comentario in instComentarios) {
-      if (comentario.comeReviId == comeReviId) {
-        return comentario;
-      }
+
+  //  ************* OBTIEN EL FINALIZADO PARA UN REVIID  ******************************
+  int? getInreFinalizadoByReviId(String targetReviId) {
+    try {
+      final InstFinalizado foundInstFinalizado = instFinalizados.firstWhere(
+            (instFinalizado) => instFinalizado.reviId == targetReviId,
+      );
+      return foundInstFinalizado.inreFinalizado;
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
-  //  ************* NUEVO METODO PARA AGREGAR UN InstComentario ******************************
-  void addComentario(InstComentario nuevoComentario) {
-    instComentarios.add(nuevoComentario);
-    print('Nuevo comentario agregado al instrumento con ID: $instId');
-  }
+  //  ************* ADD OR UPDATE  ******************************
 
-  //  ************* NUEVO METODO PARA ACTUALIZAR UN InstComentario ******************************
-  bool updateComentario(String comeId, InstComentario comentarioActualizado) {
-    for (int i = 0; i < instComentarios.length; i++) {
-      if (instComentarios[i].comeId == comeId) {
-        instComentarios[i] = comentarioActualizado;
-        print('Comentario con ID $comeId del instrumento $instId actualizado.');
-        return true; // Indica que se encontró y actualizó el comentario
-      }
+  void updateOrCreateInstFinalizado(String reviId, InstFinalizado newInstFinalizado) {
+    int index = instFinalizados.indexWhere((inst) => inst.reviId == reviId);
+    if (index != -1) {
+      instFinalizados[index].inreFinalizado = newInstFinalizado.inreFinalizado;
+      instFinalizados[index].inreEnviado = 2;
+    } else {
+      instFinalizados.add(newInstFinalizado);
+     
     }
-    print('No se encontró ningún comentario con el ID: $comeId en el instrumento: $instId');
-    return false; // Indica que no se encontró el comentario
   }
+
 
 
 }
 
-class InstComentario {
-  String comeId;
-  DateTime comeFecha;
+class InstFinalizado {
+  String instId;
+  String reviId;
   String reviNumero;
-  int comeEnviado;
-  String comeReviId;
   String reviEntiId;
-  String comeDescripcion;
+  int inreFinalizado;
+  int? inreEnviado;
 
-  InstComentario({
-    required this.comeId,
-    required this.comeFecha,
+
+  InstFinalizado({
+    required this.instId,
+    required this.reviId,
     required this.reviNumero,
-    required this.comeEnviado,
-    required this.comeReviId,
     required this.reviEntiId,
-    required this.comeDescripcion,
+    required this.inreFinalizado,
+    this.inreEnviado = 1,
   });
 
-  factory InstComentario.fromJson(Map<String, dynamic> json) => InstComentario(
-    comeId: json["come_id"],
-    comeFecha: DateTime.parse(json["come_fecha"]),
+  factory InstFinalizado.fromJson(Map<String, dynamic> json) => InstFinalizado(
+    instId: json["inst_id"],
+    reviId: json["revi_id"],
     reviNumero: json["revi_numero"],
-    comeEnviado: json["come_enviado"],
-    comeReviId: json["come_revi_id"],
     reviEntiId: json["revi_enti_id"],
-    comeDescripcion: json["come_descripcion"],
+    inreFinalizado: json["inre_finalizado"],
   );
 
   Map<String, dynamic> toJson() => {
-    "come_id": comeId,
-    "come_fecha": comeFecha.toIso8601String(),
+    "inst_id": instId,
+    "revi_id": reviId,
     "revi_numero": reviNumero,
-    "come_enviado": comeEnviado,
-    "come_revi_id": comeReviId,
     "revi_enti_id": reviEntiId,
-    "come_descripcion": comeDescripcion,
+    "inre_finalizado": inreFinalizado,
   };
+
+
 }
 
 class InstVariable {

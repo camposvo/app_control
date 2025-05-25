@@ -57,8 +57,8 @@ class _InstrumentState extends State<Instrument> {
 
     //Cantidad de Medidores Listos
     _listos = _instruments.where((elemento) {
-      for (var item in elemento.instComentarios) {
-        if (item.comeReviId == info.revision!.reviId) {
+      for (var item in elemento.instFinalizados) {
+        if (item.reviId == info.revision!.reviId && item.inreFinalizado == 1) {
           return true;
         }
       }
@@ -85,7 +85,6 @@ class _InstrumentState extends State<Instrument> {
         return mainInstrument(context);
     }
   }
-
 
   Widget mainInstrument(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
@@ -126,6 +125,10 @@ class _InstrumentState extends State<Instrument> {
           SizedBox(
             height: 10,
           ),
+          _btnSendData(context),
+          SizedBox(
+            height: 10,
+          ),
           _search(),
           SizedBox(
             height: 7,
@@ -151,6 +154,50 @@ class _InstrumentState extends State<Instrument> {
           )
         ],
       ),
+    );
+  }
+
+
+  Widget _btnSendData(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return  Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+
+      children: [
+        SizedBox(
+          width: 150,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.themeColor,
+              padding: EdgeInsets.all(10.0),
+            ),
+            onPressed: !info.pendingData ? null: () {
+              Navigator.pushNamed(context, 'sendData')
+                  .then((_) async {
+                await _loadData();
+              });
+
+
+
+            },
+            child: Text(
+              'Enviar Datos',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 20.0,
+        )
+      ],
     );
   }
 
@@ -199,23 +246,16 @@ class _InstrumentState extends State<Instrument> {
     Color bgColor = Colors.grey;
     Color fontColor = Colors.white;
 
-    final variables =  [..._filterList[index].instVariables];
+    final stateInstrument = _filterList[index].getInreFinalizadoByReviId(info.revision!.reviId);
 
-    //Util.printInfo("comentarios count  ", _filterList[index].instComentarios.length.toString() );
+    if(stateInstrument == null ||  stateInstrument == 0){
+      bgColor = Colors.grey;
+      fontColor = Colors.white;
+    }
 
-    for (var comment in _filterList[index].instComentarios) {
-      //Util.printInfo("comentarios ", comment.comeEnviado.toString() );
-      if(comment.comeReviId == info.revision?.reviId) {
-        if(comment.comeEnviado == 1){
-          bgColor = AppColor.GreenReady;
-          fontColor = Colors.white;
-        }
-
-        if(comment.comeEnviado == 2){
-          bgColor = AppColor.editColor;
-          fontColor = Colors.white;
-        }
-      }
+    if(stateInstrument == 1){
+      bgColor = AppColor.GreenReady;
+      fontColor = Colors.white;
     }
 
     return new Container(

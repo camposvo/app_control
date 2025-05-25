@@ -273,7 +273,7 @@ class _ViewPhotoState extends State<ViewPhoto> {
             height: 20,
           ),
           Text(
-              'Foto #1',
+              'Foto Patrón',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -296,7 +296,7 @@ class _ViewPhotoState extends State<ViewPhoto> {
             Column(
               children: <Widget>[
                 Text(
-                  'Foto #2',
+                  'Foto Medidor',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
