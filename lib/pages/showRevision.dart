@@ -208,9 +208,15 @@ class _ShowRevisionState extends State<ShowRevision> {
                 child: _itemListView(index, context), onTap: () async {
               info.revision = _filterList[index];
               info.isOrganization = true;
-             //await _initSendData();
+
               info.refreshData();
-              Navigator.popUntil(context, (route) => route.isFirst);
+
+              Navigator.pushNamed(context, 'selectMode')
+                  .then((_)  {
+                setState(() {});
+              });
+
+              //Navigator.popUntil(context, (route) => route.isFirst);
 
 
             });
@@ -256,28 +262,7 @@ class _ShowRevisionState extends State<ShowRevision> {
                   ],
                 ),
               ),
-              /*ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape:  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                  ),
-                  backgroundColor: AppColor.secondaryColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed: () {
 
-                  info.revision = _filterList[index];
-                  info.isOrganization = true;
-                 info.refreshData();
-
-                  Navigator.popUntil(context, (route) => route.isFirst);
-
-                },
-                child: Text('Ir',  style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),),
-              ),*/
             ],
           ),
         ),

@@ -115,36 +115,7 @@ class _ShowTestingState extends State<ShowTesting> {
     return false;
   }
 
-  String getErrorCumulative(){
 
-    final puntPruebaActivo = _puntPruebas.where((prueba) => prueba.prueActivo == 1).toList();
-
-    if(puntPruebaActivo.length != 2) {
-      return 'Deben existir dos pruebas para el Calculo';
-    }
-
-    //Se ordena la lista desde el mas antiguo hasta el mas reciente
-    puntPruebaActivo.sort((a, b) => a.prueFecha.compareTo(b.prueFecha));
-
-    final valor1a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor1);
-    final valor2a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor2);
-    final valor1b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor1);
-    final valor2b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor2);
-
-    if(valor1a == null || valor2a == null  || valor1b == null || valor2b == null ){
-      return 'Existe un valor Invalido en el Calculo';
-    }
-
-    final valor1Result = valor1b - valor1a;
-    final valor2Result = valor2b - valor2a;
-
-    if(valor2Result == 0){
-      return 'Error al Dividor por 0';
-    }
-
-    final error = (valor1Result-valor2Result)/valor2Result;
-    return error.toStringAsFixed(3);
-  }
 
 
   bool _deletePuntPrueba(BuildContext context, String prueId) {
@@ -256,7 +227,8 @@ class _ShowTestingState extends State<ShowTesting> {
           SizedBox(
             height: 10,
           ),
-          if(variable.variTipo == 'acumulativa' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
+          //if(variable.variTipo == 'acumulativa' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
+          if(variable.variTipo == 'acumulativa')
             showErrorCumulative(context),
 
         ],
@@ -333,13 +305,14 @@ class _ShowTestingState extends State<ShowTesting> {
                         setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
                         setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
 
-                        if(info.moduleSelected == ModuleSelect.NO_SYSTEM)
+                        //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
                         setCommonText("Valor 1: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
-                        if(info.moduleSelected == ModuleSelect.NO_SYSTEM)
+                        //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
                         setCommonText("Valor 2: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
-                        if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
+                        //if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.WITH_SYSTEM)
+                        if(variable.variTipo == 'instantanea')
                           getErrorInstant(context, fontColor, valor1, valor2),
 
                       ],
@@ -530,10 +503,41 @@ class _ShowTestingState extends State<ShowTesting> {
       return showErrorInstant(context, "Falla por División por 0");
     }
 
-    final error = (resultVal1-resultVal2)/resultVal2;
+    final error = (((resultVal1-resultVal2)/resultVal2)*100).abs();
     final errorResult = error.toStringAsFixed(3);
     return showErrorInstant(context, errorResult);
 
+  }
+
+  String getErrorCumulative(){
+
+    final puntPruebaActivo = _puntPruebas.where((prueba) => prueba.prueActivo == 1).toList();
+
+    if(puntPruebaActivo.length != 2) {
+      return 'Deben existir dos pruebas para el Calculo';
+    }
+
+    //Se ordena la lista desde el mas antiguo hasta el mas reciente
+    puntPruebaActivo.sort((a, b) => a.prueFecha.compareTo(b.prueFecha));
+
+    final valor1a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor1);
+    final valor2a = Util.parseDynamicToDouble(puntPruebaActivo[0].prueValor2);
+    final valor1b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor1);
+    final valor2b = Util.parseDynamicToDouble(puntPruebaActivo[1].prueValor2);
+
+    if(valor1a == null || valor2a == null  || valor1b == null || valor2b == null ){
+      return 'Existe un valor Invalido en el Calculo';
+    }
+
+    final valor1Result = valor1b - valor1a;
+    final valor2Result = valor2b - valor2a;
+
+    if(valor2Result == 0){
+      return 'Error al Dividor por 0';
+    }
+
+    final error = (((valor1Result-valor2Result)/valor2Result)*100).abs();
+    return error.toStringAsFixed(3);
   }
 
   Widget showErrorInstant(BuildContext context, String valor){
@@ -560,7 +564,7 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
           // Espacio entre el título y el segundo texto
           Text(
-            valor,
+            '$valor%',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
@@ -598,7 +602,7 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
           SizedBox(height: 8.0), // Espacio entre el título y el segundo texto
           Text(
-            resultError,
+            '$resultError%',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 24.0,

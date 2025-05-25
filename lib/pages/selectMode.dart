@@ -211,7 +211,15 @@ class _SelectModeState extends State<SelectMode> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed: () async {
-                  Navigator.pushNamed(context, '/dashboard');
+
+                  Navigator.pushNamed(context, 'instrument')
+                      .then((_)  {
+                    setState(() {});
+                  });
+
+                  //Navigator.pushNamed(context, '/dashboard');
+
+
                 },
                 child: Text('Continuar',  style: TextStyle(
                   color: Colors.white,

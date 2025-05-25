@@ -20,7 +20,7 @@ import 'package:control/helper/util.dart';
 
 enum WidgetState { LOADING, SHOW_LIST }
 
-enum ModeState { ADD, EDIT }
+enum ModeState { ACTIVE, FINISH }
 
 class Variable extends StatefulWidget {
   const Variable({super.key});
@@ -52,11 +52,13 @@ class _VariableState extends State<Variable> {
   int _indiceSeleccionado = 0; // Índice del botón activo
 
   WidgetState _widgetState = WidgetState.LOADING;
-  ModeState _modeState = ModeState.ADD;
+  ModeState _modeState = ModeState.ACTIVE;
 
   String orgaId = '';
   int _listos = 0;
   int _total= 0;
+
+  String btnTxt = '';
 
   @override
   void initState() {
@@ -88,13 +90,16 @@ class _VariableState extends State<Variable> {
     orgaInstrument = info.mainData.firstWhere((item) => item.orgaId == info.organization!.orgaId);
     instrument = orgaInstrument.orgaInstrumentos.firstWhere((item) => item.instId == info.instId);
 
-    final result = instrument.getFirstComentarioByReviId(info.revision!.reviId);
+    btnTxt = 'Finalizar Medidor';
+    _modeState = ModeState.FINISH;
+
+   /* final result = instrument.getFirstComentarioByReviId(info.revision!.reviId);
 
     if(result != null){
       instComentario = result;
       dropdownValue = result.comeDescripcion;
       _modeState = ModeState.EDIT;
-    }
+    }*/
 
     variables =  [...instrument.instVariables];
     _filterList =  [...instrument.instVariables];
@@ -120,12 +125,11 @@ class _VariableState extends State<Variable> {
 
   }
 
-  void _addCommentByInstrument(BuildContext context){
+  void _setFinish(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    Util.printInfo("PASO ", "ADICIONAR");
 
-    InstComentario comment1 = InstComentario(
+   /* InstComentario comment1 = InstComentario(
         comeId: Util.generateUUID(),
         comeFecha:  DateTime.now(),
         comeReviId: info.revision!.reviId,
@@ -135,17 +139,16 @@ class _VariableState extends State<Variable> {
         reviEntiId: info.revision!.reviEntiId,
     );
 
-    instrument.addComentario(comment1);
+    instrument.addComentario(comment1);*/
 
     info.mainDataUpdate(info.mainData);
   }
 
-  void _updateComment(BuildContext context, String comeId ){
+  void _setActive(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    Util.printInfo("PASO ", "ACTUALIZO");
 
-    InstComentario comment1 = InstComentario(
+   /* InstComentario comment1 = InstComentario(
       comeId: Util.generateUUID(),
       comeFecha:  DateTime.now(),
       comeReviId: info.revision!.reviId,
@@ -155,7 +158,7 @@ class _VariableState extends State<Variable> {
       reviEntiId: info.revision!.reviEntiId,
     );
 
-    instrument.updateComentario(comeId, comment1);
+    instrument.updateComentario(comeId, comment1);*/
 
     info.mainDataUpdate(info.mainData);
   }
@@ -389,29 +392,7 @@ class _VariableState extends State<Variable> {
                   ],
                 ),
               ),
-             /* Row(
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      setState(() {
-                        info.puntId = _filterList[index].puntId;
-                        info.varId = _filterList[index].variId;
-                      });
-
-                      Navigator.pushNamed(context, 'showTesting').then((_) async {
-                        await _loadData();
-                      });
-
-
-                    },
-                    icon: Icon(
-                      Icons.list,
-                      color: fontColor,
-                      size: 24.0,
-                    ),
-                  ),
-                ],
-              ),*/
+            
 
             ],
           ),
@@ -428,31 +409,11 @@ class _VariableState extends State<Variable> {
       padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
       child: Column(
         children: [
-          _commentList(context),
+         
           SizedBox(height: 10,),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-
-              SizedBox(
-                width: 150,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape:  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.redColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () async {
-
-                  },
-                  child: Text('Cancelar',  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),),
-                ),
-              ),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [           
 
               SizedBox(
                 width: 150,
@@ -466,22 +427,36 @@ class _VariableState extends State<Variable> {
                   ),
                   onPressed: () async {
 
-                    if(dropdownValue == null) {
-                      await showError('Debe seleccionar un Comentario');
+
+
+                    if(_modeState == ModeState.ACTIVE) {
+
+                      _setFinish(context);
+                      await showMsg('Medidor Finalizado');
+                      btnTxt = 'Activar Medidor';
+                      _modeState = ModeState.FINISH;
+
+                      info.pendingData = true;
+                      setState(() {});
                       return;
                     }
 
-                    if(_modeState == ModeState.ADD) _addCommentByInstrument(context);
-                    if(_modeState == ModeState.EDIT) _updateComment(context, instComentario.comeId);
+                    if(_modeState == ModeState.FINISH) {
 
-                    info.pendingData = true;
-                    setState(() {});
-                    await showMsg('Medidor Finalizado');
-                    await Future.delayed(Duration(seconds: 2));
-                    Navigator.pop(context);
+                        _setActive(context);
+                        await showMsg('Medidor Activado');
+                        btnTxt = 'Finalizar Medidor';
+                        _modeState = ModeState.ACTIVE;
 
+                        info.pendingData = true;
+                        setState(() {});
+                        return;
+                     }
+
+
+                    //Navigator.pop(context);
                   },
-                  child: Text('Finalizar Medidor',  style: TextStyle(
+                  child: Text(btnTxt,  style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                   ),),
@@ -502,7 +477,7 @@ class _VariableState extends State<Variable> {
     );
   }
 
-  Widget  _commentList(BuildContext context){
+/*  Widget  _commentList(BuildContext context){
     return InputDecorator(
       decoration: InputDecoration(
         border: OutlineInputBorder( // Define el borde
@@ -547,7 +522,7 @@ class _VariableState extends State<Variable> {
       ),
     );
 
-  }
+  }*/
 
 
 } // FIn MAIN WIDGET

@@ -1,6 +1,7 @@
 import 'package:control/pages/controlList.dart';
 import 'package:control/pages/dashboard/dashboard.dart';
 import 'package:control/pages/instrument.dart';
+import 'package:control/pages/menuSystem.dart';
 import 'package:control/pages/sendData.dart';
 import 'package:control/pages/settingData.dart';
 import 'package:control/pages/showOrganization.dart';
@@ -34,6 +35,7 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     'settingData': (BuildContext context) => SettingData(),
     'takePhotoSystem': (BuildContext context) => TakePhotoSystem(),
     'showTesting': (BuildContext context) => ShowTesting(),
+    'menuSystem': (BuildContext context) => MenuSystem(),
 
 
   };

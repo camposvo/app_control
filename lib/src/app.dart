@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return GraphQLProvider(
       client: client,
       child: new MaterialApp(
-        home: new DashboardPage(),
+        home: new ShowOrganization(),
         debugShowCheckedModeBanner: false,
         supportedLocales: [SharedManager.shared.language],
         localizationsDelegates: [

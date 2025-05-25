@@ -649,7 +649,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-        /* if(!_connRemoteReady){
+      /*   if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -683,7 +683,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Foto Nro. 1',
+            'Foto Patrón',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita
@@ -730,7 +730,7 @@ class _TakePhotoState extends State<TakePhoto> {
             height: 20,
           ),
           Text(
-            'Foto Nro. 2',
+            'Foto Medidor',
             textAlign: TextAlign.center, // Centra el texto
             style: TextStyle(
               fontWeight: FontWeight.bold, // Texto en negrita

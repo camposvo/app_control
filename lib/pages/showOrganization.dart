@@ -145,10 +145,11 @@ class _ShowOrganizationState extends State<ShowOrganization> {
               info.organization = _filterList[index];
               setState(() {});
 
-              Navigator.pushNamed(context, 'showRevision',
+              Navigator.pushNamed(context, 'menuSystem',
                   arguments: {'id': _filterList[index].orgaId})
                   .then((_)  {
               });
+
             });
           },
         )
