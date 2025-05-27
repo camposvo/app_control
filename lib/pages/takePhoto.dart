@@ -60,8 +60,8 @@ class _TakePhotoState extends State<TakePhoto> {
 
   WidgetState _widgetState = WidgetState.LOADED;
   ImageState imageState = ImageState.WAITING;
-  String imageBase64_1 = "";
-  String imageBase64_2 = "";
+  String imageBase64_1 = AppImage.noImage;
+  String imageBase64_2 = AppImage.noImage;
   String comment = '';
   String? dropdownValue;
 
@@ -465,6 +465,8 @@ class _TakePhotoState extends State<TakePhoto> {
       final XFile image = await _controller!.takePicture();
       final base64Image = await _convertImageToBase64(image.path);
 
+      Util.printInfo("iamge", base64Image.toString());
+
       if (base64Image != null) {
         imageBase64_1 = base64Image;
 
@@ -649,7 +651,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-      /*   if(!_connRemoteReady){
+         if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -662,7 +664,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }*/
+          }
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
