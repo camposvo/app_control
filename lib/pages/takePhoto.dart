@@ -739,7 +739,7 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          (imageState == ImageState.RECEIVED)
+          (imageState == ImageState.WAITING)
               ? SizedBox(
                   height: 500,
                   child: Center(

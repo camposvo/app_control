@@ -87,6 +87,7 @@ class AppColor {
   static var secondaryColor =  HexToColor("#219ebc");
   static var redColor = HexToColor("#e41a28");
   static var GreenReady = HexToColor("#06b753");
+  static var orangeColor = HexToColor("#FF4500");
 
   static var color1 = HexToColor("#39b4a5");
   static var editColor = HexToColor("#FFC266");

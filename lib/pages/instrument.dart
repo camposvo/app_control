@@ -157,7 +157,6 @@ class _InstrumentState extends State<Instrument> {
     );
   }
 
-
   Widget _btnSendData(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
@@ -300,10 +299,15 @@ class _InstrumentState extends State<Instrument> {
                     },
                     icon: Icon(
                       Icons.edit,
-                      color: AppColor.redColor,
+                      color: AppColor.orangeColor,
                       size: 24.0,
                     ),
                   ),
+                /*  Icon(
+                    Icons.cloud_done_sharp,
+                    color: Colors.white,
+                    size: 24.0,
+                  ),*/
                 ],
               ),
             ],
