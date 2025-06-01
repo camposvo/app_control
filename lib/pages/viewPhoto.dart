@@ -334,10 +334,10 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
 
 
-          _descriptionText(context),
+       /*   _descriptionText(context),
           SizedBox(
             height: 16,
-          ),
+          ),*/
 
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

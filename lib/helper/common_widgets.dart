@@ -232,7 +232,6 @@ setHeaderTitle(String title, dynamic color) {
   );
 }
 
-
 setHeaderSubTitle(String title, dynamic color) {
   return new AutoSizeText(
     title,
@@ -247,7 +246,7 @@ setHeaderSubTitle(String title, dynamic color) {
   );
 }
 
-Widget setCommonText(String title, dynamic color, dynamic fontSize, dynamic fontweight,
+Widget setCommonText(String title, dynamic color, dynamic fontSize, dynamic fontWeight,
     dynamic noOfLine) {
   return  AutoSizeText(
     title,
@@ -255,7 +254,7 @@ Widget setCommonText(String title, dynamic color, dynamic fontSize, dynamic font
     style: TextStyle(
       color: color,
       fontSize: fontSize,
-      fontWeight: fontweight,
+      fontWeight: fontWeight,
     ),
     maxLines: noOfLine,
     minFontSize: 12,
@@ -498,7 +497,7 @@ Future<bool> showConfirmAccept(BuildContext context) async {
   ).then((value) => value ?? false); // Maneja el caso en que el diálogo se cierra sin seleccionar una opción
 }
 
-Future<void> showDialogMsg(BuildContext context, String mensaje) async {
+Future<void> showDialogMsg(BuildContext context, String message) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // No permitir cerrar tocando fuera
@@ -507,19 +506,31 @@ Future<void> showDialogMsg(BuildContext context, String mensaje) async {
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(mensaje, textAlign: TextAlign.center, // Centrar el texto
-                  style: TextStyle(fontSize: 16),
+              Text(message, textAlign: TextAlign.center, // Centrar el texto
+                  style: TextStyle(fontSize: 20),
               ),
             ],
           ),
         ),
         actions: <Widget>[
-          TextButton(
-            child: Text('Aceptar'),
-            onPressed: () {
+          ElevatedButton( // Usamos ElevatedButton para el botón de confirmar
+            child: const Text('Aceptar', style: TextStyle(
+              color: Colors.white, // Color del texto
+              // Puedes agregar más propiedades de TextStyle aquí
+            ),),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(10.0), // Radio de 10.0
+              ),
+              backgroundColor: AppColor.themeColor,
+              padding: EdgeInsets.all(10.0),
+            ),
+            onPressed: () async {
               Navigator.of(context).pop();
             },
           ),
+
         ],
       );
     },
@@ -625,7 +636,6 @@ Future<void> showMsg(String msg) async {
       fontSize: 16.0
   );
 }
-
 
 void showWarning(String msg) {
   Fluttertoast.showToast(

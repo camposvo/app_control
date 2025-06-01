@@ -140,7 +140,7 @@ class _VariableState extends State<Variable> {
       }
 
       if(_stateInstrument == 1){
-        btnTxt = 'Activar Medidor';
+        btnTxt = 'Editar Medidor';
         _modeState = ModeState.FINALIZED;
       }
 
@@ -412,7 +412,6 @@ class _VariableState extends State<Variable> {
       padding: const EdgeInsets.only(top: 20.0, bottom: 20, left: 18, right: 18), // Espacio alrededor del Row (opcional)
       child: Column(
         children: [
-         
           SizedBox(height: 10,),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -431,31 +430,34 @@ class _VariableState extends State<Variable> {
                   onPressed: () async {
 
 
-
                     if(_stateInstrument == 0 || _stateInstrument == null) {
                       _setStateInstrument(context, 1);
 
                       await showMsg('Medidor Finalizado');
-                      btnTxt = 'Activar Medidor';
+                      btnTxt = 'Editar Medidor';
 
                       info.pendingData = true;
                       setState(() {});
+                      await Future.delayed(const Duration(seconds: 2));
+                      Navigator.pop(context);
                       return;
                     }
 
                     if(_stateInstrument == 1 ) {
                       _setStateInstrument(context, 0);
 
-                        await showMsg('Medidor Activado');
+                        await showMsg('Medidor Editado');
                         btnTxt = 'Finalizar Medidor';
 
                         info.pendingData = true;
                         setState(() {});
+                        await Future.delayed(const Duration(seconds: 2));
+                        Navigator.pop(context);
                         return;
                      }
 
 
-                    //Navigator.pop(context);
+
                   },
                   child: Text(btnTxt,  style: TextStyle(
                     color: Colors.white,

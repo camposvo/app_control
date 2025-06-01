@@ -201,7 +201,9 @@ class _SendDataState extends State<SendData> {
 
                             _isLoading = false;
                             setState(() {});
-                            showDialogMsg(context, "Datos Enviados");
+                            await showDialogMsg(context, "Datos Enviados");
+                            Navigator.pop(context);
+
                           },
                           child: Text(
                             'Enviar Datos',

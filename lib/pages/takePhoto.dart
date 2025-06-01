@@ -219,7 +219,7 @@ class _TakePhotoState extends State<TakePhoto> {
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
       reviEntiId: info.revision!.reviEntiId,
-      prueDescripcion: dropdownValue!,
+      prueDescripcion: '',
       prueActivo: 1,
       prueValor1: prueValor1,
       prueValor2: prueValor2,
@@ -255,10 +255,9 @@ class _TakePhotoState extends State<TakePhoto> {
       prueEnviado: 2,
       prueReviId: info.revision!.reviId,
       reviEntiId: info.revision!.reviEntiId,
-      prueDescripcion: dropdownValue!,
+      prueDescripcion: '',
       prueActivo: 1,
-      prueValor1: prueValor1,
-      prueValor2: prueValor2,
+      prueValor1: prueValor1,      prueValor2: prueValor2,
     );
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
@@ -784,11 +783,11 @@ class _TakePhotoState extends State<TakePhoto> {
           SizedBox(
             height: 20,
           ),
-          Center(
+         /* Center(
             child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: _commentList(context)),
-          ),
+          ),*/
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -964,10 +963,11 @@ class _TakePhotoState extends State<TakePhoto> {
           }
 
           prueValor2 = parsedValue;
-          if (dropdownValue == null) {
+
+          /*if (dropdownValue == null) {
             showError('Debe seleccionar un Comentario');
             return;
-          }
+          }*/
 
           //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
 

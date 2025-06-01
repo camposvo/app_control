@@ -63,6 +63,7 @@ class _ShowTestingState extends State<ShowTesting> {
 
   bool enabledAddBtn = false;
   bool cumulativeIsComplete = false;
+  int itemNumber = 0;
 
   WidgetState _widgetState = WidgetState.LOADING;
 
@@ -199,6 +200,9 @@ class _ShowTestingState extends State<ShowTesting> {
 
   Widget showTestingList(BuildContext context) {
     final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final resultError = getErrorCumulative();
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
       child: Column(
@@ -220,7 +224,6 @@ class _ShowTestingState extends State<ShowTesting> {
             height: 0,
           ),
           setCommonText( '(${variable.variTipo})' , Colors.black, 18.0, FontWeight.w400, 20),
-
           _btnAddPrueba(context),
           SizedBox(
             height: 8,
@@ -233,7 +236,7 @@ class _ShowTestingState extends State<ShowTesting> {
           ),
           //if(variable.variTipo == 'acumulativa' && info.moduleSelected == ModuleSelect.NO_SYSTEM)
           if(variable.variTipo == 'acumulativa')
-            showErrorCumulative(context),
+            showErrorCumulative(context, resultError),
 
         ],
       ),
@@ -241,6 +244,8 @@ class _ShowTestingState extends State<ShowTesting> {
   }
 
   Widget _createListView(BuildContext context) {
+
+    itemNumber = 0;
     return Container(
         padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 0.0),
         height: MediaQuery.of(context).size.height,
@@ -280,13 +285,23 @@ class _ShowTestingState extends State<ShowTesting> {
     bool testLoaded = false;
     int prueActivo = _filterList[index].prueActivo;
     String msg='';
+    bool showItemNumber = true;
 
     final resultError = getErrorInstant(valor1, valor2);
 
     if(prueActivo == 0){
+      Util.printInfo('cayo','cayo');
       bgColor = Colors.grey;
       fontColor = Colors.white;
+      showItemNumber = false;
     }
+
+
+    itemNumber++;
+    if(itemNumber > 2)showItemNumber = false;
+
+   final actives =  _filterList.where((prueba) => prueba.prueActivo == 1).length;
+    if( actives > 2)showItemNumber = false;
 
     return  Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
@@ -310,14 +325,16 @@ class _ShowTestingState extends State<ShowTesting> {
                         SizedBox(
                           width: 10,
                         ),
-                        setCommonText(description, fontColor, 16.0, FontWeight.w800, 20),
+                        if(showItemNumber)
+                          setCommonText('LECTURA $itemNumber', Colors.green, 24.0, FontWeight.w800, 20),
+
                         setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
-                        setCommonText("Valor 1: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor Patrón: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
-                        setCommonText("Valor 2: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor Medidor: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.WITH_SYSTEM)
                         if(variable.variTipo == 'instantanea')
@@ -365,14 +382,43 @@ class _ShowTestingState extends State<ShowTesting> {
     );
   }
 
+
   Widget _btnAddPrueba(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          SizedBox(
+              width: 100,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed:  () {
+
+                  Navigator.pop(context);
+
+                },
+               /* icon: Icon(
+                  Icons.arrow_back_ios, // Usa el icono de cámara que prefieras
+                  color: Colors.white, // Ajusta el color del icono si es necesario
+                ),*/
+                label: Text(
+                  'Aceptar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+          ),
           SizedBox(
             width: 100,
             child: ElevatedButton.icon(
@@ -632,27 +678,25 @@ class _ShowTestingState extends State<ShowTesting> {
 
   }
 
-  Widget showErrorCumulative(BuildContext context){
+  Widget showErrorCumulative(BuildContext context, ResultError resultError){
     Color bgColor = Colors.white;
     Color fontColor = Colors.black;
 
     String msg = '';
 
-    final result =  getErrorCumulative();
-
-    if(result.numericValue == null){
-      msg = result.message;
+    if(resultError.numericValue == null){
+      msg = resultError.message;
       bgColor = Colors.white;
     }else{
 
-      if(result.numericValue! > 5.0){
+      if(resultError.numericValue! > 5.0){
         bgColor = Colors.red;
-        msg = '${result.numericValue!.toStringAsFixed(3)}%';
+        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
       }
 
-      if(result.numericValue! <= 5.0){
+      if(resultError.numericValue! <= 5.0){
         bgColor = Colors.green;
-        msg = '${result.numericValue!.toStringAsFixed(3)}%';
+        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
       }
 
     }
