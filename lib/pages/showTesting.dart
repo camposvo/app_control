@@ -289,8 +289,10 @@ class _ShowTestingState extends State<ShowTesting> {
 
     final resultError = getErrorInstant(valor1, valor2);
 
+    final valor1Txt = valor1?.toString().replaceAll('.', ',');
+    final valor2Txt = valor2?.toString().replaceAll('.', ',');
+
     if(prueActivo == 0){
-      Util.printInfo('cayo','cayo');
       bgColor = Colors.grey;
       fontColor = Colors.white;
       showItemNumber = false;
@@ -331,10 +333,10 @@ class _ShowTestingState extends State<ShowTesting> {
                         setCommonText(dateTest, fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
-                        setCommonText("Valor Patrón: "+ valor1.toString(), fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor Patrón: $valor1Txt", fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(info.moduleSelected == ModuleSelect.WITH_SYSTEM)
-                        setCommonText("Valor Medidor: "+ valor2.toString(), fontColor, 16.0, FontWeight.w800, 20),
+                        setCommonText("Valor Medidor: $valor2Txt", fontColor, 16.0, FontWeight.w800, 20),
 
                         //if(variable.variTipo == 'instantanea' && info.moduleSelected == ModuleSelect.WITH_SYSTEM)
                         if(variable.variTipo == 'instantanea')
@@ -568,7 +570,7 @@ class _ShowTestingState extends State<ShowTesting> {
       return   ResultError(message, numericValue);
    }
 
-    final error = (((resultVal1-resultVal2)/resultVal2)*100).abs();
+    final error = (((resultVal1-resultVal2)/resultVal1)*100).abs();
 
     message = 'ok';
     numericValue = error;
@@ -615,7 +617,7 @@ class _ShowTestingState extends State<ShowTesting> {
 
 
     message = 'OK';
-    numericValue = (((valor1Result-valor2Result)/valor2Result)*100).abs();
+    numericValue = (((valor1Result-valor2Result)/valor1Result)*100).abs();
     return   ResultError(message, numericValue);
 
   }
@@ -631,14 +633,14 @@ class _ShowTestingState extends State<ShowTesting> {
       msg = resultError.message;
 
     }else{
+      msg = '${resultError.numericValue!.toStringAsFixed(3).replaceAll('.', ',')}%';
+
       if(resultError.numericValue! >= 5.0){
         bgColor = Colors.red;
-        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
       }
 
       if(resultError.numericValue! < 5.0){
         bgColor = Colors.green;
-        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
       }
 
     }
@@ -688,15 +690,16 @@ class _ShowTestingState extends State<ShowTesting> {
       msg = resultError.message;
       bgColor = Colors.white;
     }else{
+      msg = '${resultError.numericValue!.toStringAsFixed(3).replaceAll('.', ',')}%';
 
       if(resultError.numericValue! > 5.0){
         bgColor = Colors.red;
-        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
+
       }
 
       if(resultError.numericValue! <= 5.0){
         bgColor = Colors.green;
-        msg = '${resultError.numericValue!.toStringAsFixed(3)}%';
+
       }
 
     }

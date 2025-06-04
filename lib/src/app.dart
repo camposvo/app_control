@@ -35,6 +35,9 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+
+        // Puedes especificar un locale inicial si lo deseas, si no, Flutter usará el del dispositivo.
+        // locale: const Locale('es', 'ES'), /
         routes: getApplicationRoutes(),
 
       ),

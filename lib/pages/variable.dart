@@ -452,7 +452,6 @@ class _VariableState extends State<Variable> {
                         info.pendingData = true;
                         setState(() {});
                         await Future.delayed(const Duration(seconds: 2));
-                        Navigator.pop(context);
                         return;
                      }
 

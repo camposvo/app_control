@@ -307,7 +307,7 @@ setDrawer(BuildContext context) {
         ),*/
         ListTile(
           leading: Icon(Icons.home),
-          title: Text('Inico'),
+          title: Text('Inicio'),
           onTap: () async {
             Navigator.popUntil(context, (route) => route.isFirst);
           },

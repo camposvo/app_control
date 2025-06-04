@@ -112,6 +112,7 @@ class _TakePhotoState extends State<TakePhoto> {
   void initState() {
     super.initState();
     prueId = widget.prueId;
+    //_controller1.addListener(_updateParsedValue);
     _loadData();
   }
 
@@ -710,7 +711,8 @@ class _TakePhotoState extends State<TakePhoto> {
               controller: _controller1,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                //FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*')),
               ],
               decoration: InputDecoration(
                 labelText: 'Valor Foto Patrón',
@@ -765,7 +767,7 @@ class _TakePhotoState extends State<TakePhoto> {
                       controller: _controller2,
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*')),
                       ],
                       decoration: InputDecoration(
                         labelText: 'Valor Foto Medidor',
@@ -944,18 +946,16 @@ class _TakePhotoState extends State<TakePhoto> {
         ),
         onPressed: () {
 
-          String inputText = _controller1.text;
-          double? parsedValue = double.tryParse(inputText);
+
+          double? parsedValue = _parsedDouble(_controller1.text);
 
           if (parsedValue == null) {
             showError("Entrada no valida en Foto 1");
             return;
           }
-
           prueValor1 = parsedValue;
-          inputText = _controller2.text;
-          parsedValue = double.tryParse(inputText);
 
+          parsedValue = _parsedDouble(_controller2.text);
           if (parsedValue == null) {
             showError("Entrada no valida en Foto 2");
             return;
@@ -964,10 +964,6 @@ class _TakePhotoState extends State<TakePhoto> {
 
           prueValor2 = parsedValue;
 
-          /*if (dropdownValue == null) {
-            showError('Debe seleccionar un Comentario');
-            return;
-          }*/
 
           //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
 
@@ -1051,8 +1047,40 @@ class _TakePhotoState extends State<TakePhoto> {
     );
   }
 
+  double? _parsedDouble( String inputText) {
+    double? parsedValue;
+    String? errorMessage;
+
+    // Eliminar caracteres no numéricos o no comas (si los hubiera, aunque el formatter ya ayuda)
+    String cleanedText = inputText.replaceAll(RegExp(r'[^\d,]'), '');
+
+    // Reemplazar la coma por un punto para que double.tryParse lo entienda
+    String dotSeparatedText = cleanedText.replaceAll(',', '.');
+
+    setState(() {
+      if (dotSeparatedText.isEmpty) {
+        parsedValue = null;
+        errorMessage = null;
+      } else {
+        parsedValue = double.tryParse(dotSeparatedText);
+        if (parsedValue == null) {
+          // Si no se pudo parsear pero hay texto, significa un formato inválido
+          errorMessage = 'Formato numérico inválido (ej: 123,45)';
+        } else {
+          errorMessage = null;
+        }
+      }
+    });
+
+    return parsedValue;
+    // Opcional: Para depuración, puedes imprimir el valor parseado
+    print('Valor del TextField: $inputText');
+    print('Valor double parseado: $parsedValue');
+  }
+
   @override
   void dispose() {
+    //_controller1.removeListener(_updateParsedValue);
     _timerConnection?.cancel();
     sendStateConnection(false, false);
     _controller?.dispose();
