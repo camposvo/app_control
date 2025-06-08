@@ -119,6 +119,17 @@ setStyleH6({double size = 18.0}) {
       color: AppColor.secondaryColor);
 }
 
+setNumberStyle() {
+  return TextStyle(
+      color: Colors.black, // Color de la fuente del texto que el usuario ingresa
+      fontSize: 20.0,             // Tamaño de la fuente
+      fontWeight: FontWeight.bold, // Peso de la fuente (ej. negrita)
+      fontStyle: FontStyle.normal, // Estilo de la fuente (ej. cursiva)
+      letterSpacing: 1,
+  );
+}
+
+
 btnStyle(BuildContext context) {
   return ElevatedButton.styleFrom(
       minimumSize: Size(MediaQuery.of(context).size.width, 60),

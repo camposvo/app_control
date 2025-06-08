@@ -188,6 +188,31 @@ class Util {
     return santiagoDate;
   }
 
+  static double? parsedDouble( String inputText) {
+    double? parsedValue;
+    String? errorMessage;
+
+    // Eliminar caracteres no numéricos o no comas (si los hubiera, aunque el formatter ya ayuda)
+    String cleanedText = inputText.replaceAll(RegExp(r'[^\d,]'), '');
+
+    // Reemplazar la coma por un punto para que double.tryParse lo entienda
+    String dotSeparatedText = cleanedText.replaceAll(',', '.');
+
+    if (dotSeparatedText.isEmpty) {
+      parsedValue = null;
+      errorMessage = null;
+    } else {
+      parsedValue = double.tryParse(dotSeparatedText);
+      if (parsedValue == null) {
+        // Si no se pudo parsear pero hay texto, significa un formato inválido
+        errorMessage = 'Formato numérico inválido (ej: 123,45)';
+      } else {
+        errorMessage = null;
+      }
+    }
+
+    return parsedValue;
+  }
 
 }
 

@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/decimalInputFormatter.dart';
 import '../helper/mqttManager.dart';
 import '../models/orgaInstrumento.dart';
 import '../models/resultRevision.dart';
@@ -42,8 +43,8 @@ class _TakePhotoState extends State<TakePhoto> {
   bool isLoading = true;
   bool isFinish = false;
 
-  TextEditingController _controller1 = TextEditingController();
-  TextEditingController _controller2 = TextEditingController();
+  TextEditingController _controller1 = TextEditingController(text: '0,00');
+  TextEditingController _controller2 = TextEditingController(text: '0,00');
   double prueValor1 = 0, prueValor2 =0;
   Timer? _timerConnection;
 
@@ -112,9 +113,20 @@ class _TakePhotoState extends State<TakePhoto> {
   void initState() {
     super.initState();
     prueId = widget.prueId;
-    //_controller1.addListener(_updateParsedValue);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller1.selection = TextSelection.fromPosition(
+        TextPosition(offset: 2),
+      );
+
+      _controller2.selection = TextSelection.fromPosition(
+        TextPosition(offset: 2),
+      );
+
+    });
+    //_controller1.addListener(_onTextChanged);
     _loadData();
   }
+
 
   Future<void> _loadData() async {
 
@@ -651,7 +663,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-         if(!_connRemoteReady){
+        /* if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -664,7 +676,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }
+          }*/
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
@@ -711,11 +723,12 @@ class _TakePhotoState extends State<TakePhoto> {
               controller: _controller1,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               inputFormatters: <TextInputFormatter>[
-                //FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*')),
+                DecimalInputFormatter(),
               ],
+              style: setNumberStyle(),
               decoration: InputDecoration(
                 labelText: 'Valor Foto Patrón',
+                hintText: '0,00', // Sugerencia visual
                 border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
                 borderSide: BorderSide(
                 color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
@@ -740,7 +753,7 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          (imageState == ImageState.WAITING)
+          (imageState == ImageState.RECEIVED)
               ? SizedBox(
                   height: 500,
                   child: Center(
@@ -765,19 +778,23 @@ class _TakePhotoState extends State<TakePhoto> {
                     width: 200,
                     child: TextField(
                       controller: _controller2,
+
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*')),
+                       DecimalInputFormatter(),
                       ],
+                      style: setNumberStyle(),
                       decoration: InputDecoration(
-                        labelText: 'Valor Foto Medidor',
+                        labelText: 'Valor Foto Patrón',
+                        hintText: '0,00', // Sugerencia visual
                         border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
                           borderSide: BorderSide(
                             color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
                             width: 1.0, // El grosor que deseas para el borde deshabilitado
                           ),
-                        ),
-                      ),
+                        )
+                      )
+
                     ),
                   ),
                 ],
@@ -785,11 +802,6 @@ class _TakePhotoState extends State<TakePhoto> {
           SizedBox(
             height: 20,
           ),
-         /* Center(
-            child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: _commentList(context)),
-          ),*/
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -947,7 +959,7 @@ class _TakePhotoState extends State<TakePhoto> {
         onPressed: () {
 
 
-          double? parsedValue = _parsedDouble(_controller1.text);
+          double? parsedValue = Util.parsedDouble(_controller1.text);
 
           if (parsedValue == null) {
             showError("Entrada no valida en Foto 1");
@@ -955,15 +967,13 @@ class _TakePhotoState extends State<TakePhoto> {
           }
           prueValor1 = parsedValue;
 
-          parsedValue = _parsedDouble(_controller2.text);
+          parsedValue = Util.parsedDouble(_controller2.text);
           if (parsedValue == null) {
             showError("Entrada no valida en Foto 2");
             return;
-
           }
 
           prueValor2 = parsedValue;
-
 
           //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
 
@@ -1047,43 +1057,17 @@ class _TakePhotoState extends State<TakePhoto> {
     );
   }
 
-  double? _parsedDouble( String inputText) {
-    double? parsedValue;
-    String? errorMessage;
 
-    // Eliminar caracteres no numéricos o no comas (si los hubiera, aunque el formatter ya ayuda)
-    String cleanedText = inputText.replaceAll(RegExp(r'[^\d,]'), '');
-
-    // Reemplazar la coma por un punto para que double.tryParse lo entienda
-    String dotSeparatedText = cleanedText.replaceAll(',', '.');
-
-    setState(() {
-      if (dotSeparatedText.isEmpty) {
-        parsedValue = null;
-        errorMessage = null;
-      } else {
-        parsedValue = double.tryParse(dotSeparatedText);
-        if (parsedValue == null) {
-          // Si no se pudo parsear pero hay texto, significa un formato inválido
-          errorMessage = 'Formato numérico inválido (ej: 123,45)';
-        } else {
-          errorMessage = null;
-        }
-      }
-    });
-
-    return parsedValue;
-    // Opcional: Para depuración, puedes imprimir el valor parseado
-    print('Valor del TextField: $inputText');
-    print('Valor double parseado: $parsedValue');
-  }
 
   @override
   void dispose() {
-    //_controller1.removeListener(_updateParsedValue);
+    //_controller1.removeListener(_onTextChanged);
     _timerConnection?.cancel();
     sendStateConnection(false, false);
     _controller?.dispose();
     super.dispose();
   }
 }
+
+
+
