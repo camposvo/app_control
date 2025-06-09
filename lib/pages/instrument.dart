@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../api/client.dart';
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/decimalInputFormatter.dart';
 import '../helper/util.dart';
 import '../models/orgaInstrumento.dart';
 
@@ -32,7 +33,6 @@ class _InstrumentState extends State<Instrument> {
   int _total= 0;
 
   bool _isSaving = false;
-
   bool isLoading = true;
   String orgaId = '';
 
@@ -322,7 +322,28 @@ class _InstrumentState extends State<Instrument> {
 
     final orgaId = info.organization!.orgaId;
 
-    TextEditingController _controller1 = TextEditingController(text: selectedInstrument.instProteccion.toString());
+    String originalText = selectedInstrument.instProteccion.toString();
+    String resultText = '0,00';
+
+    // Intenta parsear el texto a un double
+    double? parsedDouble = double.tryParse(originalText);
+
+    if (parsedDouble != null) {
+      // Si es un double, conviértelo a texto con una precisión adecuada
+      // (por ejemplo, 2 decimales, ajusta según tu necesidad)
+      resultText = parsedDouble.toStringAsFixed(2); // Ejemplo: 2 decimales
+
+      // Reemplaza el punto por una coma
+      resultText = resultText.replaceAll('.', ',');
+    } else {
+      // Si no es un double, puedes devolver el texto original
+      // o un mensaje de error, o una cadena vacía, según tu lógica.
+      resultText = '0,00'; // O String resultText = "No es un número válido";
+    }
+
+
+
+    TextEditingController _controller1 = TextEditingController(text: resultText);
 
     await showDialog(
       context: context,
@@ -339,9 +360,19 @@ class _InstrumentState extends State<Instrument> {
                   controller: _controller1,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    DecimalInputFormatter(),
                   ],
-                  decoration: InputDecoration(labelText: 'Corriente Nominal'),
+                  decoration: InputDecoration(
+                    labelText: 'Corriente Nominal',
+                    hintText: '0,00', // Sugerencia visual
+                    border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+                      borderSide: BorderSide(
+                        color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
+                        width: 1.0, // El grosor que deseas para el borde deshabilitado
+                      ),
+                    ),
+                  ),
+
                 ),
 
               ],
@@ -359,14 +390,14 @@ class _InstrumentState extends State<Instrument> {
                     ? null // Deshabilita el botón si _isLoading es true
                     : () async {
 
-                    String inputText = _controller1.text;
-                    double? parsedValue = double.tryParse(inputText);
+
+                    double? parsedValue = Util.parsedDouble(_controller1.text);
 
                     if (parsedValue == null) {
-                      showError("Entrada no valida");
-                    return;
-
+                      showError("Entrada no valida en Foto 1");
+                      return;
                     }
+
 
                   setStateDialog(() {
                     _isSaving = true; // Activa el estado de carga

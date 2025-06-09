@@ -65,6 +65,9 @@ class _ShowTestingState extends State<ShowTesting> {
   bool cumulativeIsComplete = false;
   int itemNumber = 0;
 
+  bool _isSaving = false;
+  bool isLoading = true;
+
   WidgetState _widgetState = WidgetState.LOADING;
 
   String orgaId = '';
@@ -224,7 +227,7 @@ class _ShowTestingState extends State<ShowTesting> {
             height: 0,
           ),
           setCommonText( '(${variable.variTipo})' , Colors.black, 18.0, FontWeight.w400, 20),
-          _btnAddPrueba(context),
+          _topButtons(context),
           SizedBox(
             height: 8,
           ),
@@ -385,13 +388,13 @@ class _ShowTestingState extends State<ShowTesting> {
   }
 
 
-  Widget _btnAddPrueba(BuildContext context){
+  Widget _topButtons(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           SizedBox(
               width: 100,
@@ -414,6 +417,28 @@ class _ShowTestingState extends State<ShowTesting> {
                 ),*/
                 label: Text(
                   'Aceptar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+          ),
+          SizedBox(
+              width: 100,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed:  () {
+                  _addComment(context);
+                },
+                label: Text(
+                  'Comentario',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -738,5 +763,116 @@ class _ShowTestingState extends State<ShowTesting> {
     );
 
   }
+
+  Future<void>  _addComment(BuildContext context) async {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    final orgaId = info.organization!.orgaId;
+
+    TextEditingController _controller1 = TextEditingController(text: '');
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog)
+          {
+            return AlertDialog(
+              title: Text('Comentario'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: _controller1,
+                    keyboardType: TextInputType.text,
+                    inputFormatters: <TextInputFormatter>[
+                      //FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                    ],
+                    decoration: InputDecoration(labelText: 'Corriente Nominal'),
+                  ),
+
+                ],
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    backgroundColor: AppColor.themeColor,
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  onPressed: _isSaving
+                      ? null // Deshabilita el botón si _isLoading es true
+                      : () async {
+
+                    String inputText = _controller1.text;
+                    
+
+                    setStateDialog(() {
+                      _isSaving = true; // Activa el estado de carga
+                    });
+
+
+                    //saveInstrument(context, orgaId,selectedInstrument.instId, parsedValue);
+
+                    Navigator.of(context).pop();
+
+
+
+                    setStateDialog(() {
+                      _isSaving = false;
+                    });
+
+                    Util.printInfo('Guardando...', _isSaving.toString());
+                  },
+                  child: _isSaving
+                      ? const SizedBox( // Muestra un CircularProgressIndicator si _isLoading es true
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text( // Muestra el texto "Guardar" si _isLoading es false
+                    'Guardar',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    backgroundColor: AppColor.redColor,
+                    padding: EdgeInsets.all(10.0),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      // Puedes ajustar el estilo del texto para que coincida con tu diseño
+                      color: Colors.white,
+                      // fontSize: 16,
+                    ),
+                  ),
+                ),
+
+              ],
+            );
+          },
+
+        );
+      },
+    );
+  }
+  
+
 
 } 
