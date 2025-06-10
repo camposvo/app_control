@@ -28,5 +28,14 @@
     "prue_valor_1": null,
     "prue_valor_2": null,
     "prue_activo": 1
-  }]
+  }],
+  "punt_comment": [
+    {
+      "come_punt_id": "",
+      "come_revi_id":"",
+      "come_fecha": "2025-02-21T11:20:00",
+      "come_descripcion":"",
+      "come_activo": 1
+    }
+  ]
 }

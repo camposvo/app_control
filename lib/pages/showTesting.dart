@@ -59,6 +59,7 @@ class _ShowTestingState extends State<ShowTesting> {
   late OrgaInstrumentoElement instrument;
   late InstVariable variable ;
   late OrgaInstrumento orgaInstrument;
+  PuntComentario? prueComment;
 
 
   bool enabledAddBtn = false;
@@ -101,6 +102,13 @@ class _ShowTestingState extends State<ShowTesting> {
 
     variable = instrument.instVariables.firstWhere((item) => item.variId == info.varId);
 
+    prueComment = variable.getComentarioByReviId(info.revision!.reviId);
+
+    if (prueComment != null){
+      Util.printInfo("comentaria: ", prueComment!.comeDescripcion);
+      Util.printInfo("comentaria id: ", prueComment!.comeId.toString());
+    }
+
     _puntPruebas = variable.getPruebasByReviId(info.revision!.reviId);
     _puntPruebas.sort((a, b) => a.prueActivo.compareTo(b.prueActivo));
 
@@ -124,6 +132,42 @@ class _ShowTestingState extends State<ShowTesting> {
     }
 
     return false;
+  }
+
+  void _addCommentPrueba(BuildContext context, String comment) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    PuntComentario puntComentario = PuntComentario(
+        comeFecha: DateTime.now(),
+        comeActivo: 1,
+        comeReviId: info.revision!.reviId,
+        comeDescripcion: comment,
+        comeEnviado: 2,
+    );
+
+    variable.addComentario(puntComentario);
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
+  }
+
+  void _updateCommentPrueba(BuildContext context, String commentId, String comment) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+
+    PuntComentario puntComentario = PuntComentario(
+        comeFecha: DateTime.now(),
+        comeActivo: 1,
+        comeReviId: info.revision!.reviId,
+        comeDescripcion: comment,
+        comeEnviado: 2,
+    );
+
+
+    variable.updateComentario(commentId, puntComentario );
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
   }
 
   bool _deletePuntPrueba(BuildContext context, String prueId) {
@@ -435,7 +479,7 @@ class _ShowTestingState extends State<ShowTesting> {
                   padding: EdgeInsets.all(10.0),
                 ),
                 onPressed:  () {
-                  _addComment(context);
+                  _dialogAddComment(context);
                 },
                 label: Text(
                   'Comentario',
@@ -764,12 +808,18 @@ class _ShowTestingState extends State<ShowTesting> {
 
   }
 
-  Future<void>  _addComment(BuildContext context) async {
+  Future<void>  _dialogAddComment(BuildContext context) async {
     final info = Provider.of<ProviderPages>(context, listen: false);
+    String text = '';
+    String? comeId;
 
-    final orgaId = info.organization!.orgaId;
+    if(prueComment != null){
+      text = prueComment!.comeDescripcion;
+      comeId = prueComment!.comeId;      
+    }
 
-    TextEditingController _controller1 = TextEditingController(text: '');
+
+    TextEditingController _controller1 = TextEditingController(text: text);
 
     await showDialog(
       context: context,
@@ -802,40 +852,24 @@ class _ShowTestingState extends State<ShowTesting> {
                     backgroundColor: AppColor.themeColor,
                     padding: EdgeInsets.all(10.0),
                   ),
-                  onPressed: _isSaving
-                      ? null // Deshabilita el botón si _isLoading es true
-                      : () async {
+                  onPressed: ()  {
 
-                    String inputText = _controller1.text;
+                    String newText = _controller1.text;
                     
-
-                    setStateDialog(() {
-                      _isSaving = true; // Activa el estado de carga
-                    });
-
-
-                    //saveInstrument(context, orgaId,selectedInstrument.instId, parsedValue);
-
+                    if(comeId != null){
+                      _updateCommentPrueba(context, comeId, newText);
+                      Navigator.of(context).pop();
+                      return;
+                    }
+                    
+                    _addCommentPrueba(context, newText);
                     Navigator.of(context).pop();
 
+                    return;
 
 
-                    setStateDialog(() {
-                      _isSaving = false;
-                    });
-
-                    Util.printInfo('Guardando...', _isSaving.toString());
                   },
-                  child: _isSaving
-                      ? const SizedBox( // Muestra un CircularProgressIndicator si _isLoading es true
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2,
-                    ),
-                  )
-                      : const Text( // Muestra el texto "Guardar" si _isLoading es false
+                  child: const Text( // Muestra el texto "Guardar" si _isLoading es false
                     'Guardar',
                     style: TextStyle(
                       color: Colors.white,

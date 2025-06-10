@@ -207,6 +207,46 @@ class _Clients {
 
   }
 
+  Future<String?> insertCommnets(String orgaId, List<PuntComment> data) async {
+
+    final test = CommentToJson(data);
+
+    Util.printInfo("Comentarios", test.toString());
+
+    /*try {
+      GraphQLConfig graphQLConfiguration = GraphQLConfig();
+      GraphQLClient client = graphQLConfiguration.clientToQuery();
+      QueryResult result = await client.mutate(
+        MutationOptions(
+            document: gql(gqlControl.gqlSaveComment()),
+            variables: {'orgaId': orgaId,
+              'comentarios': test
+            },
+            fetchPolicy: FetchPolicy.networkOnly),
+      );
+
+      if (result.hasException) {
+        Util.printInfo("prueba ERRORR QUERY : ",result.exception.toString());
+        return null;
+      }
+      if (result.data != null) {
+        Util.printInfo("prueba : ","Guardo");
+        print(result.data);
+
+        return 'Operacion Completada Exitosamente';
+      }
+      return null;
+
+    } catch (e) {
+      Util.printInfo("EXCEPTIO ERRORR QUERY : ",e.toString());
+      print(e);
+      return null;
+    }*/
+
+    return null;
+
+  }
+
   Future<String?> updateIntrument(String instId, String orgaId, double value) async {
 
     dynamic filter = {

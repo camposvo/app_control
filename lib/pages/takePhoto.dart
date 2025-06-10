@@ -663,7 +663,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-        /* if(!_connRemoteReady){
+         if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
@@ -676,7 +676,7 @@ class _TakePhotoState extends State<TakePhoto> {
           if(!_cameraRemoteReady){
             showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
             return;
-          }*/
+          }
 
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
@@ -753,7 +753,7 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 18.0, // Tamaño de fuente 14
             ),
           ),
-          (imageState == ImageState.RECEIVED)
+          (imageState == ImageState.WAITING)
               ? SizedBox(
                   height: 500,
                   child: Center(

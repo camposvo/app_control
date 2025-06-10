@@ -26,6 +26,8 @@ class _SendDataState extends State<SendData> {
   String _message = "";
   bool sendFinished = false;
   bool sendTest = false;
+  bool sendComments = false;
+
 
   @override
   void initState() {
@@ -37,7 +39,7 @@ class _SendDataState extends State<SendData> {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
     resultRevision = ResultRevision(
-        orgaId: info.organization!.orgaId, comentarios: [], pruebas: [],instFinalizados: []);
+        orgaId: info.organization!.orgaId, comentarios: [], pruebas: [],instFinalizados: [], puntComentarios: []);
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
     if(index == null){
@@ -51,6 +53,13 @@ class _SendDataState extends State<SendData> {
     Util.printInfo("pruebas", resultRevision.instFinalizados.length.toString());
 
     resultRevision.instFinalizados = info.mainData[index].getInstFinalizadosEnviados(info.revision!.reviId);
+
+    resultRevision.puntComentarios = info.mainData[index].getPuntComeByReviId(info.revision!.reviId);
+    Util.printInfo("Punt Comment", resultRevision.puntComentarios.length.toString());
+
+    sendComments = resultRevision.puntComentarios.isNotEmpty ? true : false;
+
+
 
     sendFinished = resultRevision.instFinalizados.isNotEmpty ? true : false;
 
@@ -81,6 +90,20 @@ class _SendDataState extends State<SendData> {
     final orgaId = resultRevision.orgaId;
 
     final result = await api.insertFinalizados(orgaId, resultRevision.instFinalizados);
+    if (result == null) {
+      showMsg("Error en Envio");
+      return false;
+    }
+
+    return true;
+  }
+
+
+  Future<bool> _saveComments() async {
+
+    final orgaId = resultRevision.orgaId;
+
+    final result = await api.insertCommnets(orgaId, resultRevision.puntComentarios);
     if (result == null) {
       showMsg("Error en Envio");
       return false;
@@ -181,6 +204,16 @@ class _SendDataState extends State<SendData> {
                                  return;
                                }
                              }
+
+                            if(sendComments) {
+                              _message = " Enviando Comentarios ...";
+                              setState(() {});
+                              final resultFinished = await _saveComments();
+
+                              if (!resultFinished) {
+                                return;
+                              }
+                            }
 
 
                             if(sendTest) {

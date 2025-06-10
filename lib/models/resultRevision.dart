@@ -21,7 +21,45 @@ List<Map<String, dynamic>> finalizadosToJson(List<InstFinalizado> instFinalizado
   return jsonList;
 }
 
+List<Map<String, dynamic>> CommentToJson(List<PuntComment> puntComment) {
+  List<Map<String, dynamic>> jsonList = puntComment.map((item) =>  item.toJson()).toList();
+  return jsonList;
+}
+
+
 class ResultRevision {
+  String orgaId;
+  List<Comentario> comentarios;
+  List<InstFinalizado> instFinalizados;
+  List<Prueba> pruebas;
+  List<PuntComment> puntComentarios;
+
+  ResultRevision({
+    required this.orgaId,
+    required this.comentarios,
+    required this.instFinalizados,
+    required this.pruebas,
+    required this.puntComentarios,
+  });
+
+  factory ResultRevision.fromJson(Map<String, dynamic> json) => ResultRevision(
+    orgaId: json["orga_id"],
+    comentarios: List<Comentario>.from(json["comentarios"].map((x) => Comentario.fromJson(x))),
+    instFinalizados: List<InstFinalizado>.from(json["inst_finalizados"].map((x) => InstFinalizado.fromJson(x))),
+    pruebas: List<Prueba>.from(json["pruebas"].map((x) => Prueba.fromJson(x))),
+    puntComentarios: List<PuntComment>.from(json["punt_comentarios"].map((x) => PuntComment.fromJson(x))),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "orga_id": orgaId,
+    "comentarios": List<dynamic>.from(comentarios.map((x) => x.toJson())),
+    "inst_finalizados": List<dynamic>.from(instFinalizados.map((x) => x.toJson())),
+    "pruebas": List<dynamic>.from(pruebas.map((x) => x.toJson())),
+    "punt_comentarios": List<dynamic>.from(puntComentarios.map((x) => x.toJson())),
+  };
+}
+
+/*class ResultRevision {
   String orgaId;
   List<Comentario> comentarios;
   List<InstFinalizado> instFinalizados;
@@ -48,7 +86,7 @@ class ResultRevision {
     "pruebas": List<dynamic>.from(pruebas.map((x) => x.toJson())),
   };
 
-}
+}*/
 
 class Comentario {
   DateTime comeFecha;
@@ -81,7 +119,6 @@ class Comentario {
     "come_descripcion": comeDescripcion,
   };
 }
-
 
 class Prueba {
   String prueId;
@@ -136,6 +173,38 @@ class Prueba {
     "prue_valor_1": prueValor1,
     "prue_valor_2": prueValor2,
     "prue_activo": prueActivo,
+  };
+}
+
+class PuntComment {
+  String comePuntId;
+  String comeReviId;
+  DateTime comeFecha;
+  String comeDescripcion;
+  int comeActivo;
+
+  PuntComment({
+    required this.comePuntId,
+    required this.comeReviId,
+    required this.comeFecha,
+    required this.comeDescripcion,
+    required this.comeActivo,
+  });
+
+  factory PuntComment.fromJson(Map<String, dynamic> json) => PuntComment(
+    comePuntId: json["come_punt_id"],
+    comeReviId: json["come_revi_id"],
+    comeFecha: DateTime.parse(json["come_fecha"]),
+    comeDescripcion: json["come_descripcion"],
+    comeActivo: json["come_activo"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "come_punt_id": comePuntId,
+    "come_revi_id": comeReviId,
+    "come_fecha": comeFecha.toIso8601String(),
+    "come_descripcion": comeDescripcion,
+    "come_activo": comeActivo,
   };
 }
 

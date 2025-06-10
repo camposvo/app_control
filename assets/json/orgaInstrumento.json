@@ -44,6 +44,14 @@
             "vari_nombre": "Energia Importada",
             "subu_simbolo": "",
             "vari_subu_id": "1254e9a1-0195-7000-9871-5702bdd314b3",
+            "punt_comentarios": [
+              {
+                "come_fecha": "2025-06-09T15:34:26.482172",
+                "come_activo": 1,
+                "come_revi_id": "20fab0c1-0195-7000-8407-423c65498002",
+                "come_descripcion": "Variable en Falla"
+              }
+            ],
             "subu_abreviatura": "kWh",
             "vari_abreviatura": "Eactiva"
           }

@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:control/models/resultRevision.dart';
 
+import '../helper/util.dart';
+
 List<OrgaInstrumento> orgaInstrumentoFromJson(String str) => List<OrgaInstrumento>.from(json.decode(str).map((x) => OrgaInstrumento.fromJson(x)));
 
 String orgaInstrumentoToJson(List<OrgaInstrumento> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
@@ -198,6 +200,31 @@ class OrgaInstrumento {
   }
 
 
+  //  ************* NUEVO METODO PARA OBTENER Lista de PuntPrueba por prueReviId ******************************
+  List<PuntComment> getPuntComeByReviId(String prueReviId) {
+    List<PuntComment> pruebasEncontradas = [];
+    for (var instrumento in orgaInstrumentos) {
+      for (var variable in instrumento.instVariables) {
+        for (var comment in variable.puntComentarios) {
+          if (comment.comeReviId == prueReviId &&  comment.comeEnviado == 2 ) {
+            PuntComment temp = PuntComment(
+              comePuntId: variable.puntId,
+              comeReviId: comment.comeReviId,
+              comeFecha: comment.comeFecha,
+              comeDescripcion: comment.comeDescripcion,
+              comeActivo: comment.comeActivo,
+
+            );
+            pruebasEncontradas.add(temp);
+          }
+        }
+      }
+    }
+
+    return pruebasEncontradas;
+  }
+
+
 }
 
 class OrgaInstrumentoElement {
@@ -345,6 +372,136 @@ class InstVariable {
   String variNombre;
   String subuSimbolo;
   String variSubuId;
+  List<PuntComentario> puntComentarios;
+  String subuAbreviatura;
+  String variAbreviatura;
+
+  InstVariable({
+    required this.puntId,
+    required this.variId,
+    required this.variTipo,
+    required this.puntPrueba,
+    required this.subuNombre,
+    required this.variNombre,
+    required this.subuSimbolo,
+    required this.variSubuId,
+    required this.puntComentarios,
+    required this.subuAbreviatura,
+    required this.variAbreviatura,
+  });
+
+  factory InstVariable.fromJson(Map<String, dynamic> json) => InstVariable(
+    puntId: json["punt_id"],
+    variId: json["vari_id"],
+    variTipo: json["vari_tipo"],
+    puntPrueba: List<PuntPrueba>.from(json["punt_prueba"].map((x) => PuntPrueba.fromJson(x))),
+    subuNombre: json["subu_nombre"],
+    variNombre: json["vari_nombre"],
+    subuSimbolo: json["subu_simbolo"],
+    variSubuId: json["vari_subu_id"],
+    puntComentarios: List<PuntComentario>.from(json["punt_comentarios"].map((x) => PuntComentario.fromJson(x))),
+    subuAbreviatura: json["subu_abreviatura"],
+    variAbreviatura: json["vari_abreviatura"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "punt_id": puntId,
+    "vari_id": variId,
+    "vari_tipo": variTipo,
+    "punt_prueba": List<dynamic>.from(puntPrueba.map((x) => x.toJson())),
+    "subu_nombre": subuNombre,
+    "vari_nombre": variNombre,
+    "subu_simbolo": subuSimbolo,
+    "vari_subu_id": variSubuId,
+    "punt_comentarios": List<dynamic>.from(puntComentarios.map((x) => x.toJson())),
+    "subu_abreviatura": subuAbreviatura,
+    "vari_abreviatura": variAbreviatura,
+  };
+
+  //  ************* NUEVO METODO PARA CONTAR PRUEBAS ACTIVAS ******************************
+  int countActivePruebas() {
+    return puntPrueba.where((prueba) => prueba.prueActivo == 1).length;
+  }
+
+  //  ************* NUEVO METODO PARA OBTENER TODAS LAS PRUEBAS POR prueReviId ******************************
+  List<PuntPrueba> getPruebasByReviId(String prueReviId) {
+    return puntPrueba.where((prueba) => prueba.prueReviId == prueReviId).toList();
+  }
+
+  //  ************* NUEVO METODO: OBTENER COMENTARIO POR comeReviId ******************************
+  PuntComentario? getComentarioByReviId(String comeReviId) {
+    try {
+      return puntComentarios.firstWhere(
+            (comentario) => comentario.comeReviId == comeReviId,
+      );
+    } catch (e) {
+      // Si no se encuentra ningún elemento, firstWhere lanzará un StateError.
+      // En ese caso, devolvemos null.
+      return null;
+    }
+  }
+
+  //  ************* NUEVO METODO: AGREGAR COMENTARIO ******************************
+  void addComentario(PuntComentario nuevoComentario) {
+    puntComentarios.add(nuevoComentario);
+  }
+
+  //  ************* NUEVO METODO: ACTUALIZAR COMENTARIO POR comeId ******************************
+  bool updateComentario(String comeId, PuntComentario updatedComentario) {
+    final index = puntComentarios.indexWhere((comentario) => comentario.comeId == comeId);
+    if (index != -1) {
+      // Si el comentario es encontrado, lo reemplazamos en la lista
+      puntComentarios[index] = updatedComentario;
+      return true; // La actualización fue exitosa
+    }
+    return false; // El comentario con el comeId dado no fue encontrado
+  }
+}
+
+class PuntComentario {
+  DateTime comeFecha;
+  int comeActivo;
+  String comeReviId;
+  String comeDescripcion;
+  String? comeId;
+  int? comeEnviado;
+
+  PuntComentario({
+    required this.comeFecha,
+    required this.comeActivo,
+    required this.comeReviId,
+    required this.comeDescripcion,
+    String? comeId, // También nullable en el constructor
+    this.comeEnviado = 1,
+  }) : this.comeId = comeId ?? Util.generateUUID(); // Asigna el valor por defecto si no se provee
+
+
+  factory PuntComentario.fromJson(Map<String, dynamic> json) => PuntComentario(
+    comeFecha: DateTime.parse(json["come_fecha"]),
+    comeActivo: json["come_activo"],
+    comeReviId: json["come_revi_id"],
+    comeDescripcion: json["come_descripcion"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "come_fecha": comeFecha.toIso8601String(),
+    "come_activo": comeActivo,
+    "come_revi_id": comeReviId,
+    "come_descripcion": comeDescripcion,
+  };
+
+
+}
+
+/*class InstVariable {
+  String puntId;
+  String variId;
+  String variTipo;
+  List<PuntPrueba> puntPrueba;
+  String subuNombre;
+  String variNombre;
+  String subuSimbolo;
+  String variSubuId;
   String subuAbreviatura;
   String variAbreviatura;
 
@@ -397,9 +554,7 @@ class InstVariable {
     return puntPrueba.where((prueba) => prueba.prueReviId == prueReviId).toList();
   }
 
-
-
-}
+}*/
 
 class PuntPrueba {
   String prueId;
