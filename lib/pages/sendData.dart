@@ -58,9 +58,6 @@ class _SendDataState extends State<SendData> {
     Util.printInfo("Punt Comment", resultRevision.puntComentarios.length.toString());
 
     sendComments = resultRevision.puntComentarios.isNotEmpty ? true : false;
-
-
-
     sendFinished = resultRevision.instFinalizados.isNotEmpty ? true : false;
 
     Util.printInfo("Finalizados", resultRevision.instFinalizados.length.toString());
@@ -98,12 +95,11 @@ class _SendDataState extends State<SendData> {
     return true;
   }
 
-
   Future<bool> _saveComments() async {
 
     final orgaId = resultRevision.orgaId;
 
-    final result = await api.insertCommnets(orgaId, resultRevision.puntComentarios);
+    final result = await api.insertComments(orgaId, resultRevision.puntComentarios);
     if (result == null) {
       showMsg("Error en Envio");
       return false;
@@ -198,9 +194,13 @@ class _SendDataState extends State<SendData> {
                              if(sendFinished) {
                                _message = " Enviando Medidores Finalizados ...";
                                setState(() {});
-                               final resultFinished = await _saveFinished();
+                               final result = await _saveFinished();
 
-                               if (!resultFinished) {
+                               if (!result) {
+                                 info.pendingData = false;
+                                 _isLoading = false;
+                                 setState(() {});
+                                 await showDialogMsg(context, "Fallo Envío");
                                  return;
                                }
                              }
@@ -208,9 +208,13 @@ class _SendDataState extends State<SendData> {
                             if(sendComments) {
                               _message = " Enviando Comentarios ...";
                               setState(() {});
-                              final resultFinished = await _saveComments();
+                              final result = await _saveComments();
 
-                              if (!resultFinished) {
+                              if (!result) {
+                                info.pendingData = false;
+                                _isLoading = false;
+                                setState(() {});
+                                await showDialogMsg(context, "Fallo Envío");
                                 return;
                               }
                             }
@@ -219,9 +223,14 @@ class _SendDataState extends State<SendData> {
                             if(sendTest) {
                               _message = " Enviando Pruebas ...";
                               setState(() {});
-                              final resultTest = await _saveTest();
+                              final result = await _saveTest();
 
-                              if (!resultTest) {
+                              if (!result) {
+                                info.pendingData = false;
+                                _isLoading = false;
+                                setState(() {});
+                                await showDialogMsg(context, "Fallo Envío");
+
                                 return;
                               }
                             }
@@ -230,8 +239,8 @@ class _SendDataState extends State<SendData> {
                             setState(() {});
                             await _getOrgaInstrument(info.organization!.orgaId);
 
-                            info.pendingData = false;
 
+                            info.pendingData = false;
                             _isLoading = false;
                             setState(() {});
                             await showDialogMsg(context, "Datos Enviados");

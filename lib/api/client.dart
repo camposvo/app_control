@@ -207,18 +207,18 @@ class _Clients {
 
   }
 
-  Future<String?> insertCommnets(String orgaId, List<PuntComment> data) async {
+  Future<String?> insertComments(String orgaId, List<PuntComment> data) async {
 
     final test = CommentToJson(data);
 
     Util.printInfo("Comentarios", test.toString());
 
-    /*try {
+    try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
       GraphQLClient client = graphQLConfiguration.clientToQuery();
       QueryResult result = await client.mutate(
         MutationOptions(
-            document: gql(gqlControl.gqlSaveComment()),
+            document: gql(gqlControl.gqlSaveTestComment()),
             variables: {'orgaId': orgaId,
               'comentarios': test
             },
@@ -231,7 +231,8 @@ class _Clients {
       }
       if (result.data != null) {
         Util.printInfo("prueba : ","Guardo");
-        print(result.data);
+        Util.printInfo("Resultado: ", result.data.toString());
+
 
         return 'Operacion Completada Exitosamente';
       }
@@ -241,7 +242,7 @@ class _Clients {
       Util.printInfo("EXCEPTIO ERRORR QUERY : ",e.toString());
       print(e);
       return null;
-    }*/
+    }
 
     return null;
 

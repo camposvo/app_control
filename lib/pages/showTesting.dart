@@ -102,12 +102,14 @@ class _ShowTestingState extends State<ShowTesting> {
 
     variable = instrument.instVariables.firstWhere((item) => item.variId == info.varId);
 
-    prueComment = variable.getComentarioByReviId(info.revision!.reviId);
+    getPrueComment(context);
+
+  /*  prueComment = variable.getComentarioByReviId(info.revision!.reviId);
 
     if (prueComment != null){
       Util.printInfo("comentaria: ", prueComment!.comeDescripcion);
       Util.printInfo("comentaria id: ", prueComment!.comeId.toString());
-    }
+    }*/
 
     _puntPruebas = variable.getPruebasByReviId(info.revision!.reviId);
     _puntPruebas.sort((a, b) => a.prueActivo.compareTo(b.prueActivo));
@@ -120,6 +122,16 @@ class _ShowTestingState extends State<ShowTesting> {
     _widgetState = WidgetState.SHOW_LIST;
     setState(() {});
 
+  }
+
+  void getPrueComment(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+    prueComment = variable.getComentarioByReviId(info.revision!.reviId);
+
+    if (prueComment != null){
+      Util.printInfo("comentaria: ", prueComment!.comeDescripcion);
+      Util.printInfo("comentaria id: ", prueComment!.comeId.toString());
+    }
   }
 
   bool getStateAddBtn(){
@@ -149,14 +161,18 @@ class _ShowTestingState extends State<ShowTesting> {
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
+
+    getPrueComment(context);
   }
 
-  void _updateCommentPrueba(BuildContext context, String commentId, String comment) {
+  void _updateCommentPrueba(BuildContext context, String commentId, DateTime dateTime, String comment) {
     final info = Provider.of<ProviderPages>(context, listen: false);
 
+    Util.printInfo("paso", "actualizar");
 
     PuntComentario puntComentario = PuntComentario(
-        comeFecha: DateTime.now(),
+        comeId: commentId,
+        comeFecha: dateTime,
         comeActivo: 1,
         comeReviId: info.revision!.reviId,
         comeDescripcion: comment,
@@ -164,10 +180,14 @@ class _ShowTestingState extends State<ShowTesting> {
     );
 
 
+    Util.printInfo("comentario: ", puntComentario.toJson().toString());
+
     variable.updateComentario(commentId, puntComentario );
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
+
+    getPrueComment(context);
   }
 
   bool _deletePuntPrueba(BuildContext context, String prueId) {
@@ -812,10 +832,13 @@ class _ShowTestingState extends State<ShowTesting> {
     final info = Provider.of<ProviderPages>(context, listen: false);
     String text = '';
     String? comeId;
+    DateTime dateTime = DateTime.now();
 
     if(prueComment != null){
       text = prueComment!.comeDescripcion;
-      comeId = prueComment!.comeId;      
+      comeId = prueComment!.comeId;
+      dateTime = prueComment!.comeFecha;
+
     }
 
 
@@ -838,7 +861,7 @@ class _ShowTestingState extends State<ShowTesting> {
                     inputFormatters: <TextInputFormatter>[
                       //FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                     ],
-                    decoration: InputDecoration(labelText: 'Corriente Nominal'),
+                    //decoration: InputDecoration(labelText: 'Comentario'),
                   ),
 
                 ],
@@ -857,7 +880,7 @@ class _ShowTestingState extends State<ShowTesting> {
                     String newText = _controller1.text;
                     
                     if(comeId != null){
-                      _updateCommentPrueba(context, comeId, newText);
+                      _updateCommentPrueba(context, comeId, dateTime, newText);
                       Navigator.of(context).pop();
                       return;
                     }
@@ -866,8 +889,6 @@ class _ShowTestingState extends State<ShowTesting> {
                     Navigator.of(context).pop();
 
                     return;
-
-
                   },
                   child: const Text( // Muestra el texto "Guardar" si _isLoading es false
                     'Guardar',
