@@ -211,7 +211,7 @@ class _Clients {
 
     final test = CommentToJson(data);
 
-    Util.printInfo("Comentarios", test.toString());
+    //Util.printInfo("Comentarios", test.toString());
 
     try {
       GraphQLConfig graphQLConfiguration = GraphQLConfig();
@@ -230,7 +230,7 @@ class _Clients {
         return null;
       }
       if (result.data != null) {
-        Util.printInfo("prueba : ","Guardo");
+        Util.printInfo("comentario : ","Guardo");
         Util.printInfo("Resultado: ", result.data.toString());
 
 

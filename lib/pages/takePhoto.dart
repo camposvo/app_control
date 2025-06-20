@@ -663,7 +663,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-         if(!_connRemoteReady){
+          if(!_connRemoteReady){
             showMsgCamera("  SIN CONEXIÓN  !!");
             return;
           }
