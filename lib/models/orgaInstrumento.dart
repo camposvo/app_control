@@ -310,7 +310,6 @@ class OrgaInstrumentoElement {
   }
 
   //  ************* ADD OR UPDATE  ******************************
-
   void updateOrCreateInstFinalizado(String reviId, InstFinalizado newInstFinalizado) {
     int index = instFinalizados.indexWhere((inst) => inst.reviId == reviId);
     if (index != -1) {
@@ -322,6 +321,18 @@ class OrgaInstrumentoElement {
     }
   }
 
+  int getPuntPruebasPending(String targetReviId) {
+    int count = 0;
+
+    for (var instVariable in instVariables) {
+      for (var puntPrueba in instVariable.puntPrueba) {
+        if (puntPrueba.prueEnviado == 2 && puntPrueba.prueReviId == targetReviId) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
 
 
 }
@@ -418,17 +429,17 @@ class InstVariable {
     "vari_abreviatura": variAbreviatura,
   };
 
-  //  ************* NUEVO METODO PARA CONTAR PRUEBAS ACTIVAS ******************************
+  //  ************* CONTAR PRUEBAS ACTIVAS ******************************
   int countActivePruebas() {
     return puntPrueba.where((prueba) => prueba.prueActivo == 1).length;
   }
 
-  //  ************* NUEVO METODO PARA OBTENER TODAS LAS PRUEBAS POR prueReviId ******************************
+  //  ************* OBTENER TODAS LAS PRUEBAS POR prueReviId ******************************
   List<PuntPrueba> getPruebasByReviId(String prueReviId) {
     return puntPrueba.where((prueba) => prueba.prueReviId == prueReviId).toList();
   }
 
-  //  ************* NUEVO METODO: OBTENER COMENTARIO POR comeReviId ******************************
+  //  *************  OBTENER COMENTARIO POR comeReviId ******************************
   PuntComentario? getComentarioByReviId(String comeReviId) {
     try {
       return puntComentarios.firstWhere(
@@ -441,12 +452,14 @@ class InstVariable {
     }
   }
 
-  //  ************* NUEVO METODO: AGREGAR COMENTARIO ******************************
+  //  ************* AGREGAR COMENTARIO ******************************
   void addComentario(PuntComentario nuevoComentario) {
     puntComentarios.add(nuevoComentario);
   }
 
-  //  ************* NUEVO METODO: ACTUALIZAR COMENTARIO POR comeId ******************************
+
+
+  //  ************* ACTUALIZAR COMENTARIO POR comeId ******************************
   bool updateComentario(String comeId, PuntComentario updatedComentario) {
     final index = puntComentarios.indexWhere((comentario) => comentario.comeId == comeId);
     if (index != -1) {

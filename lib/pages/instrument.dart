@@ -246,6 +246,7 @@ class _InstrumentState extends State<Instrument> {
     Color fontColor = Colors.white;
 
     final stateInstrument = _filterList[index].getInreFinalizadoByReviId(info.revision!.reviId);
+    final testPending = _filterList[index].getPuntPruebasPending(info.revision!.reviId);
 
     if(stateInstrument == null ||  stateInstrument == 0){
       bgColor = Colors.grey;
@@ -292,10 +293,14 @@ class _InstrumentState extends State<Instrument> {
               ),
               Row(
                 children: [
+                  if(testPending > 0 ) Icon(
+                    Icons.pending_actions,
+                    color: Colors.white,
+                    size: 24.0,
+                  ),
                   IconButton(
                     onPressed: () async {
                       await _showEdit(context, _filterList[index]);
-
                     },
                     icon: Icon(
                       Icons.edit,
