@@ -247,6 +247,8 @@ class _InstrumentState extends State<Instrument> {
 
     final stateInstrument = _filterList[index].getInreFinalizadoByReviId(info.revision!.reviId);
     final testPending = _filterList[index].getPuntPruebasPending(info.revision!.reviId);
+    final ubication = (_filterList[index].instUbicAreaNombre + " "+ _filterList[index].instUbicPisoNombre).trim();
+
 
     if(stateInstrument == null ||  stateInstrument == 0){
       bgColor = Colors.grey;
@@ -279,13 +281,13 @@ class _InstrumentState extends State<Instrument> {
                       width: 10,
                     ),
                     setCommonText(instrumentName, fontColor, 16.0, FontWeight.w500, 20),
-                    //setCommonText(_filterList[index].instEspaAreaNombre, fontColor, 16.0, FontWeight.w500, 20),
-                    Row(
+                    if(ubication.isNotEmpty)setCommonText(ubication, fontColor, 16.0, FontWeight.w500, 20),
+                   /* Row(
                       children: [
                         setCommonText( _filterList[index].instUbicAreaNombre + " " , fontColor, 16.0, FontWeight.w500, 20),
                         setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
                       ],
-                    ),
+                    ),*/
                     setCommonText("Protección: "+ protection.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                   ],

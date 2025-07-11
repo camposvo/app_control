@@ -1005,31 +1005,29 @@ class _TakePhotoState extends State<TakePhoto> {
   Widget _btnInterchangePhoto(BuildContext context){
     final info = Provider.of<ProviderPages>(context, listen: false);
 
-    return  SizedBox(
-      width: 150,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(10.0), // Radio de 10.0
-          ),
-          backgroundColor: AppColor.themeColor,
-          padding: EdgeInsets.all(10.0),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius:
+          BorderRadius.circular(10.0), // Radio de 10.0
         ),
-        onPressed: () {
-          final temp = _controller1.text;
-          _controller1.text = _controller2.text;
-          _controller2.text = temp;
+        backgroundColor: AppColor.themeColor,
+        padding: EdgeInsets.all(10.0),
+      ),
+      onPressed: () {
+        final temp = _controller1.text;
+        _controller1.text = _controller2.text;
+        _controller2.text = temp;
 
-          final temp2 = imageBase64_1;
-          imageBase64_1 = imageBase64_2;
-          imageBase64_2 = temp2;
+        final temp2 = imageBase64_1;
+        imageBase64_1 = imageBase64_2;
+        imageBase64_2 = temp2;
 
-          setState(() {});
-          showMsg("Fotos Intercambiadas");
+        setState(() {});
+        showMsg("Fotos Intercambiadas");
 
-        },
-        child: Row(
+      },
+      child: Row(
         mainAxisSize: MainAxisSize.min, // Ajusta el Row al tamaño de sus hijos
         children: <Widget>[
           Icon(
@@ -1052,7 +1050,6 @@ class _TakePhotoState extends State<TakePhoto> {
             size: 20.0,
           ),
         ],
-      ),
       ),
     );
   }
