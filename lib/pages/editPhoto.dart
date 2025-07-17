@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../api/client.dart';
 import '../helper/common_widgets.dart';
 import '../helper/constant.dart';
+import '../helper/decimalInputFormatter.dart';
 import '../helper/mqttManager.dart';
 import '../models/imageTest.dart';
 import '../models/orgaInstrumento.dart';
@@ -24,16 +25,16 @@ enum WidgetState { LOADING, LOADED, ERROR }
 
 const String infoPrefix = 'MyAPP ';
 
-class ViewPhoto extends StatefulWidget {
+class EditPhoto extends StatefulWidget {
   final String? prueId;
 
-  const ViewPhoto({super.key, this.prueId});
+  const EditPhoto({super.key, this.prueId});
 
   @override
-  _ViewPhotoState createState() => _ViewPhotoState();
+  _EditPhotoState createState() => _EditPhotoState();
 }
 
-class _ViewPhotoState extends State<ViewPhoto> {
+class _EditPhotoState extends State<EditPhoto> {
   var logger = Logger();
 
   static const List<String> commentPunto = [
@@ -44,18 +45,23 @@ class _ViewPhotoState extends State<ViewPhoto> {
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
 
-
   String? descriptionValue;
-
   WidgetState _widgetState = WidgetState.LOADING;
 
   String imagePhoto1 = "";
   String imagePhoto2 = "";
+
+  String imagePuntTest_1 = AppImage.noImage;
+  String imagePuntTest_2 = AppImage.noImage;
+
+  double prueValor1 = 0, prueValor2 =0;
   
   
   String comment = '';
   int typeImage_1 = -1;
   int typeImage_2 = -1;
+
+  PuntPrueba? test;
 
 
   late OrgaInstrumentoElement instrument;
@@ -105,6 +111,14 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
       valor1 = puntoPrueba.prueValor1 != null ? puntoPrueba.prueValor1.toString() : '';
       valor2 = puntoPrueba.prueValor2 != null ? puntoPrueba.prueValor2.toString() : '';
+
+      _controller1.text = valor1;
+      _controller2.text = valor2;
+
+      test = puntoPrueba;
+
+      imagePuntTest_1 = puntoPrueba.prueFoto1;
+      imagePuntTest_2 = puntoPrueba.prueFoto2;
 
       // 1: Is URL or 2: Is Base64 -1: Null
       typeImage_1 = Util.isUrlOrBase64(puntoPrueba.prueFoto1);
@@ -220,6 +234,42 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
   }
 
+  void _updatePuntPrueba(BuildContext context, String prueId) {
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    PuntPrueba puntPrueba = new PuntPrueba(
+      prueId: Util.generateUUID(),
+      prueFecha: DateTime.now(),
+      prueFoto1: test!.prueFoto1,
+      prueFoto2: test!.prueFoto2,
+      reviNumero: test!.reviNumero,
+      prueEnviado: 2,
+      prueReviId: test!.prueReviId,
+      reviEntiId: test!.reviEntiId,
+      prueDescripcion: '',
+      prueActivo: 1,
+      prueValor1: prueValor1,
+      prueValor2: prueValor2,
+    );
+
+    final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
+    if(index == null){
+      //fallo el update
+      return;
+    }
+
+    final result = info.mainData[index].updatePuntPrueba(prueId, puntPrueba);
+
+    if(!result){
+      //Fallo update
+      return;
+    }
+
+
+    info.pendingData = true;
+    info.mainDataUpdate(info.mainData);
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (_widgetState) {
@@ -318,38 +368,95 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
 
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-
-              SizedBox(
-                width: 150,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10.0), // Radio de 10.0
-                    ),
-                    backgroundColor: AppColor.themeColor,
-                    padding: EdgeInsets.all(10.0),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Regresar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
+              _btnCancelTest(context),
+              _btnAcceptTest(context),
             ],
           ),
           SizedBox(
             height: 100,
           )
         ],
+      ),
+    );
+  }
+
+  Widget _btnCancelTest(BuildContext context){
+    return  SizedBox(
+      width: 150,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(10.0), // Radio de 10.0
+          ),
+          backgroundColor: AppColor.redColor,
+          padding: EdgeInsets.all(10.0),
+        ),
+        onPressed: () async {
+          Navigator.pop(context);
+        },
+        child: Text(
+          'Cancelar',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _btnAcceptTest(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return  SizedBox(
+      width: 150,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(10.0), // Radio de 10.0
+          ),
+          backgroundColor: AppColor.themeColor,
+          padding: EdgeInsets.all(10.0),
+        ),
+        onPressed: () {
+
+
+          double? parsedValue = Util.parsedDouble(_controller1.text);
+
+          if (parsedValue == null) {
+            showError("Entrada no valida en Foto 1");
+            return;
+          }
+          prueValor1 = parsedValue;
+
+          parsedValue = Util.parsedDouble(_controller2.text);
+          if (parsedValue == null) {
+            showError("Entrada no valida en Foto 2");
+            return;
+          }
+
+          prueValor2 = parsedValue;
+
+          //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
+
+
+           _updatePuntPrueba(context, prueId);
+          showMsg("Valores Actualizados");
+
+          Navigator.pop(context);
+
+        },
+        child: Text(
+          'Aceptar',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }
@@ -404,6 +511,66 @@ class _ViewPhotoState extends State<ViewPhoto> {
     );
   }
 
+  Widget _value1Text(BuildContext context) {
+    return  Center(
+      child: Padding(
+          padding: const EdgeInsets.only(right: 40.0, left: 40.0),
+          child:   SizedBox(
+            width: 200,
+            child: TextField(
+              controller: _controller1,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: <TextInputFormatter>[
+                DecimalInputFormatter(),
+              ],
+              style: setNumberStyle(),
+              decoration: InputDecoration(
+                labelText: 'Valor Foto Patrón',
+                hintText: '0,00', // Sugerencia visual
+                border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+                  borderSide: BorderSide(
+                    color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
+                    width: 1.0, // El grosor que deseas para el borde deshabilitado
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ),
+    );
+
+  }
+
+  Widget _value2Text(BuildContext context) {
+    return  Center(
+      child: Padding(
+          padding: const EdgeInsets.only(right: 40.0, left: 40.0),
+          child: SizedBox(
+        width: 200,
+        child: TextField(
+          controller: _controller2,
+          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: <TextInputFormatter>[
+            DecimalInputFormatter(),
+          ],
+          style: setNumberStyle(),
+          decoration: InputDecoration(
+            labelText: 'Valor Foto Medidor',
+            hintText: '0,00', // Sugerencia visual
+            border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+              borderSide: BorderSide(
+                color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
+                width: 1.0, // El grosor que deseas para el borde deshabilitado
+              ),
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+
+  }
+
   Widget _descriptionList(BuildContext context) {
     return  Center(
       child: Padding(
@@ -456,7 +623,7 @@ class _ViewPhotoState extends State<ViewPhoto> {
 
   Widget _descriptionText(BuildContext context) {
 
-   return Center(
+    return Center(
       child: Padding(
           padding: const EdgeInsets.only(right: 40.0, left: 40.0),
           //child: _descriptionList(context)),
@@ -490,77 +657,6 @@ class _ViewPhotoState extends State<ViewPhoto> {
     );
 
   }
-
-  Widget _value1Text(BuildContext context) {
-
-    return  Center(
-      child: Padding(
-          padding: const EdgeInsets.only(right: 40.0, left: 40.0),
-          child: TextField(
-            controller: TextEditingController(text: valor1),
-            enabled: false,
-            decoration: InputDecoration(
-              labelText: "Valor Foto Patrón",
-              labelStyle: TextStyle(
-                color: Colors.grey, // El color que desees para el label
-                fontSize: 18.0, // El tamaño de fuente que desees
-                fontWeight: FontWeight.normal, // El peso de la fuente (negrita, normal, etc.)
-                fontStyle: FontStyle.normal, // Estilo de la fuente (cursiva, normal)
-                // ... otras propiedades de TextStyle ...
-              ),
-              border: OutlineInputBorder(),
-              disabledBorder: OutlineInputBorder( // Este es el borde para el estado deshabilitado
-                borderSide: BorderSide(
-                  color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
-                  width: 1.0, // El grosor que deseas para el borde deshabilitado
-                ),
-              ),
-            ),
-            style: TextStyle(
-              fontSize: 18.0,
-              color: Colors.black, // O el color que desees
-            ),
-          )
-      ),
-    );
-
-  }
-
-  Widget _value2Text(BuildContext context) {
-    return  Center(
-      child: Padding(
-          padding: const EdgeInsets.only(right: 40.0, left: 40.0),
-          child: TextField(
-            controller: TextEditingController(text: valor2),
-            enabled: false,
-            decoration: InputDecoration(
-              labelText: "Valor Foto Medidor",
-              labelStyle: TextStyle(
-                color: Colors.grey, // El color que desees para el label
-                fontSize: 18.0, // El tamaño de fuente que desees
-                fontWeight: FontWeight.normal, // El peso de la fuente (negrita, normal, etc.)
-                fontStyle: FontStyle.normal, // Estilo de la fuente (cursiva, normal)
-                // ... otras propiedades de TextStyle ...
-              ),
-              border: OutlineInputBorder(),
-              disabledBorder: OutlineInputBorder( // Este es el borde para el estado deshabilitado
-                borderSide: BorderSide(
-                  color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
-                  width: 1.0, // El grosor que deseas para el borde deshabilitado
-                ),
-              ),
-            ),
-            style: TextStyle(
-              fontSize: 18.0,
-              color: Colors.black, // O el color que desees
-            ),
-          )
-      ),
-    );
-
-  }
-
-
 
   @override
   void dispose() {

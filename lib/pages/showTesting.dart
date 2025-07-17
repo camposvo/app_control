@@ -21,6 +21,8 @@ import '../providers/providers_pages.dart';
 import 'package:logger/logger.dart';
 import 'package:control/helper/util.dart';
 
+import 'editPhoto.dart';
+
 
 enum WidgetState { LOADING, SHOW_LIST }
 
@@ -180,7 +182,7 @@ class _ShowTestingState extends State<ShowTesting> {
     );
 
 
-    Util.printInfo("comentario: ", puntComentario.toJson().toString());
+    //Util.printInfo("comentario: ", puntComentario.toJson().toString());
 
     variable.updateComentario(commentId, puntComentario );
 
@@ -261,6 +263,115 @@ class _ShowTestingState extends State<ShowTesting> {
       child: TextField(
         onChanged: (value) => _onSearch(value),
         decoration: setSearchDecoration(),
+      ),
+    );
+  }
+
+  Widget _topButtons(BuildContext context){
+    final info = Provider.of<ProviderPages>(context, listen: false);
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          SizedBox(
+              width: 100,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed:  () {
+
+                  Navigator.pop(context);
+
+                },
+                /* icon: Icon(
+                  Icons.arrow_back_ios, // Usa el icono de cámara que prefieras
+                  color: Colors.white, // Ajusta el color del icono si es necesario
+                ),*/
+                label: Text(
+                  'Aceptar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+          ),
+          SizedBox(
+              width: 100,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed:  () {
+                  _dialogAddComment(context);
+                },
+                label: Text(
+                  'Comentario',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+          ),
+          SizedBox(
+              width: 100,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  backgroundColor: AppColor.themeColor,
+                  padding: EdgeInsets.all(10.0),
+                ),
+                onPressed: enabledAddBtn ? () {
+
+                  if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => TakePhotoSystem(
+                          prueId: null),
+                    )).then((_) async{
+                      await _loadData();
+                    });
+
+                  }
+
+                  if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => TakePhoto(
+                          prueId: null),
+                    )).then((_) async {
+                      await _loadData();
+                    });
+                  }
+
+                }: null,
+                icon: Icon(
+                  Icons.camera_alt, // Usa el icono de cámara que prefieras
+                  color: Colors.white, // Ajusta el color del icono si es necesario
+                ),
+                label: Text(
+                  'Nuevo',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+          ),
+
+        ],
       ),
     );
   }
@@ -417,6 +528,7 @@ class _ShowTestingState extends State<ShowTesting> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  _btnEditPhoto(context, fontColor, prueId),
                   _btnViewPhoto(context, fontColor, prueId),
                   if(prueActivo == 1)_btnUpdatePrueba(context, fontColor, prueId),
                   if(prueActivo == 1)_btnDeletePrueba(context, fontColor,prueId),
@@ -431,7 +543,6 @@ class _ShowTestingState extends State<ShowTesting> {
   }
 
   Widget _btnViewPhoto(BuildContext context, Color fontColor,String prueId){
-
     return     IconButton(
       onPressed: () async {
 
@@ -451,112 +562,22 @@ class _ShowTestingState extends State<ShowTesting> {
     );
   }
 
+  Widget _btnEditPhoto(BuildContext context, Color fontColor,String prueId){
+    return     IconButton(
+      onPressed: () async {
 
-  Widget _topButtons(BuildContext context){
-    final info = Provider.of<ProviderPages>(context, listen: false);
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => EditPhoto(
+              prueId: prueId),
+        )).then((_) async{
+          await _loadData();
+        });
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          SizedBox(
-              width: 100,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  backgroundColor: AppColor.themeColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed:  () {
-
-                  Navigator.pop(context);
-
-                },
-               /* icon: Icon(
-                  Icons.arrow_back_ios, // Usa el icono de cámara que prefieras
-                  color: Colors.white, // Ajusta el color del icono si es necesario
-                ),*/
-                label: Text(
-                  'Aceptar',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              )
-          ),
-          SizedBox(
-              width: 100,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  backgroundColor: AppColor.themeColor,
-                  padding: EdgeInsets.all(10.0),
-                ),
-                onPressed:  () {
-                  _dialogAddComment(context);
-                },
-                label: Text(
-                  'Comentario',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              )
-          ),
-          SizedBox(
-            width: 100,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                backgroundColor: AppColor.themeColor,
-                padding: EdgeInsets.all(10.0),
-              ),
-              onPressed: enabledAddBtn ? () {
-
-                if(info.moduleSelected == ModuleSelect.WITH_SYSTEM ){
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => TakePhotoSystem(
-                        prueId: null),
-                  )).then((_) async{
-                    await _loadData();
-                  });
-
-                }
-
-                if(info.moduleSelected == ModuleSelect.NO_SYSTEM ){
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => TakePhoto(
-                        prueId: null),
-                  )).then((_) async {
-                    await _loadData();
-                  });
-                }
-
-              }: null,
-              icon: Icon(
-                Icons.camera_alt, // Usa el icono de cámara que prefieras
-                color: Colors.white, // Ajusta el color del icono si es necesario
-              ),
-              label: Text(
-                'Nuevo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-            )
-          ),
-
-        ],
+      },
+      icon: Icon(
+        Icons.edit,
+        color: fontColor,
+        size: 24.0,
       ),
     );
   }
