@@ -1,16 +1,4 @@
 # control
+Sistema Sincronizado de Auditoría de Mediciones Eléctricas
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Diseño y desarrollo de una solución móvil multiplataforma (Flutter) orientada a la verificación de instrumentos de medición eléctrica. El sistema utiliza una arquitectura Maestro-Esclavo sincronizada mediante el protocolo MQTT, permitiendo la captura simultánea de registros fotográficos en puntos geográficamente distintos. La solución automatiza el cálculo de desviaciones y errores de lectura en tiempo real, centralizando la data en un servidor para su posterior análisis estadístico y auditoría de precisión
