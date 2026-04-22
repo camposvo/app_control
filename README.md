@@ -10,7 +10,7 @@
 
 ## 📌 Resumen del Proyecto
 
-Este proyecto consiste en un ecosistema de aplicaciones móviles diseñado para eliminar el error humano y el desfase temporal en la auditoría de mediciones eléctricas. Mediante una arquitectura **Maestro-Esclavo**, el sistema permite que dos dispositivos en ubicaciones distintas realicen una captura fotográfica en el mismo milisegundo, permitiendo comparar lecturas y determinar desviaciones técnicas con precisión científica.
+Diseño y desarrollo de una solución móvil multiplataforma (Flutter) orientada a la verificación de instrumentos de medición eléctrica. El sistema utiliza una arquitectura Maestro-Esclavo sincronizada mediante el protocolo MQTT, permitiendo la captura simultánea de registros fotográficos en puntos geográficamente distintos. La solución automatiza el cálculo de desviaciones y errores de lectura en tiempo real, centralizando la data en un servidor para su posterior análisis estadístico y auditoría de precisión.
 
 ## ⚠️ El Desafío
 
