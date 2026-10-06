@@ -3,7 +3,8 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:intl/intl.dart'; // Import for date formatting
 
 class MqttManager {
-  final client = MqttServerClient('manuales.ribe.cl', '');
+  //final client = MqttServerClient('mqtt2..ribe.cl', '');
+  late final MqttServerClient client;
   final String broker;
   final int port;
   final String username;
@@ -11,11 +12,14 @@ class MqttManager {
   final Map<String, Stream<List<MqttReceivedMessage<MqttMessage?>>?>> _topicStreams = {};
 
   MqttManager({
-    required this.broker,
-    required this.port,
-    required this.username,
-    required this.password,
-  });
+    this.broker = 'mqtt2..ribe.cl',
+    this.port = 8883,
+    this.username = 'root',
+    this.password = '*R1b3x#99',
+  }) {
+    // Se inicializa el cliente con el broker asignado
+    client = MqttServerClient(broker, '');
+  }
 
   Future<void> initialize() async {
     client.logging(on: true);
@@ -23,7 +27,7 @@ class MqttManager {
     /// Set the correct MQTT protocol for mosquito
     client.setProtocolV311();
     client.secure = true;
-    client.port = 8883;
+    client.port = port;
     client.onConnected = _onConnected;
     client.onDisconnected = _onDisconnected;
     client.onSubscribed = _onSubscribed;

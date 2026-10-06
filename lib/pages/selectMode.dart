@@ -27,12 +27,16 @@ class _SelectModeState extends State<SelectMode> {
   final String msgACK = 'ACK';
   final String msgConfirm = 'CONFIRM_TOKEN';
   WidgetState _widgetState = WidgetState.LOADING;
-  final mqttManager = MqttManager(
-    broker: 'manuales.ribe.cl',
+
+  final mqttManager = MqttManager();
+
+ /* final mqttManager = MqttManager(
+    broker: 'mqtt2..ribe.cl',
     port: 8883,
     username: 'root',
     password: '*R1b3x#99',
-  );
+  );*/
+
   bool isActive = true;
 
   @override

@@ -66,12 +66,15 @@ class _TakePhotoState extends State<TakePhoto> {
   String comment = '';
   String? dropdownValue;
 
-  final mqttManager = MqttManager(
-    broker: 'manuales.ribe.cl',
+  final mqttManager = MqttManager();
+
+ /* final mqttManager = MqttManager(
+    broker: 'mqtt2..ribe.cl',
     port: 8883,
     username: 'root',
     password: '*R1b3x#99',
-  );
+  );*/
+
   final TramaDatos _tramaDatos = new TramaDatos(
       tipoMensaje: "",
       orgaId: "",

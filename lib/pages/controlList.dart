@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import '../helper/mqttManager.dart';
+
 import 'package:provider/provider.dart';
 
 import '../helper/common_widgets.dart';
@@ -16,7 +18,11 @@ class ControlList extends StatefulWidget {
 }
 
 class _ControlListState extends State<ControlList> {
-  final client = MqttServerClient('manuales.ribe.cl', '');
+
+  //final client = MqttServerClient('mqtt2..ribe.cl', '');
+  final client = MqttServerClient('mqtt2..ribe.cl', '');
+  //final client = MqttManager();
+
   List<DataItem> data = [];
   List<DataItem> _filterList = [];
   int _counter = 0;
