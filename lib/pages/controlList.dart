@@ -20,7 +20,7 @@ class ControlList extends StatefulWidget {
 class _ControlListState extends State<ControlList> {
 
   //final client = MqttServerClient('mqtt2..ribe.cl', '');
-  final client = MqttServerClient('mqtt2..ribe.cl', '');
+  final client = MqttServerClient('mqtt2.ribe.cl', '');
   //final client = MqttManager();
 
   List<DataItem> data = [];
@@ -50,7 +50,7 @@ class _ControlListState extends State<ControlList> {
     client.connectTimeoutPeriod = 2000; // milliseconds
 
     try {
-      final connMessage = await client.connect("root", "*R1b3x#99");
+      final connMessage = await client.connect("mqtt_ribe", "*Mqtt#99");
       print("client connecting result $connMessage");
     } on NoConnectionException catch (e) {
       // Raised by the client when connection fails.

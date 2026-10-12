@@ -57,13 +57,20 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
   int setTimeOut = 20;
   int maxTimeOut = 20;
 
+  // --- VARIABLES DE ZOOM Y FLASH ---
+  double _currentZoomLevel = 1.0;
+  double _baseZoomLevel = 1.0;
+  double _minAvailableZoom = 1.0;
+  double _maxAvailableZoom = 1.0;
+  bool _isFlashOn = false; // Estado del Flash
+
 
   static const List<String> commentPunto = [
     'La prueba esta correcta',
     'La prueba esta incorrecta'
   ];
 
-   late List<CameraDescription> _cameras;
+  late List<CameraDescription> _cameras;
   CameraController? _controller;
   ScreenshotController screenshotController = ScreenshotController();
 
@@ -74,14 +81,6 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
   String? dropdownValue;
 
   final mqttManager = MqttManager();
-
-  /*final mqttManager = MqttManager(
-    broker: 'mqtt2..ribe.cl',
-    port: 8883,
-    username: 'root',
-    password: '*R1b3x#99',
-  );*/
-
 
   String errorMqtt = '';
 
@@ -122,7 +121,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
     }
 
     // Initialize Mqtt
-   final resultMqtt = await _initMQTT();
+    final resultMqtt = await _initMQTT();
     if (resultMqtt == 0) {
       _widgetState = WidgetState.ERROR_MQTT;
       setState(() {});
@@ -147,6 +146,12 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       await _controller!.initialize();
 
       if (_controller!.value.hasError) return 0;
+
+      // --- OBTENER LÍMITES DE ZOOM ---
+      _minAvailableZoom = await _controller!.getMinZoomLevel();
+      _maxAvailableZoom = await _controller!.getMaxZoomLevel();
+      _currentZoomLevel = _minAvailableZoom;
+      _baseZoomLevel = _minAvailableZoom;
     }
 
     return 1;
@@ -243,17 +248,17 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       final index = variable.variAbreviatura;
 
       try {
-      final Map<String, dynamic> jsonData = jsonDecode(message);
+        final Map<String, dynamic> jsonData = jsonDecode(message);
 
-      valueMqtt = jsonData[index]["value"].toDouble();
-      dateMqtt = DateTime.parse(jsonData[index]["fecha"]);
+        valueMqtt = jsonData[index]["value"].toDouble();
+        dateMqtt = DateTime.parse(jsonData[index]["fecha"]);
 
-      final santiagoDate = Util.convertUtcASantiago(dateMqtt);
+        final santiagoDate = Util.convertUtcASantiago(dateMqtt);
 
-      formattedValue = valueMqtt.toString();
-      formattedDate = formatter.format(santiagoDate);
+        formattedValue = valueMqtt.toString();
+        formattedDate = formatter.format(santiagoDate);
 
-      setState(() {});
+        setState(() {});
 
 
       } on FormatException catch (e) {
@@ -308,8 +313,8 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
         print(e);
       }
 
-      }
     }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -365,20 +370,44 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
       return Center(child: circularProgress(Colors.white));
     }
     final size = MediaQuery.of(context).size;
-    //sendStateConnection(true);
     double? marginRight = 20;
 
     return Scaffold(
       body: Screenshot(
         controller: screenshotController,
         child: Stack(children: [
-          SizedBox(
-            width: size.width,
-            height: size.height,
-            child: RotatedBox(
-              // Rotamos *dentro* del SizedBox
-              quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
-              child: CameraPreview(_controller!),
+          // --- ZOOM CON LOS DEDOS ---
+          GestureDetector(
+            onScaleStart: (details) {
+              _baseZoomLevel = _currentZoomLevel;
+            },
+            onScaleUpdate: (details) async {
+              if (_controller == null) return;
+
+              double zoom = _baseZoomLevel * details.scale;
+
+              if (zoom < _minAvailableZoom) {
+                zoom = _minAvailableZoom;
+              } else if (zoom > _maxAvailableZoom) {
+                zoom = _maxAvailableZoom;
+              }
+
+              _currentZoomLevel = zoom;
+
+              try {
+                await _controller!.setZoomLevel(_currentZoomLevel);
+              } catch (e) {
+                print('Error al aplicar zoom: $e');
+              }
+            },
+            child: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: RotatedBox(
+                // Rotamos *dentro* del SizedBox
+                quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
+                child: CameraPreview(_controller!),
+              ),
             ),
           ),
           Positioned(
@@ -406,6 +435,32 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
               ),
             ),
           ),
+
+          // --- BOTÓN DE FLASH EN LA PARTE INFERIOR ---
+          Positioned(
+            bottom: 15,
+            left: 20,
+            child: IconButton(
+              onPressed: () async {
+                if (_controller == null || !_controller!.value.isInitialized) return;
+                try {
+                  _isFlashOn = !_isFlashOn;
+                  await _controller!.setFlashMode(
+                    _isFlashOn ? FlashMode.torch : FlashMode.off,
+                  );
+                  setState(() {});
+                } catch (e) {
+                  print("Error al cambiar flash: $e");
+                }
+              },
+              icon: Icon(
+                _isFlashOn ? Icons.flash_on : Icons.flash_off,
+                color: _isFlashOn ? Colors.amber : Colors.white,
+                size: 36.0,
+              ),
+            ),
+          ),
+
           if(isLoading)
             Stack( // Usamos otro Stack para superponer el loader sobre ModalBarrier
               children: [
@@ -476,7 +531,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius:
-                          BorderRadius.circular(10.0), // Radio de 10.0
+                      BorderRadius.circular(10.0), // Radio de 10.0
                     ),
                     backgroundColor: AppColor.redColor,
                     padding: EdgeInsets.all(10.0),
@@ -507,7 +562,7 @@ class _TakePhotoSystemState extends State<TakePhotoSystem> {
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius:
-                          BorderRadius.circular(10.0), // Radio de 10.0
+                      BorderRadius.circular(10.0), // Radio de 10.0
                     ),
                     backgroundColor: AppColor.themeColor,
                     padding: EdgeInsets.all(10.0),

@@ -59,6 +59,13 @@ class _TakePhotoState extends State<TakePhoto> {
   late List<CameraDescription> _cameras;
   CameraController? _controller;
 
+  // --- VARIABLES DE ZOOM Y FLASH ---
+  double _currentZoomLevel = 1.0;
+  double _baseZoomLevel = 1.0;
+  double _minAvailableZoom = 1.0;
+  double _maxAvailableZoom = 1.0;
+  bool _isFlashOn = false; // Estado del Flash
+
   WidgetState _widgetState = WidgetState.LOADED;
   ImageState imageState = ImageState.WAITING;
   String imageBase64_1 = AppImage.noImage;
@@ -68,27 +75,20 @@ class _TakePhotoState extends State<TakePhoto> {
 
   final mqttManager = MqttManager();
 
- /* final mqttManager = MqttManager(
-    broker: 'mqtt2..ribe.cl',
-    port: 8883,
-    username: 'root',
-    password: '*R1b3x#99',
-  );*/
-
   final TramaDatos _tramaDatos = new TramaDatos(
-      tipoMensaje: "",
-      orgaId: "",
-      orgaNombre: "",
-      instId: "",
-      instNombre: "",
-      variId: "",
-      variNombre: "",
-      subuAbreviatura: "",
-      imagen: "",
-      cameraReady: false,
-      connetionReady: false,
-      countDown: 0,
-      isApproved: false,
+    tipoMensaje: "",
+    orgaId: "",
+    orgaNombre: "",
+    instId: "",
+    instNombre: "",
+    variId: "",
+    variNombre: "",
+    subuAbreviatura: "",
+    imagen: "",
+    cameraReady: false,
+    connetionReady: false,
+    countDown: 0,
+    isApproved: false,
   );
 
   int _contador = 0;
@@ -126,7 +126,6 @@ class _TakePhotoState extends State<TakePhoto> {
       );
 
     });
-    //_controller1.addListener(_onTextChanged);
     _loadData();
   }
 
@@ -203,6 +202,12 @@ class _TakePhotoState extends State<TakePhoto> {
       await _controller!.initialize();
 
       if (_controller!.value.hasError) return 0;
+
+      // --- OBTENER LÍMITES DE ZOOM ---
+      _minAvailableZoom = await _controller!.getMinZoomLevel();
+      _maxAvailableZoom = await _controller!.getMaxZoomLevel();
+      _currentZoomLevel = _minAvailableZoom;
+      _baseZoomLevel = _minAvailableZoom;
     }
 
     return 1;
@@ -214,8 +219,6 @@ class _TakePhotoState extends State<TakePhoto> {
       _subscribeMaster();
       _subscribeSlave();
       _subscribeMasterFinish();
-      //_subscribeSlaveConn();
-      //_subscribeMasterConn();
     } catch (e) {
       print("Error initializing MQTT: $e");
       return 0;
@@ -244,7 +247,6 @@ class _TakePhotoState extends State<TakePhoto> {
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
     if(index == null){
-      //fallo el update
       return;
     }
 
@@ -252,7 +254,7 @@ class _TakePhotoState extends State<TakePhoto> {
 
     if(!result){
       print('No se encontró ninguna variable con el puntId en la organización');
-       return;
+      return;
     }
 
     info.pendingData = true;
@@ -273,22 +275,20 @@ class _TakePhotoState extends State<TakePhoto> {
       reviEntiId: info.revision!.reviEntiId,
       prueDescripcion: '',
       prueActivo: 1,
-      prueValor1: prueValor1,      prueValor2: prueValor2,
+      prueValor1: prueValor1,
+      prueValor2: prueValor2,
     );
 
     final index = findIndexByOrgaId(info.mainData, info.organization!.orgaId);
     if(index == null){
-      //fallo el update
       return;
     }
 
     final result = info.mainData[index].updatePuntPrueba(prueId, puntPrueba);
 
     if(!result){
-      //Fallo update
       return;
     }
-
 
     info.pendingData = true;
     info.mainDataUpdate(info.mainData);
@@ -325,18 +325,14 @@ class _TakePhotoState extends State<TakePhoto> {
     mqttManager.subscribe(masterMqtt, (message) {
       final data = tramaDatosFromJson(message);
 
-
       switch (data.tipoMensaje) {
         case "IMAGE_CAMERA_1":
           break;
         case "TAKE_PHOTO":
           preTimeTakePhoto();
           break;
-
         case "FINISH_PHOTO":
-
           break;
-
       }
     });
   }
@@ -345,9 +341,10 @@ class _TakePhotoState extends State<TakePhoto> {
     mqttManager.subscribe(slaveMqtt, (message) {
       final data = tramaDatosFromJson(message);
 
+      //Util.printInfo("SLAVE_MESSAGE", data.tipoMensaje);
+      //Util.printInfo("SLAVE_TELL_ME", jsonEncode(data));
 
       switch (data.tipoMensaje) {
-
         case "START_CONNECTION":
           if (mounted) {
             setState(() {
@@ -360,16 +357,13 @@ class _TakePhotoState extends State<TakePhoto> {
 
         case "STATE_CONNECTION":
           if(_cameraRemoteReady != data.cameraReady || _connRemoteReady != data.connetionReady ){
-
             if (mounted) {
               setState(() {
-
                 _cameraRemoteReady = data.cameraReady;
                 _connRemoteReady = data.connetionReady;
               });
             }
           }
-
           break;
 
         case "TIMER":
@@ -400,28 +394,17 @@ class _TakePhotoState extends State<TakePhoto> {
         case "TAKE_PHOTO":
           preTimeTakePhoto();
           break;
-
-
-
-       
       }
     });
   }
 
   void _subscribeMasterFinish() {
     mqttManager.subscribe(masterMqttFinish, (message) {
-
       Util.printInfo("Entro a Salir", "SALIR");
-
-
       switch (message) {
-
         case "APPROVE":
-
           break;
-
         case "REJECTED":
-
           break;
       }
     });
@@ -449,7 +432,6 @@ class _TakePhotoState extends State<TakePhoto> {
   }
 
   void preTimeTakePhoto(){
-
     if(_countDown == 0){
       _takePicture();
       return;
@@ -459,17 +441,14 @@ class _TakePhotoState extends State<TakePhoto> {
     _showCounter = true;
     setState(() {});
     Timer.periodic(Duration(seconds: 1), (timer) {
-
       if (_contador == 0) {
         timer.cancel();
         _showCounter = false;
         setState(() {});
         _takePicture();
       }
-
       _contador--;
       setState(() {});
-
     });
   }
 
@@ -480,7 +459,7 @@ class _TakePhotoState extends State<TakePhoto> {
       final XFile image = await _controller!.takePicture();
       final base64Image = await _convertImageToBase64(image.path);
 
-      Util.printInfo("iamge", base64Image.toString());
+      Util.printInfo("image", base64Image.toString());
 
       if (base64Image != null) {
         imageBase64_1 = base64Image;
@@ -491,17 +470,13 @@ class _TakePhotoState extends State<TakePhoto> {
         _tramaDatos.tipoMensaje = "IMAGE_CAMERA_1";
         _tramaDatos.imagen = imageBase64_1;
         _publishMessage(masterMqtt, _tramaDatos);
-
-
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     switch (_widgetState) {
-
       case WidgetState.LOADED:
         return _previewCamera(context);
 
@@ -511,7 +486,7 @@ class _TakePhotoState extends State<TakePhoto> {
       case WidgetState.ERROR_CAMERA:
         return Scaffold(
           body: Center(
-            child: Text("La cámara No se pudo Cargar. Reincie la App"),
+            child: Text("La cámara No se pudo Cargar. Reinicie la App"),
           ),
         );
 
@@ -551,18 +526,41 @@ class _TakePhotoState extends State<TakePhoto> {
       return Center(child: circularProgress(Colors.white));
     }
     final size = MediaQuery.of(context).size;
-    //sendStateConnection(true);
     double? marginRight = 20;
 
     return Scaffold(
       body: Stack(children: [
-        SizedBox(
-          width: size.width,
-          height: size.height,
-          child: RotatedBox(
-            // Rotamos *dentro* del SizedBox
-            quarterTurns: 1, // 1 para 90 grados, 2 para 180, etc.
-            child: CameraPreview(_controller!),
+        // --- ZOOM CON LOS DEDOS ---
+        GestureDetector(
+          onScaleStart: (details) {
+            _baseZoomLevel = _currentZoomLevel;
+          },
+          onScaleUpdate: (details) async {
+            if (_controller == null) return;
+
+            double zoom = _baseZoomLevel * details.scale;
+
+            if (zoom < _minAvailableZoom) {
+              zoom = _minAvailableZoom;
+            } else if (zoom > _maxAvailableZoom) {
+              zoom = _maxAvailableZoom;
+            }
+
+            _currentZoomLevel = zoom;
+
+            try {
+              await _controller!.setZoomLevel(_currentZoomLevel);
+            } catch (e) {
+              print('Error al aplicar zoom: $e');
+            }
+          },
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: RotatedBox(
+              quarterTurns: 1,
+              child: CameraPreview(_controller!),
+            ),
           ),
         ),
         Positioned(
@@ -570,7 +568,7 @@ class _TakePhotoState extends State<TakePhoto> {
           left: 10,
           child: Container(
             padding: EdgeInsets.all(8),
-            color: Colors.black.withAlpha(51), // Fondo semitransparente
+            color: Colors.black.withAlpha(51),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -589,22 +587,22 @@ class _TakePhotoState extends State<TakePhoto> {
           ),
         ),
         Positioned(
-          top: 40,
-          right: marginRight,
-          child: Icon(
-            _cameraRemoteReady ? MdiIcons.accountCheck : MdiIcons.accountOff,
-            color: _cameraRemoteReady ? Colors.white : Colors.red ,
-            size: 36.0,
-          )
+            top: 40,
+            right: marginRight,
+            child: Icon(
+              _cameraRemoteReady ? MdiIcons.accountCheck : MdiIcons.accountOff,
+              color: _cameraRemoteReady ? Colors.white : Colors.red ,
+              size: 36.0,
+            )
         ),
         Positioned(
-          top: 40,
-          right: marginRight + 40,
-          child: Icon(
-            _connRemoteReady? MdiIcons.lanConnect:MdiIcons.lanDisconnect ,
-            color: _connRemoteReady ? Colors.white : Colors.red ,
-            size: 36.0,
-          )
+            top: 40,
+            right: marginRight + 40,
+            child: Icon(
+              _connRemoteReady? MdiIcons.lanConnect:MdiIcons.lanDisconnect ,
+              color: _connRemoteReady ? Colors.white : Colors.red ,
+              size: 36.0,
+            )
         ),
         _showCounter? Center(
           child: Text(
@@ -650,10 +648,37 @@ class _TakePhotoState extends State<TakePhoto> {
                 )
             )
         ),
+
+        // --- NUEVO BOTÓN DE FLASH EN LA PARTE INFERIOR ---
+        Positioned(
+          bottom: 107,
+          left: marginRight,
+          child: IconButton(
+            onPressed: () async {
+              if (_controller == null || !_controller!.value.isInitialized) return;
+              try {
+                _isFlashOn = !_isFlashOn;
+                await _controller!.setFlashMode(
+                  _isFlashOn ? FlashMode.torch : FlashMode.off,
+                );
+                setState(() {});
+                showMsgCamera(_isFlashOn ? "  FLASH ACTIVADO !!  " : "FLASH DESACTIVADO !!");
+              } catch (e) {
+                print("Error al cambiar flash: $e");
+              }
+            },
+            icon: Icon(
+              _isFlashOn ? Icons.flash_on : Icons.flash_off,
+              color: _isFlashOn ? Colors.amber : Colors.white,
+              size: 36.0,
+            ),
+          ),
+        ),
+
         if(isLoading)
-          Stack( // Usamos otro Stack para superponer el loader sobre ModalBarrier
+          Stack(
             children: [
-              ModalBarrier( // Bloquear la interacción
+              ModalBarrier(
                 color: Colors.black.withValues(alpha: 0.5),
                 dismissible: false,
               ),
@@ -666,21 +691,6 @@ class _TakePhotoState extends State<TakePhoto> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: (() {
-        /*  if(!_connRemoteReady){
-            showMsgCamera("  SIN CONEXIÓN  !!");
-            return;
-          }
-
-          if(!_cameraLocalReady){
-            showMsgCamera("  CAMARA LOCAL NO ESTA ACTIVADA!!  ");
-            return;
-          }
-
-          if(!_cameraRemoteReady){
-            showMsgCamera("CAMARA REMOTA NO ESTA ACTIVA !!");
-            return;
-          }*/
-
           _tramaDatos.tipoMensaje = "TAKE_PHOTO";
           _publishMessage(masterMqtt, _tramaDatos);
         }),
@@ -701,20 +711,19 @@ class _TakePhotoState extends State<TakePhoto> {
           ),
           Text(
             'Foto Patrón',
-            textAlign: TextAlign.center, // Centra el texto
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontWeight: FontWeight.bold, // Texto en negrita
-              fontSize: 18.0, // Tamaño de fuente 14
+              fontWeight: FontWeight.bold,
+              fontSize: 18.0,
             ),
           ),
           InteractiveViewer(
-            minScale: 0.5, // Define el zoom mínimo (opcional)
-            maxScale: 3.0, // Define el zoom máximo (opcional)
+            minScale: 0.5,
+            maxScale: 3.0,
             child: Image.memory(
               base64Decode(imageBase64_1),
               height: 500,
-
-              fit: BoxFit.contain, // Importante: Usa BoxFit.contain
+              fit: BoxFit.contain,
             ),
           ),
           SizedBox(
@@ -731,13 +740,13 @@ class _TakePhotoState extends State<TakePhoto> {
               style: setNumberStyle(),
               decoration: InputDecoration(
                 labelText: 'Valor Foto Patrón',
-                hintText: '0,00', // Sugerencia visual
-                border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
-                borderSide: BorderSide(
-                color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
-                width: 1.0, // El grosor que deseas para el borde deshabilitado
-              ),
-            ),
+                hintText: '0,00',
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppColor.themeColor,
+                    width: 1.0,
+                  ),
+                ),
               ),
             ),
           ),
@@ -750,58 +759,56 @@ class _TakePhotoState extends State<TakePhoto> {
           ),
           Text(
             'Foto Medidor',
-            textAlign: TextAlign.center, // Centra el texto
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontWeight: FontWeight.bold, // Texto en negrita
-              fontSize: 18.0, // Tamaño de fuente 14
+              fontWeight: FontWeight.bold,
+              fontSize: 18.0,
             ),
           ),
-          (imageState == ImageState.RECEIVED)
+          (imageState == ImageState.WAITING)
               ? SizedBox(
-                  height: 500,
-                  child: Center(
-                    child: circularProgressMain(),
-                  ),
-                )
+            height: 500,
+            child: Center(
+              child: circularProgressMain(),
+            ),
+          )
               : Column(
-                children: [
-                  InteractiveViewer(
-                      minScale: 0.5, // Define el zoom mínimo (opcional)
-                      maxScale: 3.0, // Define el zoom máximo (opcional)
-                      child: Image.memory(
-                        base64Decode(imageBase64_2),
-                        height: 500,
-                        fit: BoxFit.contain, // Importante: Usa BoxFit.contain
-                      ),
-                    ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _controller2,
-
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: <TextInputFormatter>[
-                       DecimalInputFormatter(),
-                      ],
-                      style: setNumberStyle(),
-                      decoration: InputDecoration(
+            children: [
+              InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 3.0,
+                child: Image.memory(
+                  base64Decode(imageBase64_2),
+                  height: 500,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                width: 200,
+                child: TextField(
+                    controller: _controller2,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: <TextInputFormatter>[
+                      DecimalInputFormatter(),
+                    ],
+                    style: setNumberStyle(),
+                    decoration: InputDecoration(
                         labelText: 'Valor Foto Medidor',
-                        hintText: '0,00', // Sugerencia visual
-                        border: OutlineInputBorder( // Este es el borde para el estado deshabilitado
+                        hintText: '0,00',
+                        border: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: AppColor.themeColor, // El color que deseas para el borde deshabilitado
-                            width: 1.0, // El grosor que deseas para el borde deshabilitado
+                            color: AppColor.themeColor,
+                            width: 1.0,
                           ),
                         )
-                      )
-
-                    ),
-                  ),
-                ],
+                    )
+                ),
               ),
+            ],
+          ),
           SizedBox(
             height: 20,
           ),
@@ -824,15 +831,14 @@ class _TakePhotoState extends State<TakePhoto> {
     return InputDecorator(
       decoration: InputDecoration(
         border: OutlineInputBorder(
-          // Define el borde
-          borderRadius: BorderRadius.circular(10.0), // Radio de las esquinas
+          borderRadius: BorderRadius.circular(10.0),
         ),
-        filled: true, // Habilita el color de fondo
-        fillColor: Colors.white, // Color de fondo
+        filled: true,
+        fillColor: Colors.white,
         contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       ),
       child: DropdownButton<String>(
-        value: dropdownValue, // Objeto actual seleccionado
+        value: dropdownValue,
         items: commentPunto.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
             value: value,
@@ -883,17 +889,16 @@ class _TakePhotoState extends State<TakePhoto> {
             const PopupMenuItem<String>(
               value: '0',
               child: Center(
-                child: Text('0',
-                ),
+                child: Text('0'),
               ),
             ),
           ],
-          offset: Offset(0, -120), // Ajusta el desplazamiento vertical
+          offset: Offset(0, -120),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           constraints: BoxConstraints(
-            minWidth: 40, // Usa el ancho del botón
+            minWidth: 40,
             maxWidth: 40,
           ),
           child:  Icon(
@@ -902,9 +907,7 @@ class _TakePhotoState extends State<TakePhoto> {
             size: 36.0,
           ),
         ),
-
         SizedBox(height: 16),
-        //Text('Opción seleccionada: $opcionSeleccionada'),
       ],
     );
   }
@@ -915,24 +918,19 @@ class _TakePhotoState extends State<TakePhoto> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(10.0), // Radio de 10.0
+            borderRadius: BorderRadius.circular(10.0),
           ),
           backgroundColor: AppColor.redColor,
           padding: EdgeInsets.all(10.0),
         ),
         onPressed: () async {
-
           final result = await showConfirmAccept(context);
-
           if (!result){
             return;
           }
-
           sendFinishPhoto(false);
           showError("Fotos Descartada");
           Navigator.pop(context);
-
         },
         child: Text(
           'Cancelar',
@@ -953,15 +951,12 @@ class _TakePhotoState extends State<TakePhoto> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(10.0), // Radio de 10.0
+            borderRadius: BorderRadius.circular(10.0),
           ),
           backgroundColor: AppColor.themeColor,
           padding: EdgeInsets.all(10.0),
         ),
         onPressed: () {
-
-
           double? parsedValue = Util.parsedDouble(_controller1.text);
 
           if (parsedValue == null) {
@@ -975,11 +970,7 @@ class _TakePhotoState extends State<TakePhoto> {
             showError("Entrada no valida en Foto 2");
             return;
           }
-
           prueValor2 = parsedValue;
-
-          //El prueEnviado indica 1: Viene del Servidor, 2: Se creo o modifico de forma local
-
 
           if(prueId == null) {
             _addPuntPrueba(context);
@@ -992,7 +983,6 @@ class _TakePhotoState extends State<TakePhoto> {
           sendFinishPhoto(true);
           showMsg("Fotos Aceptadas");
           Navigator.pop(context);
-
         },
         child: Text(
           'Aceptar',
@@ -1011,8 +1001,7 @@ class _TakePhotoState extends State<TakePhoto> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
-          borderRadius:
-          BorderRadius.circular(10.0), // Radio de 10.0
+          borderRadius: BorderRadius.circular(10.0),
         ),
         backgroundColor: AppColor.themeColor,
         padding: EdgeInsets.all(10.0),
@@ -1028,17 +1017,16 @@ class _TakePhotoState extends State<TakePhoto> {
 
         setState(() {});
         showMsg("Fotos Intercambiadas");
-
       },
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Ajusta el Row al tamaño de sus hijos
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(
-            Icons.keyboard_double_arrow_up, // El icono que quieras al inicio
+            Icons.keyboard_double_arrow_up,
             color: Colors.white,
             size: 20.0,
           ),
-          SizedBox(width: 8.0), // Espacio entre el icono y el texto
+          SizedBox(width: 8.0),
           Text(
             'Intercambiar',
             style: TextStyle(
@@ -1046,9 +1034,9 @@ class _TakePhotoState extends State<TakePhoto> {
               fontSize: 14,
             ),
           ),
-          SizedBox(width: 8.0), // Espacio entre el texto y el icono
+          SizedBox(width: 8.0),
           Icon(
-            Icons.keyboard_double_arrow_down, // El icono que quieras al final (puedes usar otro diferente)
+            Icons.keyboard_double_arrow_down,
             color: Colors.white,
             size: 20.0,
           ),
@@ -1057,17 +1045,11 @@ class _TakePhotoState extends State<TakePhoto> {
     );
   }
 
-
-
   @override
   void dispose() {
-    //_controller1.removeListener(_onTextChanged);
     _timerConnection?.cancel();
     sendStateConnection(false, false);
     _controller?.dispose();
     super.dispose();
   }
 }
-
-
-

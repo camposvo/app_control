@@ -12,10 +12,10 @@ class MqttManager {
   final Map<String, Stream<List<MqttReceivedMessage<MqttMessage?>>?>> _topicStreams = {};
 
   MqttManager({
-    this.broker = 'mqtt2..ribe.cl',
+    this.broker = 'mqtt2.ribe.cl',
     this.port = 8883,
-    this.username = 'root',
-    this.password = '*R1b3x#99',
+    this.username = 'mqtt_ribe',
+    this.password = '*Mqtt#99',
   }) {
     // Se inicializa el cliente con el broker asignado
     client = MqttServerClient(broker, '');
