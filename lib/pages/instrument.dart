@@ -247,8 +247,14 @@ class _InstrumentState extends State<Instrument> {
 
     final stateInstrument = _filterList[index].getInreFinalizadoByReviId(info.revision!.reviId);
     final testPending = _filterList[index].getPuntPruebasPending(info.revision!.reviId);
-    final ubication = (_filterList[index].instUbicAreaNombre + " "+ _filterList[index].instUbicPisoNombre).trim();
 
+    final areaUbicacion = _filterList[index].instUbicAreaNombre ?? '';
+    final pisoUbicacion = _filterList[index].instUbicPisoNombre ?? '';
+    final ubication = '$areaUbicacion $pisoUbicacion'.trim();
+
+    final areaEspacio = _filterList[index].instEspaAreaNombre ?? '';
+    final pisoEspacio = _filterList[index].instEspaPisoNombre ?? '';
+    final espacio = '$areaEspacio $pisoEspacio'.trim();
 
     if(stateInstrument == null ||  stateInstrument == 0){
       bgColor = Colors.grey;
@@ -260,19 +266,85 @@ class _InstrumentState extends State<Instrument> {
       fontColor = Colors.white;
     }
 
-    return new Container(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Material(
+        color: bgColor,
+        elevation: 2.0,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(10), // Mejor holgura general
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    setCommonText(instrumentName, fontColor, 16.0, FontWeight.w500, 20),
+                    if (ubication.isNotEmpty) ...[
+                      const SizedBox(height: 4), // Espaciado limpio opcional
+                      setCommonText(ubication, fontColor, 14.0, FontWeight.normal, 18),
+                    ],
+                    if (espacio.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      setCommonText(espacio, fontColor, 14.0, FontWeight.normal, 18),
+                    ],
+                    const SizedBox(height: 4),
+                    setCommonText("Protección: $protection", fontColor, 16.0, FontWeight.w800, 20),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 6), // Pequeña separación de resguardo entre texto e iconos
+
+              // 2. Fila de iconos que toma SOLO el espacio estrictamente necesario
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (testPending > 0)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4),
+                      child: Icon(
+                        Icons.pending_actions,
+                        color: Colors.white,
+                        size: 24.0,
+                      ),
+                    ),
+                  IconButton(
+                    constraints: const BoxConstraints(), // Elimina padding extra por defecto del IconButton
+                    padding: EdgeInsets.zero,
+                    onPressed: () async {
+                      await _showEdit(context, _filterList[index]);
+                    },
+                    icon: Icon(
+                      Icons.edit,
+                      color: AppColor.orangeColor,
+                      size: 24.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+   /* return new Container(
       padding: EdgeInsets.only(top: 5, bottom: 5),
       child: Material(
         color:  bgColor,
         elevation: 2.0,
         borderRadius: BorderRadius.circular(10),
         child: new Padding(
-          padding: new EdgeInsets.all(8),
+          padding: new EdgeInsets.all(6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               SizedBox(
-                width: 200,
+                width: 230,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -282,12 +354,7 @@ class _InstrumentState extends State<Instrument> {
                     ),
                     setCommonText(instrumentName, fontColor, 16.0, FontWeight.w500, 20),
                     if(ubication.isNotEmpty)setCommonText(ubication, fontColor, 16.0, FontWeight.w500, 20),
-                   /* Row(
-                      children: [
-                        setCommonText( _filterList[index].instUbicAreaNombre + " " , fontColor, 16.0, FontWeight.w500, 20),
-                        setCommonText( _filterList[index].instUbicPisoNombre , fontColor, 16.0, FontWeight.w500, 20),
-                      ],
-                    ),*/
+                    if(espacio.isNotEmpty)setCommonText(espacio, fontColor, 16.0, FontWeight.w500, 20),
                     setCommonText("Protección: "+ protection.toString(), fontColor, 16.0, FontWeight.w800, 20),
 
                   ],
@@ -295,7 +362,7 @@ class _InstrumentState extends State<Instrument> {
               ),
               Row(
                 children: [
-                  if(testPending > 0 ) Icon(
+                  if(! (testPending > 0) ) Icon(
                     Icons.pending_actions,
                     color: Colors.white,
                     size: 24.0,
@@ -310,18 +377,13 @@ class _InstrumentState extends State<Instrument> {
                       size: 24.0,
                     ),
                   ),
-                /*  Icon(
-                    Icons.cloud_done_sharp,
-                    color: Colors.white,
-                    size: 24.0,
-                  ),*/
                 ],
               ),
             ],
           ),
         ),
       ),
-    );
+    );*/
   }
 
   Future<void>  _showEdit(BuildContext context, OrgaInstrumentoElement selectedInstrument) async {
